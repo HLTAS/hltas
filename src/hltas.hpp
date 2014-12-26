@@ -21,6 +21,8 @@ namespace HLTAS
 
 	protected:
 		int OpenInternal(const std::string& filename);
+		void ReadProperties(std::ifstream& file);
+		void ReadFrames(std::ifstream& file);
 		std::shared_future<int> FinishedReading;
 
 		int version;

@@ -44,7 +44,6 @@ namespace HLTAS
 
 	int Input::OpenInternal(const std::string& filename)
 	{
-		version = 0;
 		properties.clear();
 		frames.clear();
 
@@ -66,7 +65,20 @@ namespace HLTAS
 			return ErrorCode::FAILVER;
 		}
 
+		ReadProperties(file);
+		ReadFrames(file);
+
 		return ErrorCode::OK;
+	}
+
+	void Input::ReadProperties(std::ifstream& file)
+	{
+
+	}
+
+	void Input::ReadFrames(std::ifstream& file)
+	{
+		
 	}
 
 	std::unordered_map<std::string, std::string>& Input::GetProperties()
