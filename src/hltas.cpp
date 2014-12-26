@@ -20,6 +20,16 @@ namespace HLTAS
 		"Failed to read the version."
 	};
 
+	void Input::Clear()
+	{
+		// If we're reading some file, wait for it to finish.
+		if (FinishedReading.valid())
+			FinishedReading.wait();
+
+		properties.clear();
+		frames.clear();
+	}
+
 	std::shared_future<int> Input::Open(const std::string& filename)
 	{
 		FinishedReading = std::async(&Input::OpenInternal, this, filename);
@@ -61,16 +71,16 @@ namespace HLTAS
 
 	std::unordered_map<std::string, std::string>& Input::GetProperties()
 	{
-		assert(FinishedReading.valid());
-		FinishedReading.wait();
+		if (FinishedReading.valid())
+			FinishedReading.wait();
 
 		return properties;
 	}
 
 	std::vector<Frame>& Input::GetFrames()
 	{
-		assert(FinishedReading.valid());
-		FinishedReading.wait();
+		if (FinishedReading.valid())
+			FinishedReading.wait();
 
 		return frames;
 	}

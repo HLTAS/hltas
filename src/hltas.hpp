@@ -13,6 +13,7 @@ namespace HLTAS
 	{
 	public:
 		std::shared_future<int> Open(const std::string& filename);
+		void Clear();
 		std::unordered_map<std::string, std::string>& GetProperties();
 		std::vector<Frame>& GetFrames();
 
