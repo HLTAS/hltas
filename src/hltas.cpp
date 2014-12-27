@@ -3,24 +3,28 @@
 #include <future>
 #include <iostream>
 #include <string>
+#include <utility>
 
 #include "hltas.hpp"
 
 namespace HLTAS
 {
-	enum ErrorCode {
-		OK = 0,
-		FAILOPEN,
-		FAILVER,
-		NOTSUPPORTED
-	};
-
-	static const std::string ErrorDescriptions[] =
+	static const std::string ErrorMessages[] =
 	{
 		"Failed to open the file.",
 		"Failed to read the version.",
-		"This version is not supported."
+		"This version is not supported.",
+		"Failed to read property."
 	};
+
+	static auto SplitProperty(const std::string& line)
+	{
+		auto space = line.find(' ');
+		if (space != std::string::npos)
+			return std::make_pair(line.substr(0, space), line.substr(space + 1, std::string::npos));
+		else
+			return std::make_pair(line, std::string());
+	}
 
 	void Input::Clear()
 	{
@@ -32,7 +36,7 @@ namespace HLTAS
 		Frames.clear();
 	}
 
-	std::shared_future<int> Input::Open(const std::string& filename)
+	std::shared_future<ErrorDescription> Input::Open(const std::string& filename)
 	{
 		Clear();
 
@@ -40,45 +44,76 @@ namespace HLTAS
 		return FinishedReading;
 	}
 
-	const std::string& Input::GetErrorDescription(int errorCode)
+	const std::string& Input::GetErrorMessage(ErrorDescription error)
 	{
-		assert(errorCode > 0);
-		return ErrorDescriptions[errorCode - 1];
+		assert(error.Code > 0);
+		return ErrorMessages[error.Code - 1];
 	}
 
-	int Input::OpenInternal(const std::string& filename)
+	ErrorDescription Input::Error(ErrorCode code)
 	{
+		return ErrorDescription { code, CurrentLineNumber };
+	}
+
+	ErrorDescription Input::OpenInternal(const std::string& filename)
+	{
+		CurrentLineNumber = 1;
 		std::ifstream file(filename);
 		if (!file)
-			return ErrorCode::FAILOPEN;
+			return Error(FAILOPEN);
 
 		// Read and check the version.
 		std::string temp;
 		std::getline(file, temp, ' ');
 		if (file.fail() || temp != "version")
-			return ErrorCode::FAILVER;
+			return Error(FAILVER);
 		std::getline(file, temp);
 		if (file.fail() || temp.empty())
-			return ErrorCode::FAILVER;
+			return Error(FAILVER);
 		try {
 			Version = std::stoi(temp);
 		} catch (...) {
-			return ErrorCode::FAILVER;
+			return Error(FAILVER);
 		}
 		if (Version <= 0)
-			return ErrorCode::FAILVER;
+			return Error(FAILVER);
 		if (Version > MAX_SUPPORTED_VERSION)
-			return ErrorCode::NOTSUPPORTED;
+			return Error(NOTSUPPORTED);
 
-		ReadProperties(file);
-		ReadFrames(file);
+		try {
+			ReadProperties(file);
+			ReadFrames(file);
+		} catch (ErrorCode error) {
+			return Error(error);
+		}
 
-		return ErrorCode::OK;
+		return Error(OK);
 	}
 
 	void Input::ReadProperties(std::ifstream& file)
 	{
+		while (file.good()) {
+			CurrentLineNumber++;
 
+			std::string line;
+			std::getline(file, line);
+			if (file.fail())
+				throw FAILPROP;
+			
+			// Empty line.
+			if (line.empty())
+				continue;
+			// Comments.
+			if (!line.find("//"))
+				continue;
+
+			// Frame data ahead.
+			if (line == "frames")
+				return;
+
+			auto prop = SplitProperty(line);
+			Properties[prop.first] = prop.second;
+		}
 	}
 
 	void Input::ReadFrames(std::ifstream& file)
