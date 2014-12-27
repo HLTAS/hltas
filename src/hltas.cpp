@@ -26,12 +26,14 @@ namespace HLTAS
 		if (FinishedReading.valid())
 			FinishedReading.wait();
 
-		properties.clear();
-		frames.clear();
+		Properties.clear();
+		Frames.clear();
 	}
 
 	std::shared_future<int> Input::Open(const std::string& filename)
 	{
+		Clear();
+
 		FinishedReading = std::async(&Input::OpenInternal, this, filename);
 		return FinishedReading;
 	}
@@ -44,9 +46,6 @@ namespace HLTAS
 
 	int Input::OpenInternal(const std::string& filename)
 	{
-		properties.clear();
-		frames.clear();
-
 		std::ifstream file(filename);
 		if (!file)
 			return ErrorCode::FAILOPEN;
@@ -60,7 +59,7 @@ namespace HLTAS
 		if (file.fail() || temp.empty())
 			return ErrorCode::FAILVER;
 		try {
-			version = std::stoi(temp);
+			Version = std::stoi(temp);
 		} catch (...) {
 			return ErrorCode::FAILVER;
 		}
@@ -86,7 +85,7 @@ namespace HLTAS
 		if (FinishedReading.valid())
 			FinishedReading.wait();
 
-		return properties;
+		return Properties;
 	}
 
 	std::vector<Frame>& Input::GetFrames()
@@ -94,6 +93,6 @@ namespace HLTAS
 		if (FinishedReading.valid())
 			FinishedReading.wait();
 
-		return frames;
+		return Frames;
 	}
 }

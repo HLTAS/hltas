@@ -25,8 +25,8 @@ namespace HLTAS
 		void ReadFrames(std::ifstream& file);
 		std::shared_future<int> FinishedReading;
 
-		int version;
-		std::unordered_map<std::string, std::string> properties;
-		std::vector<Frame> frames;
+		int Version;
+		std::unordered_map<std::string, std::string> Properties;
+		std::vector<Frame> Frames;
 	};
 }
