@@ -5,6 +5,8 @@
 
 namespace HLTAS
 {
+	const int MAX_SUPPORTED_VERSION = 1;
+
 	struct Frame {
 
 	};
@@ -14,6 +16,8 @@ namespace HLTAS
 	public:
 		std::shared_future<int> Open(const std::string& filename);
 		void Clear();
+
+		int GetVersion();
 		std::unordered_map<std::string, std::string>& GetProperties();
 		std::vector<Frame>& GetFrames();
 

@@ -11,13 +11,15 @@ namespace HLTAS
 	enum ErrorCode {
 		OK = 0,
 		FAILOPEN,
-		FAILVER
+		FAILVER,
+		NOTSUPPORTED
 	};
 
 	static const std::string ErrorDescriptions[] =
 	{
 		"Failed to open the file.",
-		"Failed to read the version."
+		"Failed to read the version.",
+		"This version is not supported."
 	};
 
 	void Input::Clear()
@@ -50,7 +52,7 @@ namespace HLTAS
 		if (!file)
 			return ErrorCode::FAILOPEN;
 
-		// Read the version.
+		// Read and check the version.
 		std::string temp;
 		std::getline(file, temp, ' ');
 		if (file.fail() || temp != "version")
@@ -63,6 +65,10 @@ namespace HLTAS
 		} catch (...) {
 			return ErrorCode::FAILVER;
 		}
+		if (Version <= 0)
+			return ErrorCode::FAILVER;
+		if (Version > MAX_SUPPORTED_VERSION)
+			return ErrorCode::NOTSUPPORTED;
 
 		ReadProperties(file);
 		ReadFrames(file);
@@ -78,6 +84,14 @@ namespace HLTAS
 	void Input::ReadFrames(std::ifstream& file)
 	{
 		
+	}
+
+	int Input::GetVersion()
+	{
+		if (FinishedReading.valid())
+			FinishedReading.wait();
+
+		return Version;
 	}
 
 	std::unordered_map<std::string, std::string>& Input::GetProperties()
