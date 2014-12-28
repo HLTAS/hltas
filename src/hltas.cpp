@@ -1,10 +1,12 @@
-#include <boost/algorithm/string/trim.hpp>
+#include <algorithm>
 #include <cassert>
 #include <fstream>
 #include <future>
 #include <iostream>
+#include <locale>
 #include <string>
 #include <utility>
+#include <boost/algorithm/string/trim.hpp>
 
 #include "hltas.hpp"
 
@@ -24,11 +26,20 @@ namespace HLTAS
 		auto propertyLine = line.substr(0, commentPos);
 		boost::trim(propertyLine);
 
+		// Find the first whitespace character.
+		auto space = std::find_if(propertyLine.begin(), propertyLine.end(), std::function<bool (const std::string::value_type&)>(
+			[](const std::string::value_type& c) -> bool {
+				return std::isspace(c, std::locale());
+			}
+		));
+
 		std::string property, value;
-		auto space = propertyLine.find(' ');
-		property = propertyLine.substr(0, space);
-		if (space != std::string::npos)
-			value = boost::trim_left_copy(propertyLine.substr(space + 1, std::string::npos));
+		std::move(propertyLine.begin(), space, std::back_inserter(property));
+		if (space != propertyLine.end())
+		{
+			std::move(++space, propertyLine.end(), std::back_inserter(value));
+			boost::trim_left(value);
+		}
 
 		return std::make_pair(property, value);
 	}
@@ -112,7 +123,7 @@ namespace HLTAS
 				continue;
 			if (prop.first == "frames")
 				return;
-			
+
 			Properties[prop.first] = prop.second;
 		}
 	}
