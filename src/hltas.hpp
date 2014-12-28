@@ -22,8 +22,8 @@ namespace HLTAS
 
 	struct Frame {
 		bool Strafe;
-		int StrafeType;
-		int StrafeDir;
+		unsigned char StrafeType;
+		unsigned char StrafeDir;
 		bool Lgagst;
 		bool LgagstFullMaxspeed;
 		unsigned LgagstTimes;
@@ -59,16 +59,11 @@ namespace HLTAS
 
 		union {
 			float Yaw;
-			bool Dir;
 			struct {
 				float X, Y;
 			};
 		};
-
-		union {
-			float Pitch;
-			bool Dir;
-		};
+		float Pitch;
 
 		unsigned Waits;
 		std::string Commands;
