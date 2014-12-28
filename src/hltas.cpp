@@ -27,11 +27,12 @@ namespace HLTAS
 		boost::trim(propertyLine);
 
 		// Find the first whitespace character.
-		auto space = std::find_if(propertyLine.begin(), propertyLine.end(), std::function<bool (const std::string::value_type&)>(
-			[](const std::string::value_type& c) -> bool {
-				return std::isspace(c, std::locale());
-			}
-		));
+		auto space = std::find_if(propertyLine.begin(), propertyLine.end(),
+			std::function<bool (const std::string::value_type&)>(
+				[](const std::string::value_type& c) -> bool {
+					return std::isspace(c, std::locale());
+				}
+			));
 
 		std::string property, value;
 		std::move(propertyLine.begin(), space, std::back_inserter(property));

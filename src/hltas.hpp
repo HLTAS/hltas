@@ -21,7 +21,57 @@ namespace HLTAS
 	};
 
 	struct Frame {
+		bool Strafe;
+		int StrafeType;
+		int StrafeDir;
+		bool Lgagst;
+		bool LgagstFullMaxspeed;
+		unsigned LgagstTimes;
+		bool Autojump;
+		unsigned AutojumpTimes;
+		bool Ducktap;
+		unsigned DucktapTimes;
+		bool Jumpbug;
+		unsigned JumpbugTimes;
+		bool Dbc;
+		bool DbcCeilings;
+		unsigned DbcTimes;
+		bool Dbg;
+		unsigned DbgTimes;
+		bool Dwj;
+		unsigned DwjTimes;
 
+		bool Forward;
+		bool Left;
+		bool Right;
+		bool Back;
+		bool Up;
+		bool Down;
+
+		bool Jump;
+		bool Duck;
+		bool Use;
+		bool Attack1;
+		bool Attack2;
+		bool Reload;
+
+		float Frametime;
+
+		union {
+			float Yaw;
+			bool Dir;
+			struct {
+				float X, Y;
+			};
+		};
+
+		union {
+			float Pitch;
+			bool Dir;
+		};
+
+		unsigned Waits;
+		std::string Commands;
 	};
 
 	class Input
