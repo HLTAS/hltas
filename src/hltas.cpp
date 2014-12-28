@@ -1,3 +1,4 @@
+#include <boost/algorithm/string/trim.hpp>
 #include <cassert>
 #include <fstream>
 #include <future>
@@ -19,11 +20,17 @@ namespace HLTAS
 
 	static auto SplitProperty(const std::string& line)
 	{
-		auto space = line.find(' ');
+		auto commentPos = line.find("//");
+		auto propertyLine = line.substr(0, commentPos);
+		boost::trim(propertyLine);
+
+		std::string property, value;
+		auto space = propertyLine.find(' ');
+		property = propertyLine.substr(0, space);
 		if (space != std::string::npos)
-			return std::make_pair(line.substr(0, space), line.substr(space + 1, std::string::npos));
-		else
-			return std::make_pair(line, std::string());
+			value = boost::trim_left_copy(propertyLine.substr(space + 1, std::string::npos));
+
+		return std::make_pair(property, value);
 	}
 
 	void Input::Clear()
@@ -99,19 +106,13 @@ namespace HLTAS
 			std::getline(file, line);
 			if (file.fail())
 				throw FAILPROP;
-			
-			// Empty line.
-			if (line.empty())
-				continue;
-			// Comments.
-			if (!line.find("//"))
-				continue;
-
-			// Frame data ahead.
-			if (line == "frames")
-				return;
 
 			auto prop = SplitProperty(line);
+			if (prop.first.empty())
+				continue;
+			if (prop.first == "frames")
+				return;
+			
 			Properties[prop.first] = prop.second;
 		}
 	}
