@@ -24,7 +24,7 @@ namespace HLTAS
 		"Failed parsing the frame data."
 	};
 
-	static auto SplitProperty(const std::string& line)
+	static std::pair<std::string, std::string> SplitProperty(const std::string& line)
 	{
 		auto commentPos = line.find("//");
 		auto propertyLine = line.substr(0, commentPos);
