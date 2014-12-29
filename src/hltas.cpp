@@ -181,7 +181,7 @@ namespace HLTAS
 			for (auto it = tok.begin(); it != tok.end(); ++it, ++fieldCounter) {
 				switch (fieldCounter) {
 				case 0:
-					auto str = std::move(*it);
+					auto str(std::move(*it));
 					auto l = str.length();
 					if (l < 10)
 						throw FAILFRAME;
@@ -214,7 +214,6 @@ namespace HLTAS
 					READ('j', Autojump)
 					READ('d', Ducktap)
 					READ('b', Jumpbug)
-
 
 					pos++;
 					if (l <= pos)
