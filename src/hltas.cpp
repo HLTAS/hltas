@@ -7,6 +7,7 @@
 #include <string>
 #include <utility>
 #include <boost/algorithm/string/trim.hpp>
+#include <boost/tokenizer.hpp>
 
 #include "hltas.hpp"
 
@@ -17,7 +18,9 @@ namespace HLTAS
 		"Failed to open the file.",
 		"Failed to read the version.",
 		"This version is not supported.",
-		"Failed to read property."
+		"Failed to read line.",
+		"Save name is required.",
+		"Failed parsing the frame data."
 	};
 
 	static auto SplitProperty(const std::string& line)
@@ -43,6 +46,21 @@ namespace HLTAS
 		}
 
 		return std::make_pair(property, value);
+	}
+
+	static unsigned ReadNumber(const char* str, std::size_t* pos)
+	{
+		unsigned ret = 0;
+		if (!str)
+			return ret;
+		while (std::isdigit(*str)) {
+			ret *= 10;
+			ret += *str - '0';
+			str++;
+			if (pos)
+				(*pos)++;
+		}
+		return ret;
 	}
 
 	void Input::Clear()
@@ -117,7 +135,7 @@ namespace HLTAS
 			std::string line;
 			std::getline(file, line);
 			if (file.fail())
-				throw FAILPROP;
+				throw FAILLINE;
 
 			auto prop = SplitProperty(line);
 			if (prop.first.empty())
@@ -131,7 +149,96 @@ namespace HLTAS
 
 	void Input::ReadFrames(std::ifstream& file)
 	{
-		
+		std::string commentString;
+		while (file.good()) {
+			CurrentLineNumber++;
+
+			std::string line;
+			std::getline(file, line);
+			if (file.fail())
+				throw FAILLINE;
+			if (line.empty())
+				continue;
+
+			// TODO: Profile and check if std::move is faster.
+			if (!line.compare(0, 2, "//"))
+				commentString += line.substr(2, std::string::npos) + '\n';
+			if (!line.compare(0, 5, "save ")) {
+				if (line.length() < 6)
+					throw NOSAVENAME;
+				Frame f = {};
+				f.Comments = commentString;
+				f.SaveName = line.substr(5, std::string::npos);
+				Frames.push_back(f);
+				commentString.clear();
+				continue;
+			}
+
+			Frame f = {};
+
+			unsigned fieldCounter = 0;
+			boost::tokenizer< boost::char_separator<char> > tok(line, boost::char_separator<char>("|"));
+			for (auto it = tok.begin(); it != tok.end(); ++it, ++fieldCounter) {
+				switch (fieldCounter) {
+				case 0:
+					auto str = std::move(*it);
+					auto l = str.length();
+					if (l < 10)
+						throw FAILFRAME;
+
+					if (str[0] == 's' && std::isdigit(str[1]) && std::isdigit(str[2])) {
+						f.Strafe = true;
+						f.StrafeType = str[1] - '0';
+						f.StrafeDir = str[2] - '0';
+					} else if (str[0] != '-' || str[1] != '-' || str[2] != '-')
+						throw FAILFRAME;
+
+					std::size_t pos = 3;
+					if (str[pos] == 'l' || str[pos] == 'L') {
+						f.Lgagst = true;
+						f.LgagstFullMaxspeed = (str[pos] == 'L');
+						f.LgagstTimes = ReadNumber(str.c_str() + pos + 1, &pos);
+					} else if (str[pos] != '-')
+						throw FAILFRAME;
+
+					#define READ(c, field) \
+						pos++; \
+						if (l <= pos) \
+							throw FAILFRAME; \
+						if (str[pos] == c) { \
+							f.##field = true; \
+							f.##field##Times = ReadNumber(str.c_str() + pos + 1, &pos); \
+						} else if (str[pos] != '-') \
+							throw FAILFRAME;
+
+					READ('j', Autojump)
+					READ('d', Ducktap)
+					READ('b', Jumpbug)
+
+
+					pos++;
+					if (l <= pos)
+						throw FAILFRAME;
+					if (str[pos] == 'c' || str[pos] == 'C') {
+						f.Dbc = true;
+						f.DbcCeilings = (str[pos] == 'C');
+						f.DbcTimes = ReadNumber(str.c_str() + pos + 1, &pos);
+					} else if (str[pos] != '-')
+						throw FAILFRAME;
+
+					READ('g', Dbg)
+					READ('w', Dwj)
+
+					#undef READ
+
+					break;
+				}
+			}
+
+			std::move(commentString.begin(), commentString.end(), std::back_inserter(f.Comments));
+			Frames.push_back(f);
+			commentString.clear();
+		}
 	}
 
 	int Input::GetVersion()

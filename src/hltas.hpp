@@ -12,7 +12,9 @@ namespace HLTAS
 		FAILOPEN,
 		FAILVER,
 		NOTSUPPORTED,
-		FAILPROP
+		FAILLINE,
+		NOSAVENAME,
+		FAILFRAME
 	};
 
 	struct ErrorDescription {
@@ -65,8 +67,11 @@ namespace HLTAS
 		};
 		float Pitch;
 
-		unsigned Waits;
+		unsigned Frames;
 		std::string Commands;
+		std::string Comments;
+
+		std::string SaveName;
 	};
 
 	class Input
