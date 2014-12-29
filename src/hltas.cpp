@@ -221,8 +221,8 @@ namespace HLTAS
 						if (l <= pos) \
 							throw FAILFRAME; \
 						if (str[pos] == c) { \
-							f.##field = true; \
-							f.##field##Times = ReadNumber(str.c_str() + pos + 1, &pos); \
+							f.field = true; \
+							f.field##Times = ReadNumber(str.c_str() + pos + 1, &pos); \
 						} else if (str[pos] != '-') \
 							throw FAILFRAME;
 
@@ -255,7 +255,7 @@ namespace HLTAS
 					std::size_t pos = 0;
 					#define READ(c, field) \
 						if (str[pos] == c) \
-							f.##field = true; \
+							f.field = true; \
 						else if (str[pos] != '-') \
 							throw FAILFRAME; \
 						pos++;
@@ -279,7 +279,7 @@ namespace HLTAS
 					std::size_t pos = 0;
 					#define READ(c, field) \
 						if (str[pos] == c) \
-							f.##field = true; \
+							f.field = true; \
 						else if (str[pos] != '-') \
 							throw FAILFRAME; \
 						pos++;
@@ -319,7 +319,7 @@ namespace HLTAS
 					f.YawPresent = true;
 					auto s = str.c_str();
 					if (f.Dir == StrafeDir::POINT) {
-						char* s2;
+						char *s2;
 						f.X = std::strtod(s, &s2);
 						f.Y = std::strtod(s2, nullptr);
 					} else {
