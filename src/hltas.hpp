@@ -22,10 +22,25 @@ namespace HLTAS
 		unsigned LineNumber;
 	};
 
+	enum StrafeType : unsigned char {
+		MAXACCEL = 0,
+		MAXANGLE,
+		MAXDECCEL,
+		CONSTSPEED
+	};
+
+	enum StrafeDir : unsigned char {
+		LEFT = 0,
+		RIGHT,
+		YAW,
+		POINT,
+		LINE
+	};
+
 	struct Frame {
 		bool Strafe;
-		unsigned char StrafeType;
-		unsigned char StrafeDir;
+		StrafeType Type;
+		StrafeDir Dir;
 		bool Lgagst;
 		bool LgagstFullMaxspeed;
 		unsigned LgagstTimes;
@@ -59,13 +74,15 @@ namespace HLTAS
 
 		float Frametime;
 
+		bool YawPresent;
 		union {
-			float Yaw;
+			double Yaw;
 			struct {
-				float X, Y;
+				double X, Y;
 			};
 		};
-		float Pitch;
+		bool PitchPresent;
+		double Pitch;
 
 		unsigned Frames;
 		std::string Commands;

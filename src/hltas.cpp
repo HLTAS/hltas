@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <cassert>
+#include <cstdlib>
 #include <fstream>
 #include <future>
 #include <iostream>
@@ -150,6 +151,8 @@ namespace HLTAS
 	void Input::ReadFrames(std::ifstream& file)
 	{
 		std::string commentString;
+		bool firstFrameOfStrafing = false; // For viewangles checking.
+		bool strafing = false; // For viewangles checking.
 		while (file.good()) {
 			CurrentLineNumber++;
 
@@ -161,8 +164,10 @@ namespace HLTAS
 				continue;
 
 			// TODO: Profile and check if std::move is faster.
-			if (!line.compare(0, 2, "//"))
+			if (!line.compare(0, 2, "//")) {
 				commentString += line.substr(2, std::string::npos) + '\n';
+				continue;
+			}
 			if (!line.compare(0, 5, "save ")) {
 				if (line.length() < 6)
 					throw NOSAVENAME;
@@ -175,23 +180,33 @@ namespace HLTAS
 			}
 
 			Frame f = {};
-
 			unsigned fieldCounter = 0;
 			boost::tokenizer< boost::char_separator<char> > tok(line, boost::char_separator<char>("|"));
 			for (auto it = tok.begin(); it != tok.end(); ++it, ++fieldCounter) {
+				auto str(std::move(*it));
+				boost::trim(str);
+				auto l = str.length();
 				switch (fieldCounter) {
 				case 0:
-					auto str(std::move(*it));
-					auto l = str.length();
+				{
 					if (l < 10)
 						throw FAILFRAME;
 
 					if (str[0] == 's' && std::isdigit(str[1]) && std::isdigit(str[2])) {
 						f.Strafe = true;
-						f.StrafeType = str[1] - '0';
-						f.StrafeDir = str[2] - '0';
+						f.Type = static_cast<StrafeType>(str[1] - '0');
+						f.Dir = static_cast<StrafeDir>(str[2] - '0');
+						if (!strafing)
+							firstFrameOfStrafing = true;
+						else
+							firstFrameOfStrafing = false;
+						strafing = true;
 					} else if (str[0] != '-' || str[1] != '-' || str[2] != '-')
 						throw FAILFRAME;
+					if (!f.Strafe) {
+						strafing = false;
+						firstFrameOfStrafing = false;
+					}
 
 					std::size_t pos = 3;
 					if (str[pos] == 'l' || str[pos] == 'L') {
@@ -229,9 +244,125 @@ namespace HLTAS
 					READ('w', Dwj)
 
 					#undef READ
+				}
+					break;
 
+				case 1:
+				{
+					if (l != 6)
+						throw FAILFRAME;
+
+					std::size_t pos = 0;
+					#define READ(c, field) \
+						if (str[pos] == c) \
+							f.##field = true; \
+						else if (str[pos] != '-') \
+							throw FAILFRAME; \
+						pos++;
+
+					READ('f', Forward)
+					READ('l', Left)
+					READ('r', Right)
+					READ('b', Back)
+					READ('u', Up)
+					READ('d', Down)
+
+					#undef READ
+				}
+					break;
+
+				case 2:
+				{
+					if (l != 6)
+						throw FAILFRAME;
+
+					std::size_t pos = 0;
+					#define READ(c, field) \
+						if (str[pos] == c) \
+							f.##field = true; \
+						else if (str[pos] != '-') \
+							throw FAILFRAME; \
+						pos++;
+
+					READ('j', Jump)
+					READ('d', Duck)
+					READ('u', Use)
+					READ('1', Attack1)
+					READ('2', Attack2)
+					READ('r', Reload)
+
+					#undef READ
+				}
+					break;
+
+				case 3:
+				{
+					if (l == 0)
+						throw FAILFRAME;
+
+					f.Frametime = std::strtof(str.c_str(), nullptr);
+				}
+					break;
+
+				case 4:
+				{
+					if (l == 0)
+						throw FAILFRAME;
+
+					if (str[0] == '-') {
+						if (firstFrameOfStrafing)
+							throw FAILFRAME;
+						else
+							break;
+					}
+
+					f.YawPresent = true;
+					auto s = str.c_str();
+					if (f.Dir == StrafeDir::POINT) {
+						char* s2;
+						f.X = std::strtod(s, &s2);
+						f.Y = std::strtod(s2, nullptr);
+					} else {
+						f.Yaw = std::atof(s);
+					}
+				}
+					break;
+
+				case 5:
+				{
+					if (l == 0)
+						throw FAILFRAME;
+
+					if (str[0] == '-')
+						break;
+
+					f.PitchPresent = true;
+					f.Pitch = std::atof(str.c_str());
+				}
+					break;
+
+				case 6:
+				{
+					if (l == 0)
+						throw FAILFRAME;
+
+					f.Frames = ReadNumber(str.c_str(), nullptr);
+				}
 					break;
 				}
+			}
+
+			if (f.Frames == 0)
+				f.Frames = 1;
+
+			if (fieldCounter >= 7) {
+				int sep = 0;
+				std::size_t pos = 0;
+				for (; sep != 7; ++pos)
+					if (line[pos] == '|')
+						sep++;
+
+				f.Commands = line.substr(pos, std::string::npos);
 			}
 
 			std::move(commentString.begin(), commentString.end(), std::back_inserter(f.Comments));
