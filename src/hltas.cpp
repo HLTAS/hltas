@@ -6,8 +6,10 @@
 #include <iostream>
 #include <locale>
 #include <string>
+#include <sstream>
 #include <utility>
 #include <boost/algorithm/string/trim.hpp>
+#include <boost/format.hpp>
 #include <boost/tokenizer.hpp>
 
 #include "hltas.hpp"
@@ -21,7 +23,8 @@ namespace HLTAS
 		"This version is not supported.",
 		"Failed to read line.",
 		"Save name is required.",
-		"Failed parsing the frame data."
+		"Failed parsing the frame data.",
+		"Failed to write data to the file."
 	};
 
 	static std::pair<std::string, std::string> SplitProperty(const std::string& line)
@@ -67,8 +70,8 @@ namespace HLTAS
 	void Input::Clear()
 	{
 		// If we're reading some file, wait for it to finish.
-		if (FinishedReading.valid())
-			FinishedReading.wait();
+		if (FinishedOperation.valid())
+			FinishedOperation.wait();
 
 		Properties.clear();
 		Frames.clear();
@@ -78,8 +81,17 @@ namespace HLTAS
 	{
 		Clear();
 
-		FinishedReading = std::async(&Input::OpenInternal, this, filename);
-		return FinishedReading;
+		FinishedOperation = std::async(&Input::OpenInternal, this, filename);
+		return FinishedOperation;
+	}
+
+	std::shared_future<ErrorDescription> Input::Save(const std::string& filename, int version)
+	{
+		if (FinishedOperation.valid())
+			FinishedOperation.wait();
+
+		FinishedOperation = std::async(&Input::SaveInternal, this, filename, version);
+		return FinishedOperation;
 	}
 
 	const std::string& Input::GetErrorMessage(ErrorDescription error)
@@ -152,7 +164,7 @@ namespace HLTAS
 	{
 		std::string commentString;
 		bool firstFrameOfStrafing = false; // For viewangles checking.
-		bool strafing = false; // For viewangles checking.
+		int strafeDir = -1; // For viewangles checking.
 		while (file.good()) {
 			CurrentLineNumber++;
 
@@ -196,15 +208,15 @@ namespace HLTAS
 						f.Strafe = true;
 						f.Type = static_cast<StrafeType>(str[1] - '0');
 						f.Dir = static_cast<StrafeDir>(str[2] - '0');
-						if (!strafing)
+						if (strafeDir != f.Dir)
 							firstFrameOfStrafing = true;
 						else
 							firstFrameOfStrafing = false;
-						strafing = true;
+						strafeDir = f.Dir;
 					} else if (str[0] != '-' || str[1] != '-' || str[2] != '-')
 						throw FAILFRAME;
 					if (!f.Strafe) {
-						strafing = false;
+						strafeDir = -1;
 						firstFrameOfStrafing = false;
 					}
 
@@ -299,14 +311,18 @@ namespace HLTAS
 				{
 					if (l == 0)
 						throw FAILFRAME;
+					if (!std::isdigit(str[0]) && str[0] != '-')
+						throw FAILFRAME;
 
-					f.Frametime = std::strtof(str.c_str(), nullptr);
+					std::move(str.begin(), str.end(), std::back_inserter(f.Frametime));
 				}
 					break;
 
 				case 4:
 				{
 					if (l == 0)
+						throw FAILFRAME;
+					if (!std::isdigit(str[0]) && str[0] != '-')
 						throw FAILFRAME;
 
 					if (str[0] == '-') {
@@ -332,6 +348,8 @@ namespace HLTAS
 				{
 					if (l == 0)
 						throw FAILFRAME;
+					if (!std::isdigit(str[0]) && str[0] != '-')
+						throw FAILFRAME;
 
 					if (str[0] == '-')
 						break;
@@ -345,15 +363,20 @@ namespace HLTAS
 				{
 					if (l == 0)
 						throw FAILFRAME;
+					if (!std::isdigit(str[0]) && str[0] != '-')
+						throw FAILFRAME;
 
-					f.Frames = ReadNumber(str.c_str(), nullptr);
+					f.Repeats = ReadNumber(str.c_str(), nullptr);
 				}
 					break;
 				}
 			}
 
-			if (f.Frames == 0)
-				f.Frames = 1;
+			if (!f.YawPresent && firstFrameOfStrafing)
+				throw FAILFRAME;
+
+			if (f.Repeats == 0)
+				f.Repeats = 1;
 
 			if (fieldCounter >= 7) {
 				int sep = 0;
@@ -371,26 +394,158 @@ namespace HLTAS
 		}
 	}
 
+	ErrorDescription Input::SaveInternal(const std::string& filename, int version)
+	{
+		CurrentLineNumber = 1;
+		std::ofstream file(filename);
+		if (!file)
+			return Error(FAILOPEN);
+
+		file << "version " << version << '\n';
+		if (file.fail())
+			return Error(FAILWRITE);
+
+		for (auto prop : Properties) {
+			CurrentLineNumber++;
+			file << prop.first;
+			if (!prop.second.empty())
+				file << ' ' << prop.second;
+			file << '\n';
+			if (file.fail())
+				return Error(FAILWRITE);
+		}
+
+		file << "frames\n";
+		for (auto frame : Frames) {
+			if (!frame.Comments.empty()) {
+				std::istringstream s(frame.Comments);
+				std::string line;
+				while (std::getline(s, line)) {
+					CurrentLineNumber++;
+					file << "//" << line << '\n';
+					if (file.fail())
+						return Error(FAILWRITE);
+				}
+			}
+			CurrentLineNumber++;
+
+			if (!frame.SaveName.empty()) {
+				file << "save " << frame.SaveName << '\n';
+				if (file.fail())
+					throw FAILWRITE;
+				continue;
+			}
+
+			if (frame.Strafe)
+				file << 's' << frame.Type << frame.Dir;
+			else
+				file << "---";
+
+			if (frame.Lgagst) {
+				if (frame.LgagstFullMaxspeed)
+					file << 'L';
+				else
+					file << 'l';
+				if (frame.LgagstTimes)
+					file << frame.LgagstTimes;
+			} else
+				file << '-';
+
+			#define WRITE(c, field) \
+				if (frame.field) { \
+					file << c; \
+					if (frame.field##Times) \
+						file << frame.field##Times; \
+				} else \
+					file << '-'; \
+
+			WRITE('j', Autojump)
+			WRITE('d', Ducktap)
+			WRITE('b', Jumpbug)
+			if (frame.Dbc) {
+				if (frame.DbcCeilings)
+					file << 'C';
+				else
+					file << 'c';
+				if (frame.DbcTimes)
+					file << frame.DbcTimes;
+			} else
+				file << '-';
+			WRITE('g', Dbg)
+			WRITE('w', Dwj)
+			file << '|';
+
+			#undef WRITE
+			#define WRITE(c, field) \
+				if (frame.field) \
+					file << c; \
+				else \
+					file << '-';
+
+			WRITE('f', Forward)
+			WRITE('l', Left)
+			WRITE('r', Right)
+			WRITE('b', Back)
+			WRITE('u', Up)
+			WRITE('d', Down)
+			file << '|';
+			WRITE('j', Jump)
+			WRITE('d', Duck)
+			WRITE('u', Use)
+			WRITE('1', Attack1)
+			WRITE('2', Attack2)
+			WRITE('r', Reload)
+			file << '|';
+
+			#undef WRITE
+
+			file << boost::format("%.10g|") % frame.Frametime;
+
+			if (frame.YawPresent) {
+				if (frame.Dir == StrafeDir::POINT)
+					file << boost::format("%.10g %.10g") % frame.X % frame.Y;
+				else
+					file << boost::format("%.10g") % frame.Yaw;
+			} else
+				file << '-';
+			file << '|';
+
+			if (frame.PitchPresent)
+				file << boost::format("%.10g") % frame.Pitch;
+			else
+				file << '-';
+			file << '|';
+
+			file << frame.Repeats << '|';
+			file << frame.Commands;
+			file << '\n';
+			if (file.fail())
+				throw FAILWRITE;
+		}
+
+		return Error(OK);
+	}
+
 	int Input::GetVersion()
 	{
-		if (FinishedReading.valid())
-			FinishedReading.wait();
+		if (FinishedOperation.valid())
+			FinishedOperation.wait();
 
 		return Version;
 	}
 
 	std::unordered_map<std::string, std::string>& Input::GetProperties()
 	{
-		if (FinishedReading.valid())
-			FinishedReading.wait();
+		if (FinishedOperation.valid())
+			FinishedOperation.wait();
 
 		return Properties;
 	}
 
 	std::vector<Frame>& Input::GetFrames()
 	{
-		if (FinishedReading.valid())
-			FinishedReading.wait();
+		if (FinishedOperation.valid())
+			FinishedOperation.wait();
 
 		return Frames;
 	}

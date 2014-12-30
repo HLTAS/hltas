@@ -14,7 +14,8 @@ namespace HLTAS
 		NOTSUPPORTED,
 		FAILLINE,
 		NOSAVENAME,
-		FAILFRAME
+		FAILFRAME,
+		FAILWRITE
 	};
 
 	struct ErrorDescription {
@@ -72,7 +73,7 @@ namespace HLTAS
 		bool Attack2;
 		bool Reload;
 
-		float Frametime;
+		std::string Frametime;
 
 		bool YawPresent;
 		union {
@@ -84,7 +85,7 @@ namespace HLTAS
 		bool PitchPresent;
 		double Pitch;
 
-		unsigned Frames;
+		unsigned Repeats;
 		std::string Commands;
 		std::string Comments;
 
@@ -95,6 +96,7 @@ namespace HLTAS
 	{
 	public:
 		std::shared_future<ErrorDescription> Open(const std::string& filename);
+		std::shared_future<ErrorDescription> Save(const std::string& filename, int version);
 		void Clear();
 
 		int GetVersion();
@@ -106,9 +108,10 @@ namespace HLTAS
 	protected:
 		ErrorDescription Error(ErrorCode code);
 		ErrorDescription OpenInternal(const std::string& filename);
+		ErrorDescription SaveInternal(const std::string& filename, int version);
 		void ReadProperties(std::ifstream& file);
 		void ReadFrames(std::ifstream& file);
-		std::shared_future<ErrorDescription> FinishedReading;
+		std::shared_future<ErrorDescription> FinishedOperation;
 		unsigned CurrentLineNumber;
 
 		int Version;
