@@ -99,28 +99,28 @@ namespace HLTAS
 		DwjTimes = value;
 	}
 
-	double Frame::GetYaw()
+	double Frame::GetYaw() const
 	{
 		assert(YawPresent);
 		assert(!Strafe || (Dir != StrafeDir::LEFT && Dir != StrafeDir::RIGHT && Dir != StrafeDir::POINT));
 		return Yaw;
 	}
 
-	double Frame::GetX()
+	double Frame::GetX() const
 	{
 		assert(YawPresent);
 		assert(Strafe && Dir == StrafeDir::POINT);
 		return X;
 	}
 
-	double Frame::GetY()
+	double Frame::GetY() const
 	{
 		assert(YawPresent);
 		assert(Strafe && Dir == StrafeDir::POINT);
 		return Y;
 	}
 
-	double Frame::GetPitch()
+	double Frame::GetPitch() const
 	{
 		assert(PitchPresent);
 		return Pitch;

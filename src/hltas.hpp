@@ -67,17 +67,17 @@ namespace HLTAS
 		unsigned DwjTimes;
 
 	public:
-		inline StrafeType GetType()         { return Type; }
-		inline StrafeDir  GetDir()          { return Dir; }
-		inline bool GetLgagstFullMaxspeed() { return LgagstFullMaxspeed; }
-		inline unsigned GetLgagstTimes()    { return LgagstTimes; }
-		inline unsigned GetAutojumpTimes()  { return AutojumpTimes; }
-		inline unsigned GetDucktapTimes()   { return DucktapTimes; }
-		inline unsigned GetJumpbugTimes()   { return JumpbugTimes; }
-		inline bool     GetDbcCeilings()    { return DbcCeilings; }
-		inline unsigned GetDbcTimes()       { return DbcTimes; }
-		inline unsigned GetDbgTimes()       { return DbgTimes; }
-		inline unsigned GetDwjTimes()       { return DwjTimes; }
+		inline StrafeType GetType() const   { return Type; }
+		inline StrafeDir  GetDir() const    { return Dir; }
+		inline bool GetLgagstFullMaxspeed() const { return LgagstFullMaxspeed; }
+		inline unsigned GetLgagstTimes() const    { return LgagstTimes; }
+		inline unsigned GetAutojumpTimes() const  { return AutojumpTimes; }
+		inline unsigned GetDucktapTimes() const   { return DucktapTimes; }
+		inline unsigned GetJumpbugTimes() const   { return JumpbugTimes; }
+		inline bool     GetDbcCeilings() const    { return DbcCeilings; }
+		inline unsigned GetDbcTimes() const { return DbcTimes; }
+		inline unsigned GetDbgTimes() const { return DbgTimes; }
+		inline unsigned GetDwjTimes() const { return DwjTimes; }
 		void SetType(StrafeType value);
 		void SetDir(StrafeDir value);
 		void SetLgagstFullMaxspeed(bool value);
@@ -119,11 +119,11 @@ namespace HLTAS
 		double Pitch;
 
 	public:
-		bool GetYawPresent() { return YawPresent; }
-		double GetYaw();
-		double GetX();
-		double GetY();
-		double GetPitch();
+		bool GetYawPresent() const { return YawPresent; }
+		double GetYaw() const;
+		double GetX() const;
+		double GetY() const;
+		double GetPitch() const;
 		void SetYawPresent(bool value);
 		void SetYaw(double value);
 		void SetX(double value);
@@ -141,7 +141,7 @@ namespace HLTAS
 	{
 	public:
 		std::shared_future<ErrorDescription> Open(const std::string& filename);
-		std::shared_future<ErrorDescription> Save(const std::string& filename, int version);
+		std::shared_future<ErrorDescription> Save(const std::string& filename, int version = MAX_SUPPORTED_VERSION);
 		void Clear();
 
 		int GetVersion() const;
