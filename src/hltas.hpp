@@ -99,7 +99,7 @@ namespace HLTAS
 		std::shared_future<ErrorDescription> Save(const std::string& filename, int version);
 		void Clear();
 
-		int GetVersion();
+		int GetVersion() const;
 		std::unordered_map<std::string, std::string>& GetProperties();
 		std::vector<Frame>& GetFrames();
 

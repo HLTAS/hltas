@@ -518,7 +518,7 @@ namespace HLTAS
 		return Error(OK);
 	}
 
-	int Input::GetVersion()
+	int Input::GetVersion() const
 	{
 		if (FinishedOperation.valid())
 			FinishedOperation.wait();
