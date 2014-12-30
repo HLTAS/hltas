@@ -149,7 +149,6 @@ namespace HLTAS
 		Pitch = value;
 	}
 
-
 	static std::pair<std::string, std::string> SplitProperty(const std::string& line)
 	{
 		auto commentPos = line.find("//");
