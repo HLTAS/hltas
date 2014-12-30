@@ -100,8 +100,8 @@ namespace HLTAS
 		void Clear();
 
 		int GetVersion() const;
-		std::unordered_map<std::string, std::string>& GetProperties();
-		std::vector<Frame>& GetFrames();
+		const std::unordered_map<std::string, std::string>& GetProperties() const;
+		const std::vector<Frame>& GetFrames() const;
 
 		static const std::string& GetErrorMessage(ErrorDescription error);
 

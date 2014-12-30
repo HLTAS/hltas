@@ -526,7 +526,7 @@ namespace HLTAS
 		return Version;
 	}
 
-	std::unordered_map<std::string, std::string>& Input::GetProperties()
+	const std::unordered_map<std::string, std::string>& Input::GetProperties() const
 	{
 		if (FinishedOperation.valid())
 			FinishedOperation.wait();
@@ -534,7 +534,7 @@ namespace HLTAS
 		return Properties;
 	}
 
-	std::vector<Frame>& Input::GetFrames()
+	const std::vector<Frame>& Input::GetFrames() const
 	{
 		if (FinishedOperation.valid())
 			FinishedOperation.wait();
