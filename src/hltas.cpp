@@ -27,6 +27,12 @@ namespace HLTAS
 		"Failed to write data to the file."
 	};
 
+	const std::string& HLTAS::GetErrorMessage(ErrorDescription error)
+	{
+		assert(error.Code > 0);
+		return ErrorMessages[error.Code - 1];
+	}
+
 	static std::pair<std::string, std::string> SplitProperty(const std::string& line)
 	{
 		auto commentPos = line.find("//");
@@ -92,12 +98,6 @@ namespace HLTAS
 
 		FinishedOperation = std::async(&Input::SaveInternal, this, filename, version);
 		return FinishedOperation;
-	}
-
-	const std::string& Input::GetErrorMessage(ErrorDescription error)
-	{
-		assert(error.Code > 0);
-		return ErrorMessages[error.Code - 1];
 	}
 
 	ErrorDescription Input::Error(ErrorCode code)
@@ -540,5 +540,61 @@ namespace HLTAS
 			FinishedOperation.wait();
 
 		return Frames;
+	}
+
+	void Input::SetProperty(const std::string& property, const std::string& value)
+	{
+		if (FinishedOperation.valid())
+			FinishedOperation.wait();
+
+		Properties[property] = value;
+	}
+
+	void Input::RemoveProperty(const std::string& property)
+	{
+		if (FinishedOperation.valid())
+			FinishedOperation.wait();
+
+		Properties.erase(property);
+	}
+
+	void Input::ClearProperties()
+	{
+		if (FinishedOperation.valid())
+			FinishedOperation.wait();
+
+		Properties.clear();
+	}
+
+	void Input::InsertFrame(std::size_t n, const Frame& frame)
+	{
+		if (FinishedOperation.valid())
+			FinishedOperation.wait();
+
+		Frames.insert(Frames.begin() + n, frame);
+	}
+
+	void Input::RemoveFrame(std::size_t n)
+	{
+		if (FinishedOperation.valid())
+			FinishedOperation.wait();
+
+		Frames.erase(Frames.begin() + n);
+	}
+
+	void Input::ClearFrames()
+	{
+		if (FinishedOperation.valid())
+			FinishedOperation.wait();
+
+		Frames.clear();
+	}
+
+	Frame& Input::GetFrame(std::size_t n)
+	{
+		if (FinishedOperation.valid())
+			FinishedOperation.wait();
+
+		return Frames[n];
 	}
 }

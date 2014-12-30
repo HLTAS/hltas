@@ -23,6 +23,8 @@ namespace HLTAS
 		unsigned LineNumber;
 	};
 
+	const std::string& GetErrorMessage(ErrorDescription error);
+
 	enum StrafeType : unsigned char {
 		MAXACCEL = 0,
 		MAXANGLE,
@@ -103,7 +105,14 @@ namespace HLTAS
 		const std::unordered_map<std::string, std::string>& GetProperties() const;
 		const std::vector<Frame>& GetFrames() const;
 
-		static const std::string& GetErrorMessage(ErrorDescription error);
+		void SetProperty(const std::string& property, const std::string& value);
+		void RemoveProperty(const std::string& property);
+		void ClearProperties();
+
+		void InsertFrame(std::size_t n, const Frame& frame);
+		void RemoveFrame(std::size_t n);
+		void ClearFrames();
+		Frame& GetFrame(std::size_t n);
 
 	protected:
 		ErrorDescription Error(ErrorCode code);
