@@ -142,14 +142,10 @@ namespace HLTAS
 
 	void Input::ReadProperties(std::ifstream& file)
 	{
-		while (file.good()) {
+		std::string line;
+		while (std::getline(file, line)) {
 			CurrentLineNumber++;
-
-			std::string line;
-			std::getline(file, line);
-			if (file.fail())
-				throw FAILLINE;
-
+			
 			auto prop = SplitProperty(line);
 			if (prop.first.empty())
 				continue;
@@ -165,13 +161,9 @@ namespace HLTAS
 		std::string commentString;
 		bool firstFrameOfStrafing = false; // For viewangles checking.
 		int strafeDir = -1; // For viewangles checking.
-		while (file.good()) {
+		std::string line;
+		while (std::getline(file, line)) {
 			CurrentLineNumber++;
-
-			std::string line;
-			std::getline(file, line);
-			if (file.fail())
-				throw FAILLINE;
 			if (line.empty())
 				continue;
 
