@@ -126,6 +126,12 @@ namespace HLTAS
 		return Pitch;
 	}
 
+	void Frame::SetYawPresent(bool value)
+	{
+		assert(!Strafe || (Dir != StrafeDir::LEFT && Dir != StrafeDir::RIGHT));
+		YawPresent = value;
+	}
+
 	void Frame::SetYaw(double value)
 	{
 		assert(!Strafe || (Dir != StrafeDir::LEFT && Dir != StrafeDir::RIGHT && Dir != StrafeDir::POINT));

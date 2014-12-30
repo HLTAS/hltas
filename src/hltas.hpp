@@ -106,10 +106,10 @@ namespace HLTAS
 
 		std::string Frametime;
 
-		bool YawPresent;
 		bool PitchPresent;
 
 	protected:
+		bool YawPresent;
 		union {
 			double Yaw;
 			struct {
@@ -119,10 +119,12 @@ namespace HLTAS
 		double Pitch;
 
 	public:
+		bool GetYawPresent() { return YawPresent; }
 		double GetYaw();
 		double GetX();
 		double GetY();
 		double GetPitch();
+		void SetYawPresent(bool value);
 		void SetYaw(double value);
 		void SetX(double value);
 		void SetY(double value);
