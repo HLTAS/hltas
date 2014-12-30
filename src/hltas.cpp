@@ -102,21 +102,21 @@ namespace HLTAS
 	double Frame::GetYaw()
 	{
 		assert(YawPresent);
-		assert(Dir != StrafeDir::POINT);
+		assert(!Strafe || (Dir != StrafeDir::LEFT && Dir != StrafeDir::RIGHT && Dir != StrafeDir::POINT));
 		return Yaw;
 	}
 
 	double Frame::GetX()
 	{
 		assert(YawPresent);
-		assert(Dir == StrafeDir::POINT);
+		assert(Strafe && Dir == StrafeDir::POINT);
 		return X;
 	}
 
 	double Frame::GetY()
 	{
 		assert(YawPresent);
-		assert(Dir == StrafeDir::POINT);
+		assert(Strafe && Dir == StrafeDir::POINT);
 		return Y;
 	}
 
@@ -128,24 +128,28 @@ namespace HLTAS
 
 	void Frame::SetYaw(double value)
 	{
-		assert(Dir != StrafeDir::POINT);
+		assert(!Strafe || (Dir != StrafeDir::LEFT && Dir != StrafeDir::RIGHT && Dir != StrafeDir::POINT));
+		YawPresent = true;
 		Yaw = value;
 	}
 
 	void Frame::SetX(double value)
 	{
-		assert(Dir == StrafeDir::POINT);
+		assert(Strafe && Dir == StrafeDir::POINT);
+		YawPresent = true;
 		X = value;
 	}
 
 	void Frame::SetY(double value)
 	{
-		assert(Dir == StrafeDir::POINT);
+		assert(Strafe && Dir == StrafeDir::POINT);
+		YawPresent = true;
 		Y = value;
 	}
 
 	void Frame::SetPitch(double value)
 	{
+		PitchPresent = true;
 		Pitch = value;
 	}
 
@@ -438,7 +442,8 @@ namespace HLTAS
 							throw FAILFRAME;
 						else
 							break;
-					}
+					} else if (f.Strafe && (f.Dir == StrafeDir::LEFT || f.Dir == StrafeDir::RIGHT))
+						throw FAILFRAME;
 
 					f.YawPresent = true;
 					auto s = str.c_str();
