@@ -279,7 +279,7 @@ namespace HLTAS
 	void Input::ReadFrames(std::ifstream& file)
 	{
 		std::string commentString;
-		bool firstFrameOfStrafing = false; // For viewangles checking.
+		bool yawIsRequired = false; // For viewangles checking.
 		int strafeDir = -1; // For viewangles checking.
 		std::string line;
 		while (std::getline(file, line)) {
@@ -320,16 +320,16 @@ namespace HLTAS
 						f.Strafe = true;
 						f.Type = static_cast<StrafeType>(str[1] - '0');
 						f.Dir = static_cast<StrafeDir>(str[2] - '0');
-						if (strafeDir != f.Dir)
-							firstFrameOfStrafing = true;
+						if (strafeDir != f.Dir && f.Dir != StrafeDir::LEFT && f.Dir != StrafeDir::RIGHT)
+							yawIsRequired = true;
 						else
-							firstFrameOfStrafing = false;
+							yawIsRequired = false;
 						strafeDir = f.Dir;
 					} else if (str[0] != '-' || str[1] != '-' || str[2] != '-')
 						throw FAILFRAME;
 					if (!f.Strafe) {
 						strafeDir = -1;
-						firstFrameOfStrafing = false;
+						yawIsRequired = false;
 					}
 
 					std::size_t pos = 3;
@@ -438,7 +438,7 @@ namespace HLTAS
 						throw FAILFRAME;
 
 					if (str[0] == '-') {
-						if (firstFrameOfStrafing)
+						if (yawIsRequired)
 							throw FAILFRAME;
 						else
 							break;
@@ -485,7 +485,7 @@ namespace HLTAS
 				}
 			}
 
-			if (!f.YawPresent && firstFrameOfStrafing)
+			if (!f.YawPresent && yawIsRequired)
 				throw FAILFRAME;
 
 			if (f.Repeats == 0)
