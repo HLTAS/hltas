@@ -33,6 +33,123 @@ namespace HLTAS
 		return ErrorMessages[error.Code - 1];
 	}
 
+	void Frame::SetType(StrafeType value)
+	{
+		Strafe = true;
+		Type = value;
+	}
+
+	void Frame::SetDir(StrafeDir value)
+	{
+		Strafe = true;
+		Dir = value;
+	}
+
+	void Frame::SetLgagstFullMaxspeed(bool value)
+	{
+		Lgagst = true;
+		LgagstFullMaxspeed = value;
+	}
+
+	void Frame::SetLgagstTimes(unsigned value)
+	{
+		Lgagst = true;
+		LgagstTimes = value;
+	}
+
+	void Frame::SetAutojumpTimes(unsigned value)
+	{
+		Autojump = true;
+		AutojumpTimes = value;
+	}
+
+	void Frame::SetDucktapTimes(unsigned value)
+	{
+		Ducktap = true;
+		DucktapTimes = value;
+	}
+
+	void Frame::SetJumpbugTimes(unsigned value)
+	{
+		Jumpbug = true;
+		JumpbugTimes = value;
+	}
+
+	void Frame::SetDbcCeilings(bool value)
+	{
+		Dbc = true;
+		DbcCeilings = value;
+	}
+
+	void Frame::SetDbcTimes(unsigned value)
+	{
+		Dbc = true;
+		DbcTimes = value;
+	}
+
+	void Frame::SetDbgTimes(unsigned value)
+	{
+		Dbg = true;
+		DbgTimes = value;
+	}
+
+	void Frame::SetDwjTimes(unsigned value)
+	{
+		Dwj = true;
+		DwjTimes = value;
+	}
+
+	double Frame::GetYaw()
+	{
+		assert(YawPresent);
+		assert(Dir != StrafeDir::POINT);
+		return Yaw;
+	}
+
+	double Frame::GetX()
+	{
+		assert(YawPresent);
+		assert(Dir == StrafeDir::POINT);
+		return X;
+	}
+
+	double Frame::GetY()
+	{
+		assert(YawPresent);
+		assert(Dir == StrafeDir::POINT);
+		return Y;
+	}
+
+	double Frame::GetPitch()
+	{
+		assert(PitchPresent);
+		return Pitch;
+	}
+
+	void Frame::SetYaw(double value)
+	{
+		assert(Dir != StrafeDir::POINT);
+		Yaw = value;
+	}
+
+	void Frame::SetX(double value)
+	{
+		assert(Dir == StrafeDir::POINT);
+		X = value;
+	}
+
+	void Frame::SetY(double value)
+	{
+		assert(Dir == StrafeDir::POINT);
+		Y = value;
+	}
+
+	void Frame::SetPitch(double value)
+	{
+		Pitch = value;
+	}
+
+
 	static std::pair<std::string, std::string> SplitProperty(const std::string& line)
 	{
 		auto commentPos = line.find("//");

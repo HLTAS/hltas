@@ -41,25 +41,54 @@ namespace HLTAS
 	};
 
 	struct Frame {
+		// We know what we're doing, so save us from a lot of hassle.
+		friend class Input;
+
 		bool Strafe;
+		bool Lgagst;
+		bool Autojump;
+		bool Ducktap;
+		bool Jumpbug;
+		bool Dbc;
+		bool Dbg;
+		bool Dwj;
+
+	protected:
 		StrafeType Type;
 		StrafeDir Dir;
-		bool Lgagst;
 		bool LgagstFullMaxspeed;
 		unsigned LgagstTimes;
-		bool Autojump;
 		unsigned AutojumpTimes;
-		bool Ducktap;
 		unsigned DucktapTimes;
-		bool Jumpbug;
 		unsigned JumpbugTimes;
-		bool Dbc;
 		bool DbcCeilings;
 		unsigned DbcTimes;
-		bool Dbg;
 		unsigned DbgTimes;
-		bool Dwj;
 		unsigned DwjTimes;
+
+	public:
+		inline StrafeType GetType()         { return Type; }
+		inline StrafeDir  GetDir()          { return Dir; }
+		inline bool GetLgagstFullMaxspeed() { return LgagstFullMaxspeed; }
+		inline unsigned GetLgagstTimes()    { return LgagstTimes; }
+		inline unsigned GetAutojumpTimes()  { return AutojumpTimes; }
+		inline unsigned GetDucktapTimes()   { return DucktapTimes; }
+		inline unsigned GetJumpbugTimes()   { return JumpbugTimes; }
+		inline bool     GetDbcCeilings()    { return DbcCeilings; }
+		inline unsigned GetDbcTimes()       { return DbcTimes; }
+		inline unsigned GetDbgTimes()       { return DbgTimes; }
+		inline unsigned GetDwjTimes()       { return DwjTimes; }
+		void SetType(StrafeType value);
+		void SetDir(StrafeDir value);
+		void SetLgagstFullMaxspeed(bool value);
+		void SetLgagstTimes(unsigned value);
+		void SetAutojumpTimes(unsigned value);
+		void SetDucktapTimes(unsigned value);
+		void SetJumpbugTimes(unsigned value);
+		void SetDbcCeilings(bool value);
+		void SetDbcTimes(unsigned value);
+		void SetDbgTimes(unsigned value);
+		void SetDwjTimes(unsigned value);
 
 		bool Forward;
 		bool Left;
@@ -78,14 +107,26 @@ namespace HLTAS
 		std::string Frametime;
 
 		bool YawPresent;
+		bool PitchPresent;
+
+	protected:
 		union {
 			double Yaw;
 			struct {
 				double X, Y;
 			};
 		};
-		bool PitchPresent;
 		double Pitch;
+
+	public:
+		double GetYaw();
+		double GetX();
+		double GetY();
+		double GetPitch();
+		void SetYaw(double value);
+		void SetX(double value);
+		void SetY(double value);
+		void SetPitch(double value);
 
 		unsigned Repeats;
 		std::string Commands;
