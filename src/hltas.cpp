@@ -27,7 +27,7 @@ namespace HLTAS
 		"Failed to write data to the file."
 	};
 
-	const std::string& HLTAS::GetErrorMessage(ErrorDescription error)
+	const std::string& GetErrorMessage(ErrorDescription error)
 	{
 		assert(error.Code > 0);
 		return ErrorMessages[error.Code - 1];
@@ -449,7 +449,7 @@ namespace HLTAS
 					if (!std::isdigit(str[0]) && str[0] != '-')
 						throw FAILFRAME;
 
-					if (str[0] == '-') {
+					if (str == "-") {
 						if (yawIsRequired)
 							throw FAILFRAME;
 						else
@@ -462,7 +462,7 @@ namespace HLTAS
 					if (f.Dir == StrafeDir::POINT) {
 						char *s2;
 						f.X = std::strtod(s, &s2);
-						f.Y = std::strtod(s2, nullptr);
+						f.Y = std::strtod(s2 + 1, nullptr);
 					} else {
 						f.Yaw = std::atof(s);
 					}
@@ -476,7 +476,7 @@ namespace HLTAS
 					if (!std::isdigit(str[0]) && str[0] != '-')
 						throw FAILFRAME;
 
-					if (str[0] == '-')
+					if (str == "-")
 						break;
 
 					f.PitchPresent = true;
