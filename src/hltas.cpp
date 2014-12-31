@@ -443,7 +443,7 @@ namespace HLTAS
 					if (!std::isdigit(str[0]) && str[0] != '-')
 						throw FAILFRAME;
 
-					if (str[0] == '-') {
+					if (str == "-") {
 						if (yawIsRequired)
 							throw FAILFRAME;
 						else
@@ -470,7 +470,7 @@ namespace HLTAS
 					if (!std::isdigit(str[0]) && str[0] != '-')
 						throw FAILFRAME;
 
-					if (str[0] == '-')
+					if (str == "-")
 						break;
 
 					f.PitchPresent = true;
