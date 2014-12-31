@@ -456,7 +456,7 @@ namespace HLTAS
 					if (f.Dir == StrafeDir::POINT) {
 						char *s2;
 						f.X = std::strtod(s, &s2);
-						f.Y = std::strtod(s2, nullptr);
+						f.Y = std::strtod(s2 + 1, nullptr);
 					} else {
 						f.Yaw = std::atof(s);
 					}
