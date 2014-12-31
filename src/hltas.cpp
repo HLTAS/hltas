@@ -27,7 +27,7 @@ namespace HLTAS
 		"Failed to write data to the file."
 	};
 
-	const std::string& HLTAS::GetErrorMessage(ErrorDescription error)
+	const std::string& GetErrorMessage(ErrorDescription error)
 	{
 		assert(error.Code > 0);
 		return ErrorMessages[error.Code - 1];
