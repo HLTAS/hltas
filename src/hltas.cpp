@@ -159,6 +159,12 @@ namespace HLTAS
 		Pitch = value;
 	}
 
+	void Frame::SetRepeats(unsigned value)
+	{
+		assert(value > 0);
+		Repeats = value;
+	}
+
 	static std::pair<std::string, std::string> SplitProperty(const std::string& line)
 	{
 		auto commentPos = line.find("//");

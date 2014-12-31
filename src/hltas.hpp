@@ -118,19 +118,22 @@ namespace HLTAS
 		};
 		double Pitch;
 
+		unsigned Repeats;
+
 	public:
-		bool GetYawPresent() const { return YawPresent; }
+		inline bool GetYawPresent() const { return YawPresent; }
 		double GetYaw() const;
 		double GetX() const;
 		double GetY() const;
 		double GetPitch() const;
+		inline unsigned GetRepeats() const { return Repeats; }
 		void SetYawPresent(bool value);
 		void SetYaw(double value);
 		void SetX(double value);
 		void SetY(double value);
 		void SetPitch(double value);
+		void SetRepeats(unsigned value);
 
-		unsigned Repeats;
 		std::string Commands;
 		std::string Comments;
 
