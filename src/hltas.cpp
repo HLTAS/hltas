@@ -128,7 +128,6 @@ namespace HLTAS
 
 	void Frame::SetYawPresent(bool value)
 	{
-		assert(!Strafe || (Dir != StrafeDir::LEFT && Dir != StrafeDir::RIGHT));
 		YawPresent = value;
 	}
 
