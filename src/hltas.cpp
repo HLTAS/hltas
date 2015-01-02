@@ -348,6 +348,7 @@ namespace HLTAS
 				boost::trim_right(line);
 				Frame f = {};
 				f.Comments = commentString;
+				f.SeedsPresent = true;
 				auto s = line.c_str() + 5;
 				char *s2;
 				f.SharedRNGSeed = std::strtoul(s, &s2, 0);
@@ -600,6 +601,12 @@ namespace HLTAS
 
 			if (!frame.SaveName.empty()) {
 				file << "save " << frame.SaveName << '\n';
+				if (file.fail())
+					throw FAILWRITE;
+				continue;
+			}
+			if (frame.SeedsPresent) {
+				file << "seed " << frame.SharedRNGSeed << ' ' << frame.NonSharedRNGSeed << '\n';
 				if (file.fail())
 					throw FAILWRITE;
 				continue;
