@@ -1,3 +1,4 @@
+#include <ctime>
 #include <future>
 #include <string>
 #include <unordered_map>
@@ -15,7 +16,9 @@ namespace HLTAS
 		FAILLINE,
 		NOSAVENAME,
 		FAILFRAME,
-		FAILWRITE
+		FAILWRITE,
+		NOSEED,
+		NOYAW
 	};
 
 	struct ErrorDescription {
@@ -138,6 +141,18 @@ namespace HLTAS
 		std::string Comments;
 
 		std::string SaveName;
+
+		bool SeedsPresent;
+
+	protected:
+		unsigned SharedRNGSeed;
+		std::time_t NonSharedRNGSeed;
+
+	public:
+		unsigned GetSharedRNGSeed() const;
+		std::time_t GetNonSharedRNGSeed() const;
+		void SetSharedRNGSeed(unsigned value);
+		void SetNonSharedRNGSeed(std::time_t value);
 	};
 
 	class Input

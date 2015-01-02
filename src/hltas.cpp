@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <cassert>
 #include <cstdlib>
+#include <ctime>
 #include <fstream>
 #include <future>
 #include <iostream>
@@ -24,7 +25,9 @@ namespace HLTAS
 		"Failed to read line.",
 		"Save name is required.",
 		"Failed parsing the frame data.",
-		"Failed to write data to the file."
+		"Failed to write data to the file.",
+		"Seeds are required.",
+		"The yaw field needs a value on this frame."
 	};
 
 	const std::string& GetErrorMessage(ErrorDescription error)
@@ -165,6 +168,30 @@ namespace HLTAS
 		Repeats = value;
 	}
 
+	unsigned Frame::GetSharedRNGSeed() const
+	{
+		assert(SeedsPresent);
+		return SharedRNGSeed;
+	}
+
+	std::time_t Frame::GetNonSharedRNGSeed() const
+	{
+		assert(SeedsPresent);
+		return NonSharedRNGSeed;
+	}
+
+	void Frame::SetSharedRNGSeed(unsigned value)
+	{
+		SeedsPresent = true;
+		SharedRNGSeed = value;
+	}
+
+	void Frame::SetNonSharedRNGSeed(std::time_t value)
+	{
+		SeedsPresent = true;
+		NonSharedRNGSeed = value;
+	}
+
 	static std::pair<std::string, std::string> SplitProperty(const std::string& line)
 	{
 		auto commentPos = line.find("//");
@@ -296,6 +323,7 @@ namespace HLTAS
 		std::string line;
 		while (std::getline(file, line)) {
 			CurrentLineNumber++;
+			boost::trim_left(line);
 			if (line.empty())
 				continue;
 
@@ -310,6 +338,22 @@ namespace HLTAS
 				Frame f = {};
 				f.Comments = commentString;
 				f.SaveName = line.substr(5, std::string::npos);
+				Frames.push_back(f);
+				commentString.clear();
+				continue;
+			}
+			if (!line.compare(0, 5, "seed ")) {
+				if (line.length() < 6)
+					throw NOSEED;
+				boost::trim_right(line);
+				Frame f = {};
+				f.Comments = commentString;
+				auto s = line.c_str() + 5;
+				char *s2;
+				f.SharedRNGSeed = std::strtoul(s, &s2, 0);
+				if (!(*s2))
+					throw NOSEED;
+				f.NonSharedRNGSeed = std::strtoll(s2 + 1, nullptr, 0);
 				Frames.push_back(f);
 				commentString.clear();
 				continue;
@@ -451,7 +495,7 @@ namespace HLTAS
 
 					if (str == "-") {
 						if (yawIsRequired)
-							throw FAILFRAME;
+							throw NOYAW;
 						else
 							break;
 					} else if (f.Strafe && (f.Dir == StrafeDir::LEFT || f.Dir == StrafeDir::RIGHT))
@@ -498,7 +542,7 @@ namespace HLTAS
 			}
 
 			if (!f.YawPresent && yawIsRequired)
-				throw FAILFRAME;
+				throw NOYAW;
 
 			if (f.Repeats == 0)
 				f.Repeats = 1;
