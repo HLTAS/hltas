@@ -128,6 +128,7 @@ namespace HLTAS
 
 	void Frame::SetYawPresent(bool value)
 	{
+		assert(!value || !Strafe || (Dir != StrafeDir::LEFT && Dir != StrafeDir::RIGHT));
 		YawPresent = value;
 	}
 
@@ -623,7 +624,7 @@ namespace HLTAS
 
 			#undef WRITE
 
-			file << boost::format("%.10g|") % frame.Frametime;
+			file << frame.Frametime << '|';
 
 			if (frame.YawPresent) {
 				if (frame.Dir == StrafeDir::POINT)
