@@ -3,6 +3,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <boost/thread/shared_mutex.hpp>
 
 namespace HLTAS
 {
@@ -158,8 +159,8 @@ namespace HLTAS
 	class Input
 	{
 	public:
-		std::shared_future<ErrorDescription> Open(const std::string& filename);
-		std::shared_future<ErrorDescription> Save(const std::string& filename, int version = MAX_SUPPORTED_VERSION);
+		std::future<ErrorDescription> Open(const std::string& filename);
+		std::future<ErrorDescription> Save(const std::string& filename, int version = MAX_SUPPORTED_VERSION);
 		void Clear();
 
 		int GetVersion() const;
@@ -181,7 +182,7 @@ namespace HLTAS
 		ErrorDescription SaveInternal(const std::string& filename, int version);
 		void ReadProperties(std::ifstream& file);
 		void ReadFrames(std::ifstream& file);
-		std::shared_future<ErrorDescription> FinishedOperation;
+		mutable boost::shared_mutex Mutex;
 		unsigned CurrentLineNumber;
 
 		int Version;

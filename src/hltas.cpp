@@ -11,6 +11,8 @@
 #include <utility>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/format.hpp>
+#include <boost/thread/lock_types.hpp>
+#include <boost/thread/shared_mutex.hpp>
 #include <boost/tokenizer.hpp>
 
 #include "hltas.hpp"
@@ -234,29 +236,20 @@ namespace HLTAS
 
 	void Input::Clear()
 	{
-		// If we're reading some file, wait for it to finish.
-		if (FinishedOperation.valid())
-			FinishedOperation.wait();
-
+		boost::unique_lock<boost::shared_mutex> lock(Mutex);
 		Properties.clear();
 		Frames.clear();
 	}
 
-	std::shared_future<ErrorDescription> Input::Open(const std::string& filename)
+	std::future<ErrorDescription> Input::Open(const std::string& filename)
 	{
 		Clear();
-
-		FinishedOperation = std::async(&Input::OpenInternal, this, filename);
-		return FinishedOperation;
+		return std::async(&Input::OpenInternal, this, filename);
 	}
 
-	std::shared_future<ErrorDescription> Input::Save(const std::string& filename, int version)
+	std::future<ErrorDescription> Input::Save(const std::string& filename, int version)
 	{
-		if (FinishedOperation.valid())
-			FinishedOperation.wait();
-
-		FinishedOperation = std::async(&Input::SaveInternal, this, filename, version);
-		return FinishedOperation;
+		return std::async(&Input::SaveInternal, this, filename, version);
 	}
 
 	ErrorDescription Input::Error(ErrorCode code)
@@ -266,6 +259,8 @@ namespace HLTAS
 
 	ErrorDescription Input::OpenInternal(const std::string& filename)
 	{
+		boost::unique_lock<boost::shared_mutex> lock(Mutex);
+
 		CurrentLineNumber = 1;
 		std::ifstream file(filename);
 		if (!file)
@@ -566,6 +561,8 @@ namespace HLTAS
 
 	ErrorDescription Input::SaveInternal(const std::string& filename, int version)
 	{
+		boost::shared_lock<boost::shared_mutex> lock(Mutex);
+
 		CurrentLineNumber = 1;
 		std::ofstream file(filename);
 		if (!file)
@@ -704,81 +701,61 @@ namespace HLTAS
 
 	int Input::GetVersion() const
 	{
-		if (FinishedOperation.valid())
-			FinishedOperation.wait();
-
+		boost::shared_lock<boost::shared_mutex> lock(Mutex);
 		return Version;
 	}
 
 	const std::unordered_map<std::string, std::string>& Input::GetProperties() const
 	{
-		if (FinishedOperation.valid())
-			FinishedOperation.wait();
-
+		boost::shared_lock<boost::shared_mutex> lock(Mutex);
 		return Properties;
 	}
 
 	const std::vector<Frame>& Input::GetFrames() const
 	{
-		if (FinishedOperation.valid())
-			FinishedOperation.wait();
-
+		boost::shared_lock<boost::shared_mutex> lock(Mutex);
 		return Frames;
 	}
 
 	void Input::SetProperty(const std::string& property, const std::string& value)
 	{
-		if (FinishedOperation.valid())
-			FinishedOperation.wait();
-
+		boost::unique_lock<boost::shared_mutex> lock(Mutex);
 		Properties[property] = value;
 	}
 
 	void Input::RemoveProperty(const std::string& property)
 	{
-		if (FinishedOperation.valid())
-			FinishedOperation.wait();
-
+		boost::unique_lock<boost::shared_mutex> lock(Mutex);
 		Properties.erase(property);
 	}
 
 	void Input::ClearProperties()
 	{
-		if (FinishedOperation.valid())
-			FinishedOperation.wait();
-
+		boost::unique_lock<boost::shared_mutex> lock(Mutex);
 		Properties.clear();
 	}
 
 	void Input::InsertFrame(std::size_t n, const Frame& frame)
 	{
-		if (FinishedOperation.valid())
-			FinishedOperation.wait();
-
+		boost::unique_lock<boost::shared_mutex> lock(Mutex);
 		Frames.insert(Frames.begin() + n, frame);
 	}
 
 	void Input::RemoveFrame(std::size_t n)
 	{
-		if (FinishedOperation.valid())
-			FinishedOperation.wait();
-
+		boost::unique_lock<boost::shared_mutex> lock(Mutex);
 		Frames.erase(Frames.begin() + n);
 	}
 
 	void Input::ClearFrames()
 	{
-		if (FinishedOperation.valid())
-			FinishedOperation.wait();
-
+		boost::unique_lock<boost::shared_mutex> lock(Mutex);
 		Frames.clear();
 	}
 
 	Frame& Input::GetFrame(std::size_t n)
 	{
-		if (FinishedOperation.valid())
-			FinishedOperation.wait();
-
+		boost::shared_lock<boost::shared_mutex> lock(Mutex);
 		return Frames[n];
 	}
 }
