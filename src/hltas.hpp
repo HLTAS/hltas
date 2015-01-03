@@ -48,6 +48,48 @@ namespace HLTAS
 		// We know what we're doing, so save us from a lot of hassle.
 		friend class Input;
 
+		Frame() :
+			Strafe(false),
+			Lgagst(false),
+			Autojump(false),
+			Ducktap(false),
+			Jumpbug(false),
+			Dbc(false),
+			Dbg(false),
+			Dwj(false),
+			Type(StrafeType::MAXACCEL),
+			Dir(StrafeDir::LEFT),
+			LgagstFullMaxspeed(false),
+			LgagstTimes(0),
+			AutojumpTimes(0),
+			DucktapTimes(0),
+			JumpbugTimes(0),
+			DbcCeilings(false),
+			DbcTimes(0),
+			DbgTimes(0),
+			DwjTimes(0),
+			Forward(false),
+			Left(false),
+			Right(false),
+			Back(false),
+			Up(false),
+			Down(false),
+			Jump(false),
+			Duck(false),
+			Use(false),
+			Attack1(false),
+			Attack2(false),
+			Reload(false),
+			PitchPresent(false),
+			YawPresent(false),
+			X(0),
+			Y(0),
+			Pitch(0),
+			Repeats(0),
+			SeedsPresent(0),
+			SharedRNGSeed(0),
+			NonSharedRNGSeed(0) {};
+
 		bool Strafe;
 		bool Lgagst;
 		bool Autojump;

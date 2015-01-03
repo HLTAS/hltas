@@ -330,7 +330,7 @@ namespace HLTAS
 			if (!line.compare(0, 5, "save ")) {
 				if (line.length() < 6)
 					throw NOSAVENAME;
-				Frame f = {};
+				Frame f;
 				f.Comments = commentString;
 				f.SaveName = line.substr(5, std::string::npos);
 				Frames.push_back(f);
@@ -341,7 +341,7 @@ namespace HLTAS
 				if (line.length() < 6)
 					throw NOSEED;
 				boost::trim_right(line);
-				Frame f = {};
+				Frame f;
 				f.Comments = commentString;
 				f.SeedsPresent = true;
 				auto s = line.c_str() + 5;
@@ -355,7 +355,7 @@ namespace HLTAS
 				continue;
 			}
 
-			Frame f = {};
+			Frame f;
 			unsigned fieldCounter = 0;
 			boost::tokenizer< boost::char_separator<char> > tok(line, boost::char_separator<char>("|"));
 			for (auto it = tok.begin(); it != tok.end(); ++it, ++fieldCounter) {
