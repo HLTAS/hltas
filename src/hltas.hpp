@@ -9,7 +9,7 @@ namespace HLTAS
 {
 	const int MAX_SUPPORTED_VERSION = 1;
 
-	enum ErrorCode {
+	enum class ErrorCode {
 		OK = 0,
 		FAILOPEN,
 		FAILVER,
@@ -19,7 +19,8 @@ namespace HLTAS
 		FAILFRAME,
 		FAILWRITE,
 		NOSEED,
-		NOYAW
+		NOYAW,
+		NOBUTTONS
 	};
 
 	struct ErrorDescription {
@@ -29,19 +30,36 @@ namespace HLTAS
 
 	const std::string& GetErrorMessage(ErrorDescription error);
 
-	enum StrafeType : unsigned char {
+	enum class StrafeType : unsigned char {
 		MAXACCEL = 0,
 		MAXANGLE,
 		MAXDECCEL,
 		CONSTSPEED
 	};
 
-	enum StrafeDir : unsigned char {
+	enum class StrafeDir : unsigned char {
 		LEFT = 0,
 		RIGHT,
 		YAW,
 		POINT,
 		LINE
+	};
+
+	enum class ButtonState : unsigned char {
+		NOTHING = 0,
+		SET,
+		CLEAR
+	};
+
+	enum class Button : unsigned char {
+		FORWARD = 0,
+		FORWARD_LEFT,
+		LEFT,
+		BACK_LEFT,
+		BACK,
+		BACK_RIGHT,
+		RIGHT,
+		FORWARD_RIGHT
 	};
 
 	struct Frame {
@@ -88,7 +106,12 @@ namespace HLTAS
 			Repeats(0),
 			SeedsPresent(0),
 			SharedRNGSeed(0),
-			NonSharedRNGSeed(0) {};
+			NonSharedRNGSeed(0),
+			Buttons(ButtonState::NOTHING),
+			AirLeftBtn(Button::FORWARD),
+			AirRightBtn(Button::FORWARD),
+			GroundLeftBtn(Button::FORWARD),
+			GroundRightBtn(Button::FORWARD) {};
 
 		bool Strafe;
 		bool Lgagst;
@@ -196,6 +219,24 @@ namespace HLTAS
 		std::time_t GetNonSharedRNGSeed() const;
 		void SetSharedRNGSeed(unsigned value);
 		void SetNonSharedRNGSeed(std::time_t value);
+
+		ButtonState Buttons;
+
+	protected:
+		Button AirLeftBtn,
+			AirRightBtn,
+			GroundLeftBtn,
+			GroundRightBtn;
+
+	public:
+		Button GetAirLeftBtn();
+		Button GetAirRightBtn();
+		Button GetGroundLeftBtn();
+		Button GetGroundRightBtn();
+		void SetAirLeftBtn(Button value);
+		void SetAirRightBtn(Button value);
+		void SetGroundLeftBtn(Button value);
+		void SetGroundRightBtn(Button value);
 	};
 
 	class Input

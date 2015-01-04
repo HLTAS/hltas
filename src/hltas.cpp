@@ -29,13 +29,14 @@ namespace HLTAS
 		"Failed parsing the frame data.",
 		"Failed to write data to the file.",
 		"Seeds are required.",
-		"The yaw field needs a value on this frame."
+		"The yaw field needs a value on this frame.",
+		"Buttons are required."
 	};
 
 	const std::string& GetErrorMessage(ErrorDescription error)
 	{
-		assert(error.Code > 0);
-		return ErrorMessages[error.Code - 1];
+		assert(error.Code > ErrorCode::OK);
+		return ErrorMessages[static_cast<int>(error.Code) - 1];
 	}
 
 	void Frame::SetType(StrafeType value)
@@ -194,6 +195,54 @@ namespace HLTAS
 		NonSharedRNGSeed = value;
 	}
 
+	Button Frame::GetAirLeftBtn()
+	{
+		assert(Buttons == ButtonState::SET);
+		return AirLeftBtn;
+	}
+
+	Button Frame::GetAirRightBtn()
+	{
+		assert(Buttons == ButtonState::SET);
+		return AirRightBtn;
+	}
+
+	Button Frame::GetGroundLeftBtn()
+	{
+		assert(Buttons == ButtonState::SET);
+		return GroundLeftBtn;
+	}
+
+	Button Frame::GetGroundRightBtn()
+	{
+		assert(Buttons == ButtonState::SET);
+		return GroundRightBtn;
+	}
+
+	void Frame::SetAirLeftBtn(Button value)
+	{
+		Buttons = ButtonState::SET;
+		AirLeftBtn = value;
+	}
+
+	void Frame::SetAirRightBtn(Button value)
+	{
+		Buttons = ButtonState::SET;
+		AirRightBtn = value;
+	}
+
+	void Frame::SetGroundLeftBtn(Button value)
+	{
+		Buttons = ButtonState::SET;
+		GroundLeftBtn = value;
+	}
+
+	void Frame::SetGroundRightBtn(Button value)
+	{
+		Buttons = ButtonState::SET;
+		GroundRightBtn = value;
+	}
+
 	static std::pair<std::string, std::string> SplitProperty(const std::string& line)
 	{
 		auto commentPos = line.find("//");
@@ -264,25 +313,25 @@ namespace HLTAS
 		CurrentLineNumber = 1;
 		std::ifstream file(filename);
 		if (!file)
-			return Error(FAILOPEN);
+			return Error(ErrorCode::FAILOPEN);
 
 		// Read and check the version.
 		std::string temp;
 		std::getline(file, temp, ' ');
 		if (file.fail() || temp != "version")
-			return Error(FAILVER);
+			return Error(ErrorCode::FAILVER);
 		std::getline(file, temp);
 		if (file.fail() || temp.empty())
-			return Error(FAILVER);
+			return Error(ErrorCode::FAILVER);
 		try {
 			Version = std::stoi(temp);
 		} catch (...) {
-			return Error(FAILVER);
+			return Error(ErrorCode::FAILVER);
 		}
 		if (Version <= 0)
-			return Error(FAILVER);
+			return Error(ErrorCode::FAILVER);
 		if (Version > MAX_SUPPORTED_VERSION)
-			return Error(NOTSUPPORTED);
+			return Error(ErrorCode::NOTSUPPORTED);
 
 		try {
 			ReadProperties(file);
@@ -291,7 +340,7 @@ namespace HLTAS
 			return Error(error);
 		}
 
-		return Error(OK);
+		return Error(ErrorCode::OK);
 	}
 
 	void Input::ReadProperties(std::ifstream& file)
@@ -329,7 +378,7 @@ namespace HLTAS
 			}
 			if (!line.compare(0, 5, "save ")) {
 				if (line.length() < 6)
-					throw NOSAVENAME;
+					throw ErrorCode::NOSAVENAME;
 				Frame f;
 				f.Comments = commentString;
 				f.SaveName = line.substr(5, std::string::npos);
@@ -339,7 +388,7 @@ namespace HLTAS
 			}
 			if (!line.compare(0, 5, "seed ")) {
 				if (line.length() < 6)
-					throw NOSEED;
+					throw ErrorCode::NOSEED;
 				boost::trim_right(line);
 				Frame f;
 				f.Comments = commentString;
@@ -348,8 +397,26 @@ namespace HLTAS
 				char *s2;
 				f.SharedRNGSeed = std::strtoul(s, &s2, 0);
 				if (!(*s2))
-					throw NOSEED;
+					throw ErrorCode::NOSEED;
 				f.NonSharedRNGSeed = std::strtoll(s2 + 1, nullptr, 0);
+				Frames.push_back(f);
+				commentString.clear();
+				continue;
+			}
+			if (!line.compare(0, 7, "buttons")) {
+				boost::trim_right(line);
+				Frame f;
+				f.Comments = commentString;
+				if (line.length() == 7)
+					f.Buttons = ButtonState::CLEAR;
+				else if (line.length() == 15) {
+					f.Buttons = ButtonState::SET;
+					f.AirLeftBtn = static_cast<Button>(line[8] - '0');
+					f.AirRightBtn = static_cast<Button>(line[10] - '0');
+					f.GroundLeftBtn = static_cast<Button>(line[12] - '0');
+					f.GroundRightBtn = static_cast<Button>(line[14] - '0');
+				} else
+					throw ErrorCode::NOBUTTONS;
 				Frames.push_back(f);
 				commentString.clear();
 				continue;
@@ -366,19 +433,19 @@ namespace HLTAS
 				case 0:
 				{
 					if (l < 10)
-						throw FAILFRAME;
+						throw ErrorCode::FAILFRAME;
 
 					if (str[0] == 's' && std::isdigit(str[1]) && std::isdigit(str[2])) {
 						f.Strafe = true;
 						f.Type = static_cast<StrafeType>(str[1] - '0');
 						f.Dir = static_cast<StrafeDir>(str[2] - '0');
-						if (strafeDir != f.Dir && f.Dir != StrafeDir::LEFT && f.Dir != StrafeDir::RIGHT)
+						if (strafeDir != static_cast<int>(f.Dir) && f.Dir != StrafeDir::LEFT && f.Dir != StrafeDir::RIGHT)
 							yawIsRequired = true;
 						else
 							yawIsRequired = false;
-						strafeDir = f.Dir;
+						strafeDir =static_cast<int>(f.Dir);
 					} else if (str[0] != '-' || str[1] != '-' || str[2] != '-')
-						throw FAILFRAME;
+						throw ErrorCode::FAILFRAME;
 					if (!f.Strafe) {
 						strafeDir = -1;
 						yawIsRequired = false;
@@ -390,17 +457,17 @@ namespace HLTAS
 						f.LgagstFullMaxspeed = (str[pos] == 'L');
 						f.LgagstTimes = ReadNumber(str.c_str() + pos + 1, &pos);
 					} else if (str[pos] != '-')
-						throw FAILFRAME;
+						throw ErrorCode::FAILFRAME;
 
 					#define READ(c, field) \
 						pos++; \
 						if (l <= pos) \
-							throw FAILFRAME; \
+							throw ErrorCode::FAILFRAME; \
 						if (str[pos] == c) { \
 							f.field = true; \
 							f.field##Times = ReadNumber(str.c_str() + pos + 1, &pos); \
 						} else if (str[pos] != '-') \
-							throw FAILFRAME;
+							throw ErrorCode::FAILFRAME;
 
 					READ('j', Autojump)
 					READ('d', Ducktap)
@@ -408,13 +475,13 @@ namespace HLTAS
 
 					pos++;
 					if (l <= pos)
-						throw FAILFRAME;
+						throw ErrorCode::FAILFRAME;
 					if (str[pos] == 'c' || str[pos] == 'C') {
 						f.Dbc = true;
 						f.DbcCeilings = (str[pos] == 'C');
 						f.DbcTimes = ReadNumber(str.c_str() + pos + 1, &pos);
 					} else if (str[pos] != '-')
-						throw FAILFRAME;
+						throw ErrorCode::FAILFRAME;
 
 					READ('g', Dbg)
 					READ('w', Dwj)
@@ -426,14 +493,14 @@ namespace HLTAS
 				case 1:
 				{
 					if (l != 6)
-						throw FAILFRAME;
+						throw ErrorCode::FAILFRAME;
 
 					std::size_t pos = 0;
 					#define READ(c, field) \
 						if (str[pos] == c) \
 							f.field = true; \
 						else if (str[pos] != '-') \
-							throw FAILFRAME; \
+							throw ErrorCode::FAILFRAME; \
 						pos++;
 
 					READ('f', Forward)
@@ -450,14 +517,14 @@ namespace HLTAS
 				case 2:
 				{
 					if (l != 6)
-						throw FAILFRAME;
+						throw ErrorCode::FAILFRAME;
 
 					std::size_t pos = 0;
 					#define READ(c, field) \
 						if (str[pos] == c) \
 							f.field = true; \
 						else if (str[pos] != '-') \
-							throw FAILFRAME; \
+							throw ErrorCode::FAILFRAME; \
 						pos++;
 
 					READ('j', Jump)
@@ -474,9 +541,9 @@ namespace HLTAS
 				case 3:
 				{
 					if (l == 0)
-						throw FAILFRAME;
+						throw ErrorCode::FAILFRAME;
 					if (!std::isdigit(str[0]) && str[0] != '-')
-						throw FAILFRAME;
+						throw ErrorCode::FAILFRAME;
 
 					std::move(str.begin(), str.end(), std::back_inserter(f.Frametime));
 				}
@@ -485,17 +552,17 @@ namespace HLTAS
 				case 4:
 				{
 					if (l == 0)
-						throw FAILFRAME;
+						throw ErrorCode::FAILFRAME;
 					if (!std::isdigit(str[0]) && str[0] != '-')
-						throw FAILFRAME;
+						throw ErrorCode::FAILFRAME;
 
 					if (str == "-") {
 						if (yawIsRequired)
-							throw NOYAW;
+							throw ErrorCode::NOYAW;
 						else
 							break;
 					} else if (f.Strafe && (f.Dir == StrafeDir::LEFT || f.Dir == StrafeDir::RIGHT))
-						throw FAILFRAME;
+						throw ErrorCode::FAILFRAME;
 
 					f.YawPresent = true;
 					auto s = str.c_str();
@@ -512,9 +579,9 @@ namespace HLTAS
 				case 5:
 				{
 					if (l == 0)
-						throw FAILFRAME;
+						throw ErrorCode::FAILFRAME;
 					if (!std::isdigit(str[0]) && str[0] != '-')
-						throw FAILFRAME;
+						throw ErrorCode::FAILFRAME;
 
 					if (str == "-")
 						break;
@@ -527,9 +594,9 @@ namespace HLTAS
 				case 6:
 				{
 					if (l == 0)
-						throw FAILFRAME;
+						throw ErrorCode::FAILFRAME;
 					if (!std::isdigit(str[0]) && str[0] != '-')
-						throw FAILFRAME;
+						throw ErrorCode::FAILFRAME;
 
 					f.Repeats = ReadNumber(str.c_str(), nullptr);
 				}
@@ -538,7 +605,7 @@ namespace HLTAS
 			}
 
 			if (!f.YawPresent && yawIsRequired)
-				throw NOYAW;
+				throw ErrorCode::NOYAW;
 
 			if (f.Repeats == 0)
 				f.Repeats = 1;
@@ -566,11 +633,11 @@ namespace HLTAS
 		CurrentLineNumber = 1;
 		std::ofstream file(filename);
 		if (!file)
-			return Error(FAILOPEN);
+			return Error(ErrorCode::FAILOPEN);
 
 		file << "version " << version << '\n';
 		if (file.fail())
-			return Error(FAILWRITE);
+			return Error(ErrorCode::FAILWRITE);
 
 		for (auto prop : Properties) {
 			CurrentLineNumber++;
@@ -579,7 +646,7 @@ namespace HLTAS
 				file << ' ' << prop.second;
 			file << '\n';
 			if (file.fail())
-				return Error(FAILWRITE);
+				return Error(ErrorCode::FAILWRITE);
 		}
 
 		file << "frames\n";
@@ -591,7 +658,7 @@ namespace HLTAS
 					CurrentLineNumber++;
 					file << "//" << line << '\n';
 					if (file.fail())
-						return Error(FAILWRITE);
+						return Error(ErrorCode::FAILWRITE);
 				}
 			}
 			CurrentLineNumber++;
@@ -599,18 +666,30 @@ namespace HLTAS
 			if (!frame.SaveName.empty()) {
 				file << "save " << frame.SaveName << '\n';
 				if (file.fail())
-					throw FAILWRITE;
+					throw ErrorCode::FAILWRITE;
 				continue;
 			}
 			if (frame.SeedsPresent) {
 				file << "seed " << frame.SharedRNGSeed << ' ' << frame.NonSharedRNGSeed << '\n';
 				if (file.fail())
-					throw FAILWRITE;
+					throw ErrorCode::FAILWRITE;
+				continue;
+			}
+			if (frame.Buttons != ButtonState::NOTHING) {
+				file << "buttons";
+				if (frame.Buttons == ButtonState::SET)
+					file << ' ' << static_cast<unsigned>(frame.AirLeftBtn)
+						<< ' ' << static_cast<unsigned>(frame.AirRightBtn)
+						<< ' ' << static_cast<unsigned>(frame.GroundLeftBtn)
+						<< ' ' << static_cast<unsigned>(frame.GroundRightBtn);
+				file << '\n';
+				if (file.fail())
+					throw ErrorCode::FAILWRITE;
 				continue;
 			}
 
 			if (frame.Strafe)
-				file << 's' << frame.Type << frame.Dir;
+				file << 's' << static_cast<unsigned>(frame.Type) << static_cast<unsigned>(frame.Dir);
 			else
 				file << "---";
 
@@ -693,10 +772,10 @@ namespace HLTAS
 			file << frame.Commands;
 			file << '\n';
 			if (file.fail())
-				throw FAILWRITE;
+				throw ErrorCode::FAILWRITE;
 		}
 
-		return Error(OK);
+		return Error(ErrorCode::OK);
 	}
 
 	int Input::GetVersion() const
