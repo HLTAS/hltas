@@ -108,7 +108,7 @@ namespace HLTAS
 	double Frame::GetYaw() const
 	{
 		assert(YawPresent);
-		assert(!Strafe || (Dir != StrafeDir::LEFT && Dir != StrafeDir::RIGHT && Dir != StrafeDir::POINT));
+		assert(!Strafe || (Dir != StrafeDir::LEFT && Dir != StrafeDir::RIGHT && Dir != StrafeDir::BEST && Dir != StrafeDir::POINT));
 		return Yaw;
 	}
 
@@ -134,13 +134,13 @@ namespace HLTAS
 
 	void Frame::SetYawPresent(bool value)
 	{
-		assert(!value || !Strafe || (Dir != StrafeDir::LEFT && Dir != StrafeDir::RIGHT));
+		assert(!value || !Strafe || (Dir != StrafeDir::LEFT && Dir != StrafeDir::RIGHT && Dir != StrafeDir::BEST));
 		YawPresent = value;
 	}
 
 	void Frame::SetYaw(double value)
 	{
-		assert(!Strafe || (Dir != StrafeDir::LEFT && Dir != StrafeDir::RIGHT && Dir != StrafeDir::POINT));
+		assert(!Strafe || (Dir != StrafeDir::LEFT && Dir != StrafeDir::RIGHT && Dir != StrafeDir::BEST && Dir != StrafeDir::POINT));
 		YawPresent = true;
 		Yaw = value;
 	}
@@ -439,7 +439,7 @@ namespace HLTAS
 						f.Strafe = true;
 						f.Type = static_cast<StrafeType>(str[1] - '0');
 						f.Dir = static_cast<StrafeDir>(str[2] - '0');
-						if (strafeDir != static_cast<int>(f.Dir) && f.Dir != StrafeDir::LEFT && f.Dir != StrafeDir::RIGHT)
+						if (strafeDir != static_cast<int>(f.Dir) && f.Dir != StrafeDir::LEFT && f.Dir != StrafeDir::RIGHT && f.Dir != StrafeDir::BEST)
 							yawIsRequired = true;
 						else
 							yawIsRequired = false;
@@ -561,7 +561,7 @@ namespace HLTAS
 							throw ErrorCode::NOYAW;
 						else
 							break;
-					} else if (f.Strafe && (f.Dir == StrafeDir::LEFT || f.Dir == StrafeDir::RIGHT))
+					} else if (f.Strafe && (f.Dir == StrafeDir::LEFT || f.Dir == StrafeDir::RIGHT || f.Dir == StrafeDir::BEST))
 						throw ErrorCode::FAILFRAME;
 
 					f.YawPresent = true;

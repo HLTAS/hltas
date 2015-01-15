@@ -40,6 +40,7 @@ namespace HLTAS
 	enum class StrafeDir : unsigned char {
 		LEFT = 0,
 		RIGHT,
+		BEST,
 		YAW,
 		POINT,
 		LINE
