@@ -1,3 +1,4 @@
+#pragma once
 #include <ctime>
 #include <future>
 #include <string>
