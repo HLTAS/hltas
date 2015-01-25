@@ -106,9 +106,8 @@ namespace HLTAS
 			Y(0),
 			Pitch(0),
 			Repeats(0),
-			SeedsPresent(0),
-			SharedRNGSeed(0),
-			NonSharedRNGSeed(0),
+			SeedPresent(0),
+			Seed(0),
 			Buttons(ButtonState::NOTHING),
 			AirLeftBtn(Button::FORWARD),
 			AirRightBtn(Button::FORWARD),
@@ -210,17 +209,14 @@ namespace HLTAS
 
 		std::string SaveName;
 
-		bool SeedsPresent;
+		bool SeedPresent;
 
 	protected:
-		unsigned SharedRNGSeed;
-		std::time_t NonSharedRNGSeed;
+		unsigned Seed;
 
 	public:
-		unsigned GetSharedRNGSeed() const;
-		std::time_t GetNonSharedRNGSeed() const;
-		void SetSharedRNGSeed(unsigned value);
-		void SetNonSharedRNGSeed(std::time_t value);
+		unsigned GetSeed() const;
+		void SetSeed(unsigned value);
 
 		ButtonState Buttons;
 

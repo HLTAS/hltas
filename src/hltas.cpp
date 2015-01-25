@@ -171,28 +171,16 @@ namespace HLTAS
 		Repeats = value;
 	}
 
-	unsigned Frame::GetSharedRNGSeed() const
+	unsigned Frame::GetSeed() const
 	{
-		assert(SeedsPresent);
-		return SharedRNGSeed;
+		assert(SeedPresent);
+		return Seed;
 	}
 
-	std::time_t Frame::GetNonSharedRNGSeed() const
+	void Frame::SetSeed(unsigned value)
 	{
-		assert(SeedsPresent);
-		return NonSharedRNGSeed;
-	}
-
-	void Frame::SetSharedRNGSeed(unsigned value)
-	{
-		SeedsPresent = true;
-		SharedRNGSeed = value;
-	}
-
-	void Frame::SetNonSharedRNGSeed(std::time_t value)
-	{
-		SeedsPresent = true;
-		NonSharedRNGSeed = value;
+		SeedPresent = true;
+		Seed = value;
 	}
 
 	Button Frame::GetAirLeftBtn()
@@ -392,13 +380,9 @@ namespace HLTAS
 				boost::trim_right(line);
 				Frame f;
 				f.Comments = commentString;
-				f.SeedsPresent = true;
+				f.SeedPresent = true;
 				auto s = line.c_str() + 5;
-				char *s2;
-				f.SharedRNGSeed = std::strtoul(s, &s2, 0);
-				if (!(*s2))
-					throw ErrorCode::NOSEED;
-				f.NonSharedRNGSeed = std::strtoll(s2 + 1, nullptr, 0);
+				f.Seed = std::strtoul(s, nullptr, 0);
 				Frames.push_back(f);
 				commentString.clear();
 				continue;
@@ -669,8 +653,8 @@ namespace HLTAS
 					throw ErrorCode::FAILWRITE;
 				continue;
 			}
-			if (frame.SeedsPresent) {
-				file << "seed " << frame.SharedRNGSeed << ' ' << frame.NonSharedRNGSeed << '\n';
+			if (frame.SeedPresent) {
+				file << "seed " << frame.Seed << '\n';
 				if (file.fail())
 					throw ErrorCode::FAILWRITE;
 				continue;
