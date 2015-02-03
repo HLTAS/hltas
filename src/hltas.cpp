@@ -183,52 +183,16 @@ namespace HLTAS
 		Seed = value;
 	}
 
-	Button Frame::GetAirLeftBtn()
+	const StrafeButtons& Frame::GetButtons() const
 	{
-		assert(Buttons == ButtonState::SET);
-		return AirLeftBtn;
+		assert(BtnState == ButtonState::SET);
+		return Buttons;
 	}
 
-	Button Frame::GetAirRightBtn()
+	void Frame::SetButtons(const StrafeButtons& buttons)
 	{
-		assert(Buttons == ButtonState::SET);
-		return AirRightBtn;
-	}
-
-	Button Frame::GetGroundLeftBtn()
-	{
-		assert(Buttons == ButtonState::SET);
-		return GroundLeftBtn;
-	}
-
-	Button Frame::GetGroundRightBtn()
-	{
-		assert(Buttons == ButtonState::SET);
-		return GroundRightBtn;
-	}
-
-	void Frame::SetAirLeftBtn(Button value)
-	{
-		Buttons = ButtonState::SET;
-		AirLeftBtn = value;
-	}
-
-	void Frame::SetAirRightBtn(Button value)
-	{
-		Buttons = ButtonState::SET;
-		AirRightBtn = value;
-	}
-
-	void Frame::SetGroundLeftBtn(Button value)
-	{
-		Buttons = ButtonState::SET;
-		GroundLeftBtn = value;
-	}
-
-	void Frame::SetGroundRightBtn(Button value)
-	{
-		Buttons = ButtonState::SET;
-		GroundRightBtn = value;
+		BtnState = ButtonState::SET;
+		Buttons = buttons;
 	}
 
 	static std::pair<std::string, std::string> SplitProperty(const std::string& line)
@@ -392,13 +356,13 @@ namespace HLTAS
 				Frame f;
 				f.Comments = commentString;
 				if (line.length() == 7)
-					f.Buttons = ButtonState::CLEAR;
+					f.BtnState = ButtonState::CLEAR;
 				else if (line.length() == 15) {
-					f.Buttons = ButtonState::SET;
-					f.AirLeftBtn = static_cast<Button>(line[8] - '0');
-					f.AirRightBtn = static_cast<Button>(line[10] - '0');
-					f.GroundLeftBtn = static_cast<Button>(line[12] - '0');
-					f.GroundRightBtn = static_cast<Button>(line[14] - '0');
+					f.BtnState = ButtonState::SET;
+					f.Buttons.AirLeft = static_cast<Button>(line[8] - '0');
+					f.Buttons.AirRight = static_cast<Button>(line[10] - '0');
+					f.Buttons.GroundLeft = static_cast<Button>(line[12] - '0');
+					f.Buttons.GroundRight = static_cast<Button>(line[14] - '0');
 				} else
 					throw ErrorCode::NOBUTTONS;
 				Frames.push_back(f);
@@ -659,13 +623,13 @@ namespace HLTAS
 					throw ErrorCode::FAILWRITE;
 				continue;
 			}
-			if (frame.Buttons != ButtonState::NOTHING) {
+			if (frame.BtnState != ButtonState::NOTHING) {
 				file << "buttons";
-				if (frame.Buttons == ButtonState::SET)
-					file << ' ' << static_cast<unsigned>(frame.AirLeftBtn)
-						<< ' ' << static_cast<unsigned>(frame.AirRightBtn)
-						<< ' ' << static_cast<unsigned>(frame.GroundLeftBtn)
-						<< ' ' << static_cast<unsigned>(frame.GroundRightBtn);
+				if (frame.BtnState == ButtonState::SET)
+					file << ' ' << static_cast<unsigned>(frame.Buttons.AirLeft)
+						<< ' ' << static_cast<unsigned>(frame.Buttons.AirRight)
+						<< ' ' << static_cast<unsigned>(frame.Buttons.GroundLeft)
+						<< ' ' << static_cast<unsigned>(frame.Buttons.GroundRight);
 				file << '\n';
 				if (file.fail())
 					throw ErrorCode::FAILWRITE;

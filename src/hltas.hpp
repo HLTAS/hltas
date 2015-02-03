@@ -64,6 +64,19 @@ namespace HLTAS
 		FORWARD_RIGHT
 	};
 
+	struct StrafeButtons {
+		StrafeButtons() :
+			AirLeft(Button::FORWARD),
+			AirRight(Button::FORWARD),
+			GroundLeft(Button::FORWARD),
+			GroundRight(Button::FORWARD) {}
+
+		Button AirLeft;
+		Button AirRight;
+		Button GroundLeft;
+		Button GroundRight;
+	};
+
 	struct Frame {
 		// We know what we're doing, so save us from a lot of hassle.
 		friend class Input;
@@ -108,11 +121,7 @@ namespace HLTAS
 			Repeats(0),
 			SeedPresent(0),
 			Seed(0),
-			Buttons(ButtonState::NOTHING),
-			AirLeftBtn(Button::FORWARD),
-			AirRightBtn(Button::FORWARD),
-			GroundLeftBtn(Button::FORWARD),
-			GroundRightBtn(Button::FORWARD) {};
+			BtnState(ButtonState::NOTHING) {};
 
 		bool Strafe;
 		bool Lgagst;
@@ -218,23 +227,14 @@ namespace HLTAS
 		unsigned GetSeed() const;
 		void SetSeed(unsigned value);
 
-		ButtonState Buttons;
+		ButtonState BtnState;
 
 	protected:
-		Button AirLeftBtn,
-			AirRightBtn,
-			GroundLeftBtn,
-			GroundRightBtn;
+		StrafeButtons Buttons;
 
 	public:
-		Button GetAirLeftBtn();
-		Button GetAirRightBtn();
-		Button GetGroundLeftBtn();
-		Button GetGroundRightBtn();
-		void SetAirLeftBtn(Button value);
-		void SetAirRightBtn(Button value);
-		void SetGroundLeftBtn(Button value);
-		void SetGroundRightBtn(Button value);
+		const StrafeButtons& GetButtons() const;
+		void SetButtons(const StrafeButtons& buttons);
 	};
 
 	class Input
