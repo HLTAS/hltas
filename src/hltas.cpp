@@ -11,11 +11,14 @@
 #include <utility>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/format.hpp>
+#include <boost/lexical_cast.hpp>
 #include <boost/thread/lock_types.hpp>
 #include <boost/thread/shared_mutex.hpp>
 #include <boost/tokenizer.hpp>
 
 #include "hltas.hpp"
+
+#include <windows.h>
 
 namespace HLTAS
 {
@@ -513,13 +516,17 @@ namespace HLTAS
 						throw ErrorCode::FAILFRAME;
 
 					f.YawPresent = true;
-					auto s = str.c_str();
 					if (f.Dir == StrafeDir::POINT) {
+						auto s = str.c_str();
 						char *s2;
-						f.X = std::strtod(s, &s2);
+						f.X = std::strtod(s, &s2); // TODO: replace this with lexical_cast probably.
 						f.Y = std::strtod(s2 + 1, nullptr);
 					} else {
-						f.Yaw = std::atof(s);
+						try {
+							f.Yaw = boost::lexical_cast<double>(str);
+						} catch (boost::bad_lexical_cast) {
+							throw ErrorCode::FAILFRAME;
+						}
 					}
 				}
 					break;
@@ -535,7 +542,13 @@ namespace HLTAS
 						break;
 
 					f.PitchPresent = true;
-					f.Pitch = std::atof(str.c_str());
+					try {
+						f.Pitch = boost::lexical_cast<float>(str);
+					} catch (boost::bad_lexical_cast) {
+						throw ErrorCode::FAILFRAME;
+					}
+
+					OutputDebugString((boost::format("Reading frame pitch: %f\n") % f.Pitch).str().c_str());
 				}
 					break;
 
@@ -558,7 +571,7 @@ namespace HLTAS
 			if (f.Repeats == 0)
 				f.Repeats = 1;
 
-			if (fieldCounter >= 7) {
+			if (fieldCounter > 7) {
 				int sep = 0;
 				std::size_t pos = 0;
 				for (; sep != 7; ++pos)
