@@ -18,8 +18,6 @@
 
 #include "hltas.hpp"
 
-#include <windows.h>
-
 namespace HLTAS
 {
 	static const std::string ErrorMessages[] =
@@ -547,8 +545,6 @@ namespace HLTAS
 					} catch (boost::bad_lexical_cast) {
 						throw ErrorCode::FAILFRAME;
 					}
-
-					OutputDebugString((boost::format("Reading frame pitch: %f\n") % f.Pitch).str().c_str());
 				}
 					break;
 
