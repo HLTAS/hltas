@@ -123,6 +123,9 @@ namespace HLTAS
 			Seed(0),
 			BtnState(ButtonState::NOTHING) {};
 
+		// If we have a framebulk with an autofunc with times, we want to reset it after first execution so the times don't get set every time.
+		void ResetAutofuncs();
+
 		bool Strafe;
 		bool Lgagst;
 		bool Autojump;

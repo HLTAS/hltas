@@ -40,6 +40,24 @@ namespace HLTAS
 		return ErrorMessages[static_cast<int>(error.Code) - 1];
 	}
 
+	void Frame::ResetAutofuncs()
+	{
+		if (Lgagst && LgagstTimes)
+			Lgagst = false;
+		if (Autojump && AutojumpTimes)
+			Autojump = false;
+		if (Ducktap && DucktapTimes)
+			Ducktap = false;
+		if (Jumpbug && JumpbugTimes)
+			Jumpbug = false;
+		if (Dbc && DbcTimes)
+			Dbc = false;
+		if (Dbg && DbgTimes)
+			Dbg = false;
+		if (Dwj && DwjTimes)
+			Dwj = false;
+	}
+
 	void Frame::SetType(StrafeType value)
 	{
 		Strafe = true;
