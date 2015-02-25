@@ -31,7 +31,9 @@ namespace HLTAS
 		"Failed to write data to the file.",
 		"Seeds are required.",
 		"The yaw field needs a value on this frame.",
-		"Buttons are required."
+		"Buttons are required.",
+		"Cannot have both Autojump and Ducktap enabled on the same frame.",
+		"Lgagst requires either Autojump or Ducktap."
 	};
 
 	const std::string& GetErrorMessage(ErrorDescription error)
@@ -439,6 +441,11 @@ namespace HLTAS
 					READ('j', Autojump)
 					READ('d', Ducktap)
 					READ('b', Jumpbug)
+
+					if (f.Autojump && f.Ducktap)
+						throw ErrorCode::BOTHAJDT;
+					if (f.Lgagst && !(f.Autojump || f.Ducktap))
+						throw ErrorCode::NOLGAGSTACTION;
 
 					pos++;
 					if (l <= pos)

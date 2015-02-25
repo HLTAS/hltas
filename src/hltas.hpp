@@ -21,7 +21,9 @@ namespace HLTAS
 		FAILWRITE,
 		NOSEED,
 		NOYAW,
-		NOBUTTONS
+		NOBUTTONS,
+		BOTHAJDT,
+		NOLGAGSTACTION
 	};
 
 	struct ErrorDescription {
