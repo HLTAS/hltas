@@ -23,7 +23,8 @@ namespace HLTAS
 		NOYAW,
 		NOBUTTONS,
 		BOTHAJDT,
-		NOLGAGSTACTION
+		NOLGAGSTACTION,
+		NOLGAGSTMINSPEED
 	};
 
 	struct ErrorDescription {
@@ -240,6 +241,15 @@ namespace HLTAS
 	public:
 		const StrafeButtons& GetButtons() const;
 		void SetButtons(const StrafeButtons& buttons);
+
+		bool LgagstMinSpeedPresent;
+
+	protected:
+		unsigned LgagstMinSpeed;
+
+	public:
+		unsigned GetLgagstMinSpeed() const;
+		void SetLgagstMinSpeed(unsigned value);
 	};
 
 	class Input

@@ -33,7 +33,8 @@ namespace HLTAS
 		"The yaw field needs a value on this frame.",
 		"Buttons are required.",
 		"Cannot have both Autojump and Ducktap enabled on the same frame.",
-		"Lgagst requires either Autojump or Ducktap."
+		"Lgagst requires either Autojump or Ducktap.",
+		"Lgagst min speed is required."
 	};
 
 	const std::string& GetErrorMessage(ErrorDescription error)
@@ -216,6 +217,18 @@ namespace HLTAS
 		Buttons = buttons;
 	}
 
+	unsigned Frame::GetLgagstMinSpeed() const
+	{
+		assert(LgagstMinSpeedPresent);
+		return LgagstMinSpeed;
+	}
+
+	void Frame::SetLgagstMinSpeed(unsigned value)
+	{
+		LgagstMinSpeedPresent = true;
+		LgagstMinSpeed = value;
+	}
+
 	static std::pair<std::string, std::string> SplitProperty(const std::string& line)
 	{
 		auto commentPos = line.find("//");
@@ -386,6 +399,19 @@ namespace HLTAS
 					f.Buttons.GroundRight = static_cast<Button>(line[14] - '0');
 				} else
 					throw ErrorCode::NOBUTTONS;
+				Frames.push_back(f);
+				commentString.clear();
+				continue;
+			}
+			if (!line.compare(0, 15, "lgagstminspeed ")) {
+				if (line.length() < 16)
+					throw ErrorCode::NOLGAGSTMINSPEED;
+				boost::trim_right(line);
+				Frame f;
+				f.Comments = commentString;
+				f.LgagstMinSpeedPresent = true;
+				auto s = line.c_str() + 15;
+				f.LgagstMinSpeed = std::strtoul(s, nullptr, 0);
 				Frames.push_back(f);
 				commentString.clear();
 				continue;
@@ -665,6 +691,12 @@ namespace HLTAS
 						<< ' ' << static_cast<unsigned>(frame.Buttons.GroundLeft)
 						<< ' ' << static_cast<unsigned>(frame.Buttons.GroundRight);
 				file << '\n';
+				if (file.fail())
+					throw ErrorCode::FAILWRITE;
+				continue;
+			}
+			if (frame.LgagstMinSpeedPresent) {
+				file << "lgagstminspeed " << frame.LgagstMinSpeed << '\n';
 				if (file.fail())
 					throw ErrorCode::FAILWRITE;
 				continue;
