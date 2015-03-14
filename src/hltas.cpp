@@ -217,13 +217,13 @@ namespace HLTAS
 		Buttons = buttons;
 	}
 
-	unsigned Frame::GetLgagstMinSpeed() const
+	float Frame::GetLgagstMinSpeed() const
 	{
 		assert(LgagstMinSpeedPresent);
 		return LgagstMinSpeed;
 	}
 
-	void Frame::SetLgagstMinSpeed(unsigned value)
+	void Frame::SetLgagstMinSpeed(float value)
 	{
 		LgagstMinSpeedPresent = true;
 		LgagstMinSpeed = value;
@@ -411,7 +411,7 @@ namespace HLTAS
 				f.Comments = commentString;
 				f.LgagstMinSpeedPresent = true;
 				auto s = line.c_str() + 15;
-				f.LgagstMinSpeed = std::strtoul(s, nullptr, 0);
+				f.LgagstMinSpeed = boost::lexical_cast<float>(s);
 				Frames.push_back(f);
 				commentString.clear();
 				continue;

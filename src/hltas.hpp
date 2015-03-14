@@ -245,11 +245,11 @@ namespace HLTAS
 		bool LgagstMinSpeedPresent;
 
 	protected:
-		unsigned LgagstMinSpeed;
+		float LgagstMinSpeed;
 
 	public:
-		unsigned GetLgagstMinSpeed() const;
-		void SetLgagstMinSpeed(unsigned value);
+		float GetLgagstMinSpeed() const;
+		void SetLgagstMinSpeed(float value);
 	};
 
 	class Input
