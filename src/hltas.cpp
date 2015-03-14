@@ -34,7 +34,8 @@ namespace HLTAS
 		"Buttons are required.",
 		"Cannot have both Autojump and Ducktap enabled on the same frame.",
 		"Lgagst requires either Autojump or Ducktap.",
-		"Lgagst min speed is required."
+		"Lgagst min speed is required.",
+		"You cannot specify the Autojump or Ducktap times if you have Lgagst enabled."
 	};
 
 	const std::string& GetErrorMessage(ErrorDescription error)
@@ -45,8 +46,11 @@ namespace HLTAS
 
 	void Frame::ResetAutofuncs()
 	{
-		if (Lgagst && LgagstTimes)
+		if (Lgagst && LgagstTimes) {
 			Lgagst = false;
+			Autojump = false;
+			Ducktap = false;
+		}
 		if (Autojump && AutojumpTimes)
 			Autojump = false;
 		if (Ducktap && DucktapTimes)
@@ -471,6 +475,8 @@ namespace HLTAS
 						throw ErrorCode::BOTHAJDT;
 					if (f.Lgagst && !(f.Autojump || f.Ducktap))
 						throw ErrorCode::NOLGAGSTACTION;
+					if (f.Lgagst && (f.AutojumpTimes || f.DucktapTimes))
+						throw ErrorCode::LGAGSTACTIONTIMES;
 
 					pos++;
 					if (l <= pos)
