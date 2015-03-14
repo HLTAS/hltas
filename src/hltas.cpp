@@ -406,7 +406,6 @@ namespace HLTAS
 			if (!line.compare(0, 15, "lgagstminspeed ")) {
 				if (line.length() < 16)
 					throw ErrorCode::NOLGAGSTMINSPEED;
-				boost::trim_right(line);
 				Frame f;
 				f.Comments = commentString;
 				f.LgagstMinSpeedPresent = true;

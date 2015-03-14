@@ -124,7 +124,9 @@ namespace HLTAS
 			Repeats(0),
 			SeedPresent(0),
 			Seed(0),
-			BtnState(ButtonState::NOTHING) {};
+			BtnState(ButtonState::NOTHING),
+			LgagstMinSpeedPresent(false),
+			LgagstMinSpeed(0.0f) {};
 
 		// If we have a framebulk with an autofunc with times, we want to reset it after first execution so the times don't get set every time.
 		void ResetAutofuncs();
