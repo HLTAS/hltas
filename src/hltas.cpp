@@ -95,6 +95,12 @@ namespace HLTAS
 		AutojumpTimes = value;
 	}
 
+	void Frame::SetDucktap0ms(bool value)
+	{
+		Ducktap = true;
+		Ducktap0ms = value;
+	}
+
 	void Frame::SetDucktapTimes(unsigned value)
 	{
 		Ducktap = true;
@@ -468,7 +474,17 @@ namespace HLTAS
 							throw ErrorCode::FAILFRAME;
 
 					READ('j', Autojump)
-					READ('d', Ducktap)
+
+					pos++;
+					if (l <= pos)
+						throw ErrorCode::FAILFRAME;
+					if (str[pos] == 'd' || str[pos] == 'D') {
+						f.Ducktap = true;
+						f.Ducktap0ms = (str[pos] == 'D');
+						f.DucktapTimes = ReadNumber(str.c_str() + pos + 1, &pos);
+					} else if (str[pos] != '-')
+						throw ErrorCode::FAILFRAME;
+
 					READ('b', Jumpbug)
 
 					if (f.Autojump && f.Ducktap)
@@ -731,7 +747,17 @@ namespace HLTAS
 					file << '-'; \
 
 			WRITE('j', Autojump)
-			WRITE('d', Ducktap)
+
+			if (frame.Ducktap) {
+				if (frame.Ducktap0ms)
+					file << 'D';
+				else
+					file << 'd';
+				if (frame.DucktapTimes)
+					file << frame.DucktapTimes;
+			} else
+				file << '-';
+
 			WRITE('b', Jumpbug)
 			if (frame.Dbc) {
 				if (frame.DbcCeilings)

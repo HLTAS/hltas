@@ -99,6 +99,7 @@ namespace HLTAS
 			LgagstFullMaxspeed(false),
 			LgagstTimes(0),
 			AutojumpTimes(0),
+			Ducktap0ms(false),
 			DucktapTimes(0),
 			JumpbugTimes(0),
 			DbcCeilings(false),
@@ -147,6 +148,7 @@ namespace HLTAS
 		bool LgagstFullMaxspeed;
 		unsigned LgagstTimes;
 		unsigned AutojumpTimes;
+		bool Ducktap0ms;
 		unsigned DucktapTimes;
 		unsigned JumpbugTimes;
 		bool DbcCeilings;
@@ -160,6 +162,7 @@ namespace HLTAS
 		inline bool GetLgagstFullMaxspeed() const { return LgagstFullMaxspeed; }
 		inline unsigned GetLgagstTimes() const    { return LgagstTimes; }
 		inline unsigned GetAutojumpTimes() const  { return AutojumpTimes; }
+		inline bool     GetDucktap0ms() const     { return Ducktap0ms; }
 		inline unsigned GetDucktapTimes() const   { return DucktapTimes; }
 		inline unsigned GetJumpbugTimes() const   { return JumpbugTimes; }
 		inline bool     GetDbcCeilings() const    { return DbcCeilings; }
@@ -171,6 +174,7 @@ namespace HLTAS
 		void SetLgagstFullMaxspeed(bool value);
 		void SetLgagstTimes(unsigned value);
 		void SetAutojumpTimes(unsigned value);
+		void SetDucktap0ms(bool value);
 		void SetDucktapTimes(unsigned value);
 		void SetJumpbugTimes(unsigned value);
 		void SetDbcCeilings(bool value);
