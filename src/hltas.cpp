@@ -35,7 +35,8 @@ namespace HLTAS
 		"Cannot have both Autojump and Ducktap enabled on the same frame.",
 		"Lgagst requires either Autojump or Ducktap.",
 		"Lgagst min speed is required.",
-		"You cannot specify the Autojump or Ducktap times if you have Lgagst enabled."
+		"You cannot specify the Autojump or Ducktap times if you have Lgagst enabled.",
+		"RNG seed is required."
 	};
 
 	const std::string& GetErrorMessage(ErrorDescription error)
@@ -239,6 +240,18 @@ namespace HLTAS
 		LgagstMinSpeed = value;
 	}
 
+	int64_t Frame::GetResetNonSharedRNGSeed() const
+	{
+		assert(ResetFrame);
+		return ResetNonSharedRNGSeed;
+	}
+
+	void Frame::SetResetNonSharedRNGSeed(int64_t value)
+	{
+		ResetFrame = true;
+		ResetNonSharedRNGSeed = value;
+	}
+
 	static std::pair<std::string, std::string> SplitProperty(const std::string& line)
 	{
 		auto commentPos = line.find("//");
@@ -421,6 +434,18 @@ namespace HLTAS
 				f.LgagstMinSpeedPresent = true;
 				auto s = line.c_str() + 15;
 				f.LgagstMinSpeed = boost::lexical_cast<float>(s);
+				Frames.push_back(f);
+				commentString.clear();
+				continue;
+			}
+			if (!line.compare(0, 6, "reset ")) {
+				if (line.length() < 7)
+					throw ErrorCode::NORESETSEED;
+				Frame f;
+				f.Comments = commentString;
+				f.ResetFrame = true;
+				auto s = line.c_str() + 6;
+				f.ResetNonSharedRNGSeed = boost::lexical_cast<int64_t>(s);
 				Frames.push_back(f);
 				commentString.clear();
 				continue;
@@ -718,6 +743,12 @@ namespace HLTAS
 			}
 			if (frame.LgagstMinSpeedPresent) {
 				file << "lgagstminspeed " << frame.LgagstMinSpeed << '\n';
+				if (file.fail())
+					throw ErrorCode::FAILWRITE;
+				continue;
+			}
+			if (frame.ResetFrame) {
+				file << "reset " << frame.ResetNonSharedRNGSeed << '\n';
 				if (file.fail())
 					throw ErrorCode::FAILWRITE;
 				continue;

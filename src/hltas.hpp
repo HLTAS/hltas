@@ -25,7 +25,8 @@ namespace HLTAS
 		BOTHAJDT,
 		NOLGAGSTACTION,
 		NOLGAGSTMINSPEED,
-		LGAGSTACTIONTIMES
+		LGAGSTACTIONTIMES,
+		NORESETSEED
 	};
 
 	struct ErrorDescription {
@@ -128,7 +129,9 @@ namespace HLTAS
 			Seed(0),
 			BtnState(ButtonState::NOTHING),
 			LgagstMinSpeedPresent(false),
-			LgagstMinSpeed(0.0f) {};
+			LgagstMinSpeed(0.0f),
+			ResetFrame(false),
+			ResetNonSharedRNGSeed(0) {};
 
 		// If we have a framebulk with an autofunc with times, we want to reset it after first execution so the times don't get set every time.
 		void ResetAutofuncs();
@@ -257,6 +260,15 @@ namespace HLTAS
 	public:
 		float GetLgagstMinSpeed() const;
 		void SetLgagstMinSpeed(float value);
+
+		bool ResetFrame;
+
+	protected:
+		int64_t ResetNonSharedRNGSeed;
+
+	public:
+		int64_t GetResetNonSharedRNGSeed() const;
+		void SetResetNonSharedRNGSeed(int64_t value);
 	};
 
 	class Input
