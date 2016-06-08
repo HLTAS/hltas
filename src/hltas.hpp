@@ -1,10 +1,10 @@
 #pragma once
 #include <ctime>
 #include <future>
+#include <shared_mutex>
 #include <string>
 #include <unordered_map>
 #include <vector>
-#include <boost/thread/shared_mutex.hpp>
 
 namespace HLTAS
 {
@@ -297,7 +297,7 @@ namespace HLTAS
 		ErrorDescription SaveInternal(const std::string& filename, int version);
 		void ReadProperties(std::ifstream& file);
 		void ReadFrames(std::ifstream& file);
-		mutable boost::shared_mutex Mutex;
+		mutable std::shared_timed_mutex Mutex;
 		unsigned CurrentLineNumber;
 
 		int Version;

@@ -12,8 +12,6 @@
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/format.hpp>
 #include <boost/lexical_cast.hpp>
-#include <boost/thread/lock_types.hpp>
-#include <boost/thread/shared_mutex.hpp>
 #include <boost/tokenizer.hpp>
 
 #include "hltas.hpp"
@@ -294,7 +292,7 @@ namespace HLTAS
 
 	void Input::Clear()
 	{
-		boost::unique_lock<boost::shared_mutex> lock(Mutex);
+		std::unique_lock<std::shared_timed_mutex> lock(Mutex);
 		Properties.clear();
 		Frames.clear();
 	}
@@ -317,7 +315,7 @@ namespace HLTAS
 
 	ErrorDescription Input::OpenInternal(const std::string& filename)
 	{
-		boost::unique_lock<boost::shared_mutex> lock(Mutex);
+		std::unique_lock<std::shared_timed_mutex> lock(Mutex);
 
 		CurrentLineNumber = 1;
 		std::ifstream file(filename);
@@ -682,7 +680,7 @@ namespace HLTAS
 
 	ErrorDescription Input::SaveInternal(const std::string& filename, int version)
 	{
-		boost::shared_lock<boost::shared_mutex> lock(Mutex);
+		std::shared_lock<std::shared_timed_mutex> lock(Mutex);
 
 		CurrentLineNumber = 1;
 		std::ofstream file(filename);
@@ -856,61 +854,61 @@ namespace HLTAS
 
 	int Input::GetVersion() const
 	{
-		boost::shared_lock<boost::shared_mutex> lock(Mutex);
+		std::shared_lock<std::shared_timed_mutex> lock(Mutex);
 		return Version;
 	}
 
 	const std::unordered_map<std::string, std::string>& Input::GetProperties() const
 	{
-		boost::shared_lock<boost::shared_mutex> lock(Mutex);
+		std::shared_lock<std::shared_timed_mutex> lock(Mutex);
 		return Properties;
 	}
 
 	const std::vector<Frame>& Input::GetFrames() const
 	{
-		boost::shared_lock<boost::shared_mutex> lock(Mutex);
+		std::shared_lock<std::shared_timed_mutex> lock(Mutex);
 		return Frames;
 	}
 
 	void Input::SetProperty(const std::string& property, const std::string& value)
 	{
-		boost::unique_lock<boost::shared_mutex> lock(Mutex);
+		std::unique_lock<std::shared_timed_mutex> lock(Mutex);
 		Properties[property] = value;
 	}
 
 	void Input::RemoveProperty(const std::string& property)
 	{
-		boost::unique_lock<boost::shared_mutex> lock(Mutex);
+		std::unique_lock<std::shared_timed_mutex> lock(Mutex);
 		Properties.erase(property);
 	}
 
 	void Input::ClearProperties()
 	{
-		boost::unique_lock<boost::shared_mutex> lock(Mutex);
+		std::unique_lock<std::shared_timed_mutex> lock(Mutex);
 		Properties.clear();
 	}
 
 	void Input::InsertFrame(std::size_t n, const Frame& frame)
 	{
-		boost::unique_lock<boost::shared_mutex> lock(Mutex);
+		std::unique_lock<std::shared_timed_mutex> lock(Mutex);
 		Frames.insert(Frames.begin() + n, frame);
 	}
 
 	void Input::RemoveFrame(std::size_t n)
 	{
-		boost::unique_lock<boost::shared_mutex> lock(Mutex);
+		std::unique_lock<std::shared_timed_mutex> lock(Mutex);
 		Frames.erase(Frames.begin() + n);
 	}
 
 	void Input::ClearFrames()
 	{
-		boost::unique_lock<boost::shared_mutex> lock(Mutex);
+		std::unique_lock<std::shared_timed_mutex> lock(Mutex);
 		Frames.clear();
 	}
 
 	Frame& Input::GetFrame(std::size_t n)
 	{
-		boost::shared_lock<boost::shared_mutex> lock(Mutex);
+		std::shared_lock<std::shared_timed_mutex> lock(Mutex);
 		return Frames[n];
 	}
 }
