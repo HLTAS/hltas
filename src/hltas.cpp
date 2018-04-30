@@ -372,6 +372,10 @@ namespace HLTAS
 		bool yawIsRequired = false; // For viewangles checking.
 		int strafeDir = -1; // For viewangles checking.
 		std::string line;
+
+		float lastYaw = 0, lastPitch = 0;
+
+
 		while (std::getline(file, line)) {
 			CurrentLineNumber++;
 			boost::trim_left(line);
@@ -597,7 +601,7 @@ namespace HLTAS
 				{
 					if (l == 0)
 						throw ErrorCode::FAILFRAME;
-					if (!std::isdigit(str[0]) && str[0] != '-')
+					if (!std::isdigit(str[0]) && (str[0] != '-' && str[0] != '*'))
 						throw ErrorCode::FAILFRAME;
 
 					if (str == "-") {
@@ -614,34 +618,47 @@ namespace HLTAS
 						char *s2;
 						f.X = std::strtod(s, &s2); // TODO: replace this with lexical_cast probably.
 						f.Y = std::strtod(s2 + 1, nullptr);
+					} else if(str == "*") {
+						f.Yaw = lastYaw;
 					} else {
-						try {
-							f.Yaw = boost::lexical_cast<double>(str);
-						} catch (boost::bad_lexical_cast) {
-							throw ErrorCode::FAILFRAME;
+							try {
+								f.Yaw = boost::lexical_cast<double>(str);
+								lastYaw = f.Yaw;
+							}
+							catch (boost::bad_lexical_cast) {
+								throw ErrorCode::FAILFRAME;
+							}
 						}
 					}
-				}
 					break;
 
 				case 5:
 				{
 					if (l == 0)
 						throw ErrorCode::FAILFRAME;
-					if (!std::isdigit(str[0]) && str[0] != '-')
+					if (!std::isdigit(str[0]) && (str[0] != '-' && str[0] != '*'))
 						throw ErrorCode::FAILFRAME;
 
 					if (str == "-")
 						break;
 
 					f.PitchPresent = true;
-					try {
-						f.Pitch = boost::lexical_cast<float>(str);
-					} catch (boost::bad_lexical_cast) {
-						throw ErrorCode::FAILFRAME;
+
+					if (str == "*") {
+						f.Pitch = lastPitch;
+					}
+					else {
+
+						try {
+							f.Pitch = boost::lexical_cast<float>(str);
+							lastPitch = f.Pitch;
+						}
+						catch (boost::bad_lexical_cast) {
+							throw ErrorCode::FAILFRAME;
+						}
 					}
 				}
-					break;
+				break;
 
 				case 6:
 				{
