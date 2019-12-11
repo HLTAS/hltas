@@ -14,6 +14,9 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: Generate the build system
-      run: cmake -S . -B build
+      run: |
+        mkdir build
+        cd build
+        cmake ..
     - name: Build
       run: cmake --build build
