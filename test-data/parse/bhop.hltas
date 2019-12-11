@@ -1,0 +1,16 @@
+version 1
+demo bhop
+frametime0ms 0.0000001
+frames
+----------|------|------|0.001|-|-|1|sensitivity 0;bxt_timer_reset;bxt_taslog
+----------|------|------|0.001|-|-|5
+
+s03-------|------|------|0.001|170|0|400
+----------|------|------|0.001|-|-|2951
+
+s03-------|------|------|0.001|90|-|1|bxt_timer_start
+
+// More frames because some of them get converted to 0ms
+s03l-D----|------|------|0.001|90|-|5315
+
+----------|------|------|0.001|-|-|1|stop;bxt_timer_stop;pause;sensitivity 1;_bxt_taslog 0;bxt_taslog;//condebug

@@ -1,0 +1,12 @@
+version 1
+demo test
+frametime0ms 0.0000000001
+frames
+----------|------|------|0.001|-|-|1|_bxt_norefresh 0;_bxt_min_frametime 0.01;bxt_timer_reset;bxt_timer_start;sensitivity 0;sv_airaccelerate 100
+----------|------|------|0.001|-|-|6
+
+s03L-D----|------|j-----|0.001|175|-|724
+----------|------|------|0.05|-|-|1
+s03L-D----|------|j-----|0.001|175|-|500
+
+----------|------|------|0.001|-|-|1|_bxt_taslog 0;stop;pause;sensitivity 1;host_framerate 0;_bxt_min_frametime 0;bxt_timer_stop

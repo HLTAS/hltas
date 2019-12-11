@@ -1,0 +1,15 @@
+version 1
+frames
+----------|------|------|0.05|-|-|1|_bxt_norefresh 0;_bxt_min_frametime 0;bxt_timer_reset;sensitivity 0;bxt_bhopcap 0;bxt_taslog
+----------|------|------|0.05|-|-|5
+
+s03-------|------|------|0.05|165|0|7
+----------|------|------|0.05|90|-|49
+----------|------|------|0.05|90|-|1|record bhop_20fps_
+----------|------|------|0.05|90|-|10
+s03lj-----|------|------|0.05|90|-|1|bxt_timer_start
+s03lj-----|------|------|0.05|90|-|160
+----------|------|------|0.05|120|-20|1|bxt_timer_stop;stop
+----------|------|------|0.05|120|-20|10
+
+----------|------|------|0.05|-|-|1|_bxt_taslog 0;stop;pause;sensitivity 1;host_framerate 0;_bxt_min_frametime 0;bxt_timer_stop;bxt_taslog
