@@ -617,7 +617,7 @@ namespace HLTAS
 					} else {
 						try {
 							f.Yaw = boost::lexical_cast<double>(str);
-						} catch (boost::bad_lexical_cast) {
+						} catch (const boost::bad_lexical_cast&) {
 							throw ErrorCode::FAILFRAME;
 						}
 					}
@@ -637,7 +637,7 @@ namespace HLTAS
 					f.PitchPresent = true;
 					try {
 						f.Pitch = boost::lexical_cast<float>(str);
-					} catch (boost::bad_lexical_cast) {
+					} catch (const boost::bad_lexical_cast&) {
 						throw ErrorCode::FAILFRAME;
 					}
 				}
