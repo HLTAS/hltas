@@ -8,12 +8,13 @@
 #include "hltas.hpp"
 
 TEST_CASE("Parse") {
-	const std::array<const char*, 14> files = {
+	const std::array<const char*, 15> files = {
 		"bhop_20fps.hltas",
 		"bhop.hltas",
 		"bkz_goldbhop.hltas",
 		"blolly.hltas",
 		"cs_estate.hltas",
+		"extra-letters.hltas",
 		"goldbhop.hltas",
 		"halflife.hltas",
 		"kz_synergy_x.hltas",
