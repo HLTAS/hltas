@@ -79,7 +79,7 @@ TEST_CASE("Parse and validate") {
 	CHECK(properties.at("frametime0ms") == "0.0000001");
 
 	const auto& frames = input.GetFrames();
-	CHECK(frames.size() == 7);
+	REQUIRE(frames.size() == 7);
 
 	SECTION("Frame 0") {
 		const auto& frame = frames[0];
