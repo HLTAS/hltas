@@ -4,7 +4,7 @@ use nom::{
     branch::alt,
     bytes::complete::{is_not, tag},
     character::complete::{char, digit0, not_line_ending, one_of, space1},
-    combinator::{cut, map, map_res, opt, recognize},
+    combinator::{cut, map, map_res, opt, recognize, verify},
     number::complete::recognize_float,
     sequence::{pair, preceded, separated_pair, tuple},
     IResult,
@@ -231,7 +231,7 @@ fn action_keys(i: &str) -> IResult<&str, ActionKeys> {
 }
 
 fn float(i: &str) -> IResult<&str, f32> {
-    map_res(recognize_float, f32::from_str)(i)
+    verify(map_res(recognize_float, f32::from_str), |x| x.is_finite())(i)
 }
 
 /// Returns a parser for the yaw field given a `YawAdjustment`.
