@@ -14,3 +14,7 @@ cookie-factory = "0.3.0"
 [[bin]]
 name = "parse"
 path = "src/bin/parse.rs"
+
+[[bin]]
+name = "read-write"
+path = "src/bin/read_write.rs"
