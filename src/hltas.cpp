@@ -888,6 +888,12 @@ namespace HLTAS
 		Properties.clear();
 	}
 
+	void Input::PushFrame(const Frame& frame)
+	{
+		std::unique_lock<std::shared_timed_mutex> lock(Mutex);
+		Frames.push_back(frame);
+	}
+
 	void Input::InsertFrame(std::size_t n, const Frame& frame)
 	{
 		std::unique_lock<std::shared_timed_mutex> lock(Mutex);

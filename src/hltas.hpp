@@ -286,6 +286,7 @@ namespace HLTAS
 		void RemoveProperty(const std::string& property);
 		void ClearProperties();
 
+		void PushFrame(const Frame& frame);
 		void InsertFrame(std::size_t n, const Frame& frame);
 		void RemoveFrame(std::size_t n);
 		void ClearFrames();
