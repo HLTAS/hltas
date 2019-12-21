@@ -1,6 +1,7 @@
 //! A crate for reading and writing Half-Life TAS scripts (`.hltas`).
 
 pub mod read;
+pub mod write;
 
 pub mod types;
 pub use types::HLTAS;

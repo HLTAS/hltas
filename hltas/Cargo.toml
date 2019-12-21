@@ -9,6 +9,7 @@ crate-type = ["lib", "staticlib"]
 
 [dependencies]
 nom = "5.0.1"
+cookie-factory = "0.3.0"
 
 [[bin]]
 name = "parse"
