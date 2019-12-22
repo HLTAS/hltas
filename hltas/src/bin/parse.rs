@@ -11,7 +11,10 @@ fn main() {
     let contents = read_to_string(filename).unwrap();
     match hltas(&contents) {
         Ok((_, hltas)) => println!("{:#?}", hltas),
-        Err(Err::Error(e)) | Err(Err::Failure(e)) => println!("{:#?}", e),
+        Err(Err::Error(mut e)) | Err(Err::Failure(mut e)) => {
+            e.whole_input = &contents;
+            println!("{}", e)
+        }
         _ => unreachable!(),
     }
 }

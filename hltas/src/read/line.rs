@@ -7,15 +7,17 @@ use nom::{
     combinator::{cut, map, map_res, opt, recognize, verify},
     number::complete::recognize_float,
     sequence::{pair, preceded, separated_pair, tuple},
-    IResult,
 };
 
 use crate::{
-    read::properties::{non_shared_seed, property, shared_seed},
+    read::{
+        properties::{non_shared_seed, property, shared_seed},
+        IResult,
+    },
     types::*,
 };
 
-fn strafe_type(i: &str) -> IResult<&str, StrafeType> {
+fn strafe_type(i: &str) -> IResult<StrafeType> {
     alt((
         map(char('0'), |_| StrafeType::MaxAccel),
         map(char('1'), |_| StrafeType::MaxAngle),
@@ -24,7 +26,7 @@ fn strafe_type(i: &str) -> IResult<&str, StrafeType> {
     ))(i)
 }
 
-fn strafe_dir(i: &str) -> IResult<&str, StrafeDir> {
+fn strafe_dir(i: &str) -> IResult<StrafeDir> {
     // The actual values for Yaw, Point and Line are filled in later, while parsing the yaw field.
     alt((
         map(char('0'), |_| StrafeDir::Left),
@@ -36,32 +38,32 @@ fn strafe_dir(i: &str) -> IResult<&str, StrafeDir> {
     ))(i)
 }
 
-fn strafe_settings(i: &str) -> IResult<&str, StrafeSettings> {
+fn strafe_settings(i: &str) -> IResult<StrafeSettings> {
     map(tuple((strafe_type, strafe_dir)), |(type_, dir)| {
         StrafeSettings { type_, dir }
     })(i)
 }
 
-fn strafe(i: &str) -> IResult<&str, Option<StrafeSettings>> {
+fn strafe(i: &str) -> IResult<Option<StrafeSettings>> {
     alt((
         map(tag("---"), |_| None),
         map(preceded(char('s'), strafe_settings), Some),
     ))(i)
 }
 
-fn non_zero_u32(i: &str) -> IResult<&str, NonZeroU32> {
+fn non_zero_u32(i: &str) -> IResult<NonZeroU32> {
     map_res(
         recognize(pair(one_of("123456789"), digit0)),
         NonZeroU32::from_str,
     )(i)
 }
 
-fn times(i: &str) -> IResult<&str, u32> {
+fn times(i: &str) -> IResult<u32> {
     let (i, times) = opt(non_zero_u32)(i)?;
     Ok((i, times.map(NonZeroU32::get).unwrap_or(0)))
 }
 
-fn lgagst_action_speed(i: &str) -> IResult<&str, LeaveGroundActionSpeed> {
+fn lgagst_action_speed(i: &str) -> IResult<LeaveGroundActionSpeed> {
     alt((
         map(char('l'), |_| LeaveGroundActionSpeed::Optimal),
         map(char('L'), |_| {
@@ -70,7 +72,7 @@ fn lgagst_action_speed(i: &str) -> IResult<&str, LeaveGroundActionSpeed> {
     ))(i)
 }
 
-fn lgagst_action(i: &str) -> IResult<&str, LeaveGroundAction> {
+fn lgagst_action(i: &str) -> IResult<LeaveGroundAction> {
     let (i, speed) = lgagst_action_speed(i)?;
     let (i, times) = times(i)?;
     cut(alt((
@@ -92,7 +94,7 @@ fn lgagst_action(i: &str) -> IResult<&str, LeaveGroundAction> {
     )))(i)
 }
 
-fn non_lgagst_action(i: &str) -> IResult<&str, LeaveGroundAction> {
+fn non_lgagst_action(i: &str) -> IResult<LeaveGroundAction> {
     let (i, _) = char('-')(i)?;
     alt((
         map(tuple((char('j'), times, char('-'))), |(_, times, _)| {
@@ -115,7 +117,7 @@ fn non_lgagst_action(i: &str) -> IResult<&str, LeaveGroundAction> {
     ))(i)
 }
 
-fn leave_ground_action(i: &str) -> IResult<&str, Option<LeaveGroundAction>> {
+fn leave_ground_action(i: &str) -> IResult<Option<LeaveGroundAction>> {
     alt((
         map(lgagst_action, Some),
         map(non_lgagst_action, Some),
@@ -123,14 +125,14 @@ fn leave_ground_action(i: &str) -> IResult<&str, Option<LeaveGroundAction>> {
     ))(i)
 }
 
-fn jump_bug(i: &str) -> IResult<&str, Option<JumpBug>> {
+fn jump_bug(i: &str) -> IResult<Option<JumpBug>> {
     alt((
         map(char('-'), |_| None),
         map(preceded(char('b'), times), |times| Some(JumpBug { times })),
     ))(i)
 }
 
-fn duck_before_collision(i: &str) -> IResult<&str, Option<DuckBeforeCollision>> {
+fn duck_before_collision(i: &str) -> IResult<Option<DuckBeforeCollision>> {
     alt((
         map(char('-'), |_| None),
         map(preceded(char('c'), times), |times| {
@@ -148,7 +150,7 @@ fn duck_before_collision(i: &str) -> IResult<&str, Option<DuckBeforeCollision>> 
     ))(i)
 }
 
-fn duck_before_ground(i: &str) -> IResult<&str, Option<DuckBeforeGround>> {
+fn duck_before_ground(i: &str) -> IResult<Option<DuckBeforeGround>> {
     alt((
         map(char('-'), |_| None),
         map(preceded(char('g'), times), |times| {
@@ -157,7 +159,7 @@ fn duck_before_ground(i: &str) -> IResult<&str, Option<DuckBeforeGround>> {
     ))(i)
 }
 
-fn duck_when_jump(i: &str) -> IResult<&str, Option<DuckWhenJump>> {
+fn duck_when_jump(i: &str) -> IResult<Option<DuckWhenJump>> {
     alt((
         map(char('-'), |_| None),
         map(preceded(char('w'), times), |times| {
@@ -166,7 +168,7 @@ fn duck_when_jump(i: &str) -> IResult<&str, Option<DuckWhenJump>> {
     ))(i)
 }
 
-fn auto_actions(i: &str) -> IResult<&str, AutoActions> {
+fn auto_actions(i: &str) -> IResult<AutoActions> {
     let (i, strafe) = strafe(i)?;
     let (i, leave_ground_action) = cut(leave_ground_action)(i)?;
     let (i, jump_bug) = cut(jump_bug)(i)?;
@@ -186,11 +188,11 @@ fn auto_actions(i: &str) -> IResult<&str, AutoActions> {
     ))
 }
 
-fn key<'a>(symbol: char) -> impl Fn(&'a str) -> IResult<&str, bool> {
+fn key<'a>(symbol: char) -> impl Fn(&'a str) -> IResult<bool> {
     alt((map(char(symbol), |_| true), map(char('-'), |_| false)))
 }
 
-fn movement_keys(i: &str) -> IResult<&str, MovementKeys> {
+fn movement_keys(i: &str) -> IResult<MovementKeys> {
     let (i, forward) = key('f')(i)?;
     let (i, left) = key('l')(i)?;
     let (i, right) = key('r')(i)?;
@@ -210,7 +212,7 @@ fn movement_keys(i: &str) -> IResult<&str, MovementKeys> {
     ))
 }
 
-fn action_keys(i: &str) -> IResult<&str, ActionKeys> {
+fn action_keys(i: &str) -> IResult<ActionKeys> {
     let (i, jump) = key('j')(i)?;
     let (i, duck) = key('d')(i)?;
     let (i, use_) = key('u')(i)?;
@@ -230,7 +232,7 @@ fn action_keys(i: &str) -> IResult<&str, ActionKeys> {
     ))
 }
 
-fn float(i: &str) -> IResult<&str, f32> {
+fn float(i: &str) -> IResult<f32> {
     verify(map_res(recognize_float, f32::from_str), |x| x.is_finite())(i)
 }
 
@@ -246,7 +248,7 @@ fn float(i: &str) -> IResult<&str, f32> {
 /// - If strafing is enabled with other dirs, the yaw field should be empty.
 fn yaw_field<'a>(
     yaw_adjustment: Option<YawAdjustment>,
-) -> impl Fn(&'a str) -> IResult<&'a str, Option<YawAdjustment>> {
+) -> impl Fn(&'a str) -> IResult<Option<YawAdjustment>> {
     move |i: &str| match yaw_adjustment {
         None => {
             let (i, yaw) = alt((map(float, Some), map(char('-'), |_| None)))(i)?;
@@ -295,11 +297,11 @@ fn yaw_field<'a>(
     }
 }
 
-fn pitch(i: &str) -> IResult<&str, Option<f32>> {
+fn pitch(i: &str) -> IResult<Option<f32>> {
     alt((map(float, Some), map(char('-'), |_| None)))(i)
 }
 
-fn frame_count(i: &str) -> IResult<&str, NonZeroU32> {
+fn frame_count(i: &str) -> IResult<NonZeroU32> {
     alt((
         map(char('-'), |_| NonZeroU32::new(1).unwrap()), // Backwards compatibility.
         map(char('0'), |_| NonZeroU32::new(1).unwrap()), // Backwards compatibility.
@@ -307,7 +309,7 @@ fn frame_count(i: &str) -> IResult<&str, NonZeroU32> {
     ))(i)
 }
 
-fn line_frame_bulk(i: &str) -> IResult<&str, FrameBulk> {
+fn line_frame_bulk(i: &str) -> IResult<FrameBulk> {
     // Mutable because the yaw_adjustment parameter will be filled in later.
     let (i, mut auto_actions) = auto_actions(i)?;
     // Backwards compatibility: HLTAS didn't check the first field length, so extra characters were
@@ -343,20 +345,20 @@ fn line_frame_bulk(i: &str) -> IResult<&str, FrameBulk> {
     ))
 }
 
-fn line_save(i: &str) -> IResult<&str, &str> {
+fn line_save(i: &str) -> IResult<&str> {
     let (i, (name, value)) = property(i)?;
     tag("save")(name)?;
     Ok((i, value))
 }
 
-fn line_seed(i: &str) -> IResult<&str, u32> {
+fn line_seed(i: &str) -> IResult<u32> {
     let (i, (name, value)) = property(i)?;
     tag("seed")(name)?;
     let (_, seed) = cut(shared_seed)(value)?;
     Ok((i, seed))
 }
 
-fn button(i: &str) -> IResult<&str, Button> {
+fn button(i: &str) -> IResult<Button> {
     alt((
         map(char('0'), |_| Button::Forward),
         map(char('1'), |_| Button::ForwardLeft),
@@ -369,7 +371,7 @@ fn button(i: &str) -> IResult<&str, Button> {
     ))(i)
 }
 
-fn buttons(i: &str) -> IResult<&str, Buttons> {
+fn buttons(i: &str) -> IResult<Buttons> {
     let (i, air_left) = preceded(space1, button)(i)?;
     let (i, air_right) = preceded(space1, button)(i)?;
     let (i, ground_left) = preceded(space1, button)(i)?;
@@ -385,7 +387,7 @@ fn buttons(i: &str) -> IResult<&str, Buttons> {
     ))
 }
 
-fn line_buttons(i: &str) -> IResult<&str, Buttons> {
+fn line_buttons(i: &str) -> IResult<Buttons> {
     let (i, _) = tag("buttons")(i)?;
 
     if preceded(space1::<&str, ()>, not_line_ending)(i).is_ok() {
@@ -395,25 +397,25 @@ fn line_buttons(i: &str) -> IResult<&str, Buttons> {
     }
 }
 
-fn line_lgagst_min_speed(i: &str) -> IResult<&str, f32> {
+fn line_lgagst_min_speed(i: &str) -> IResult<f32> {
     let (i, (name, value)) = property(i)?;
     tag("lgagstminspeed")(name)?;
     let (_, lgagst_min_speed) = cut(float)(value)?;
     Ok((i, lgagst_min_speed))
 }
 
-fn line_reset(i: &str) -> IResult<&str, i64> {
+fn line_reset(i: &str) -> IResult<i64> {
     let (i, (name, value)) = property(i)?;
     tag("reset")(name)?;
     let (_, seed) = cut(non_shared_seed)(value)?;
     Ok((i, seed))
 }
 
-fn line_comment(i: &str) -> IResult<&str, &str> {
+fn line_comment(i: &str) -> IResult<&str> {
     preceded(tag("//"), not_line_ending)(i)
 }
 
-pub(crate) fn line(i: &str) -> IResult<&str, Line> {
+pub(crate) fn line(i: &str) -> IResult<Line> {
     alt((
         map(line_frame_bulk, Line::FrameBulk),
         map(line_save, Line::Save),

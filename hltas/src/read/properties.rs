@@ -5,35 +5,37 @@ use nom::{
     combinator::{map, map_res, opt, recognize},
     multi::many1,
     sequence::{pair, preceded, separated_pair},
-    IResult,
 };
 
-use crate::types::{Properties, Seeds};
+use crate::{
+    read::IResult,
+    types::{Properties, Seeds},
+};
 
-pub(crate) fn property(i: &str) -> IResult<&str, (&str, &str)> {
+pub(crate) fn property(i: &str) -> IResult<(&str, &str)> {
     separated_pair(alphanumeric1, space1, not_line_ending)(i)
 }
 
-pub(crate) fn shared_seed(i: &str) -> IResult<&str, u32> {
+pub(crate) fn shared_seed(i: &str) -> IResult<u32> {
     map_res(digit1, u32::from_str)(i)
 }
 
-pub(crate) fn non_shared_seed(i: &str) -> IResult<&str, i64> {
+pub(crate) fn non_shared_seed(i: &str) -> IResult<i64> {
     map_res(recognize(pair(opt(char('-')), digit1)), i64::from_str)(i)
 }
 
-pub(crate) fn seeds(i: &str) -> IResult<&str, Seeds> {
+pub(crate) fn seeds(i: &str) -> IResult<Seeds> {
     map(
         separated_pair(shared_seed, space1, non_shared_seed),
         |(shared, non_shared)| Seeds { shared, non_shared },
     )(i)
 }
 
-fn nl_property(i: &str) -> IResult<&str, (&str, &str)> {
+fn nl_property(i: &str) -> IResult<(&str, &str)> {
     preceded(many1(line_ending), property)(i)
 }
 
-pub(crate) fn properties(mut i: &str) -> IResult<&str, Properties> {
+pub(crate) fn properties(mut i: &str) -> IResult<Properties> {
     let mut properties = Properties::default();
 
     while let Ok((input, (name, value))) = nl_property(i) {
