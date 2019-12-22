@@ -41,4 +41,4 @@ jobs:
     - name: Test
       run: |
         cd build
-        ctest --output-on-failure
+        ctest --output-on-failure -E Error
