@@ -131,3 +131,12 @@ TEST_CASE("Parse and validate") {
 
 	validate(input);
 }
+
+TEST_CASE("Parse, write, parse and validate") {
+	HLTAS::Input input;
+	REQUIRE(input.Open("test-data/parse/bhop.hltas").get().Code == HLTAS::ErrorCode::OK);
+	REQUIRE(input.Save("test-data/write-output/bhop.hltas").get().Code == HLTAS::ErrorCode::OK);
+	REQUIRE(input.Open("test-data/write-output/bhop.hltas").get().Code == HLTAS::ErrorCode::OK);
+
+	validate(input);
+}
