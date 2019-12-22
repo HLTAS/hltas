@@ -68,10 +68,7 @@ TEST_CASE("Error") {
 	}
 }
 
-TEST_CASE("Parse and validate") {
-	HLTAS::Input input;
-	REQUIRE(input.Open("test-data/parse/bhop.hltas").get().Code == HLTAS::ErrorCode::OK);
-
+void validate(const HLTAS::Input& input) {
 	CHECK(input.GetVersion() == 1);
 
 	const auto& properties = input.GetProperties();
@@ -126,4 +123,11 @@ TEST_CASE("Parse and validate") {
 		CHECK(frame.GetRepeats() == 1);
 		CHECK(frame.Commands == "stop;bxt_timer_stop;pause;sensitivity 1;_bxt_taslog 0;bxt_taslog;//condebug");
 	}
+}
+
+TEST_CASE("Parse and validate") {
+	HLTAS::Input input;
+	REQUIRE(input.Open("test-data/parse/bhop.hltas").get().Code == HLTAS::ErrorCode::OK);
+
+	validate(input);
 }
