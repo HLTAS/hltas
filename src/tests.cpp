@@ -7,28 +7,28 @@
 
 #include "hltas.hpp"
 
-TEST_CASE("Parse") {
-	const std::array<const char*, 15> files = {
-		"bhop_20fps.hltas",
-		"bhop.hltas",
-		"bkz_goldbhop.hltas",
-		"blolly.hltas",
-		"cs_estate.hltas",
-		"extra-letters.hltas",
-		"goldbhop.hltas",
-		"halflife.hltas",
-		"kz_synergy_x.hltas",
-		"mirror.hltas",
-		"nuker.hltas",
-		"rng.hltas",
-		"tas-hazard course-1.32,669.hltas",
-		"triggertest.hltas",
-		"tripminetest.hltas"
-	};
+const std::array<const char*, 15> parse_files = {
+	"bhop_20fps.hltas",
+	"bhop.hltas",
+	"bkz_goldbhop.hltas",
+	"blolly.hltas",
+	"cs_estate.hltas",
+	"extra-letters.hltas",
+	"goldbhop.hltas",
+	"halflife.hltas",
+	"kz_synergy_x.hltas",
+	"mirror.hltas",
+	"nuker.hltas",
+	"rng.hltas",
+	"tas-hazard course-1.32,669.hltas",
+	"triggertest.hltas",
+	"tripminetest.hltas"
+};
 
+TEST_CASE("Parse") {
 	HLTAS::Input input;
 
-	for (const auto file : files) {
+	for (const auto file : parse_files) {
 		SECTION(file) {
 			const auto path = std::string("test-data/parse/") + file;
 			const auto err = input.Open(path).get();
