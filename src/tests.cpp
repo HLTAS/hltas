@@ -37,6 +37,20 @@ TEST_CASE("Parse") {
 	}
 }
 
+TEST_CASE("Parse, write, parse") {
+	HLTAS::Input input;
+
+	for (const auto file : parse_files) {
+		SECTION(file) {
+			auto path = std::string("test-data/parse/") + file;
+			REQUIRE(input.Open(path).get().Code == HLTAS::ErrorCode::OK);
+			path = std::string("test-data/write-output/") + file;
+			REQUIRE(input.Save(path).get().Code == HLTAS::ErrorCode::OK);
+			REQUIRE(input.Open(path).get().Code == HLTAS::ErrorCode::OK);
+		}
+	}
+}
+
 TEST_CASE("Error") {
 	const std::array<std::pair<const char*, HLTAS::ErrorCode>, 13> files = {
 		std::make_pair("does-not-exist.hltas", HLTAS::ErrorCode::FAILOPEN),
