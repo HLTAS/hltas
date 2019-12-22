@@ -95,11 +95,13 @@ void validate(const HLTAS::Input& input) {
 
 	SECTION("Frame 0") {
 		const auto& frame = frames[0];
+		CHECK(frame.Frametime == "0.001");
 		CHECK(frame.GetRepeats() == 1);
 		CHECK(frame.Commands == "sensitivity 0;bxt_timer_reset;bxt_taslog");
 	}
 	SECTION("Frame 1") {
 		const auto& frame = frames[1];
+		CHECK(frame.Frametime == "0.001");
 		CHECK(frame.GetRepeats() == 5);
 	}
 	SECTION("Frame 2") {
@@ -108,10 +110,12 @@ void validate(const HLTAS::Input& input) {
 		CHECK(frame.GetDir() == HLTAS::StrafeDir::YAW);
 		CHECK(frame.GetYaw() == 170);
 		CHECK(frame.GetPitch() == 0);
+		CHECK(frame.Frametime == "0.001");
 		CHECK(frame.GetRepeats() == 400);
 	}
 	SECTION("Frame 3") {
 		const auto& frame = frames[3];
+		CHECK(frame.Frametime == "0.001");
 		CHECK(frame.GetRepeats() == 2951);
 	}
 	SECTION("Frame 4") {
@@ -119,6 +123,7 @@ void validate(const HLTAS::Input& input) {
 		CHECK(frame.GetType() == HLTAS::StrafeType::MAXACCEL);
 		CHECK(frame.GetDir() == HLTAS::StrafeDir::YAW);
 		CHECK(frame.GetYaw() == 90);
+		CHECK(frame.Frametime == "0.001");
 		CHECK(frame.GetRepeats() == 1);
 		CHECK(frame.Commands == "bxt_timer_start");
 	}
@@ -129,11 +134,13 @@ void validate(const HLTAS::Input& input) {
 		CHECK(frame.Lgagst == true);
 		CHECK(frame.GetDucktap0ms() == true);
 		CHECK(frame.GetYaw() == 90);
+		CHECK(frame.Frametime == "0.001");
 		CHECK(frame.GetRepeats() == 5315);
 		CHECK(frame.Comments == " More frames because some of them get converted to 0ms\n");
 	}
 	SECTION("Frame 6") {
 		const auto& frame = frames[6];
+		CHECK(frame.Frametime == "0.001");
 		CHECK(frame.GetRepeats() == 1);
 		CHECK(frame.Commands == "stop;bxt_timer_stop;pause;sensitivity 1;_bxt_taslog 0;bxt_taslog;//condebug");
 	}
