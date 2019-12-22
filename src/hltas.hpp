@@ -6,6 +6,13 @@
 #include <unordered_map>
 #include <vector>
 
+extern "C" {
+	struct hltas_frame;
+
+	void hltas_input_set_property(void* input, const char* property, const char* value);
+	void hltas_input_push_frame(void* input, const hltas_frame* frame);
+}
+
 namespace HLTAS
 {
 	const int MAX_SUPPORTED_VERSION = 1;
@@ -85,6 +92,7 @@ namespace HLTAS
 	struct Frame {
 		// We know what we're doing, so save us from a lot of hassle.
 		friend class Input;
+		friend void ::hltas_input_push_frame(void* input, const hltas_frame* frame);
 
 		Frame() :
 			Strafe(false),
@@ -304,5 +312,61 @@ namespace HLTAS
 		int Version;
 		std::unordered_map<std::string, std::string> Properties;
 		std::vector<Frame> Frames;
+	};
+}
+
+extern "C" {
+	struct hltas_frame {
+		bool Strafe;
+		bool Lgagst;
+		bool Autojump;
+		bool Ducktap;
+		bool Jumpbug;
+		bool Dbc;
+		bool Dbg;
+		bool Dwj;
+		HLTAS::StrafeType Type;
+		HLTAS::StrafeDir Dir;
+		bool LgagstFullMaxspeed;
+		uint32_t LgagstTimes;
+		uint32_t AutojumpTimes;
+		bool Ducktap0ms;
+		uint32_t DucktapTimes;
+		uint32_t JumpbugTimes;
+		bool DbcCeilings;
+		uint32_t DbcTimes;
+		uint32_t DbgTimes;
+		uint32_t DwjTimes;
+		bool Forward;
+		bool Left;
+		bool Right;
+		bool Back;
+		bool Up;
+		bool Down;
+		bool Jump;
+		bool Duck;
+		bool Use;
+		bool Attack1;
+		bool Attack2;
+		bool Reload;
+		const char* Frametime;
+		bool PitchPresent;
+		bool YawPresent;
+		double Yaw;
+		double X;
+		double Y;
+		double Pitch;
+		uint32_t Repeats;
+		const char* Commands;
+		const char* Comments;
+		const char* SaveName;
+		bool SeedPresent;
+		uint32_t Seed;
+		HLTAS::ButtonState BtnState;
+		HLTAS::StrafeButtons Buttons;
+		bool LgagstMinSpeedPresent;
+		float LgagstMinSpeed;
+		bool ResetFrame;
+		int64_t ResetNonSharedRNGSeed;
 	};
 }

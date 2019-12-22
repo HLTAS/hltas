@@ -918,3 +918,74 @@ namespace HLTAS
 		return Frames[n];
 	}
 }
+
+extern "C" void hltas_input_set_property(void* input, const char* property, const char* value) {
+	HLTAS::Input* hltas_input = static_cast<HLTAS::Input*>(input);
+	hltas_input->SetProperty(property, value);
+}
+
+extern "C" void hltas_input_push_frame(void* input, const hltas_frame* c_frame) {
+	HLTAS::Input* hltas_input = static_cast<HLTAS::Input*>(input);
+
+	HLTAS::Frame frame;
+	frame.Strafe = c_frame->Strafe;
+	frame.Lgagst = c_frame->Lgagst;
+	frame.Autojump = c_frame->Autojump;
+	frame.Ducktap = c_frame->Ducktap;
+	frame.Jumpbug = c_frame->Jumpbug;
+	frame.Dbc = c_frame->Dbc;
+	frame.Dbg = c_frame->Dbg;
+	frame.Dwj = c_frame->Dwj;
+	frame.Type = c_frame->Type;
+	frame.Dir = c_frame->Dir;
+	frame.LgagstFullMaxspeed = c_frame->LgagstFullMaxspeed;
+	frame.LgagstTimes = c_frame->LgagstTimes;
+	frame.AutojumpTimes = c_frame->AutojumpTimes;
+	frame.Ducktap0ms = c_frame->Ducktap0ms;
+	frame.DucktapTimes = c_frame->DucktapTimes;
+	frame.JumpbugTimes = c_frame->JumpbugTimes;
+	frame.DbcCeilings = c_frame->DbcCeilings;
+	frame.DbcTimes = c_frame->DbcTimes;
+	frame.DbgTimes = c_frame->DbgTimes;
+	frame.DwjTimes = c_frame->DwjTimes;
+	frame.Forward = c_frame->Forward;
+	frame.Left = c_frame->Left;
+	frame.Right = c_frame->Right;
+	frame.Back = c_frame->Back;
+	frame.Up = c_frame->Up;
+	frame.Down = c_frame->Down;
+	frame.Jump = c_frame->Jump;
+	frame.Duck = c_frame->Duck;
+	frame.Use = c_frame->Use;
+	frame.Attack1 = c_frame->Attack1;
+	frame.Attack2 = c_frame->Attack2;
+	frame.Reload = c_frame->Reload;
+	if (c_frame->Frametime)
+		frame.Frametime = c_frame->Frametime;
+	frame.PitchPresent = c_frame->PitchPresent;
+	frame.YawPresent = c_frame->YawPresent;
+	if (c_frame->Dir == HLTAS::StrafeDir::POINT) {
+		frame.X = c_frame->X;
+		frame.Y = c_frame->Y;
+	} else {
+		frame.Yaw = c_frame->Yaw;
+	}
+	frame.Pitch = c_frame->Pitch;
+	frame.Repeats = c_frame->Repeats;
+	if (c_frame->Commands)
+		frame.Commands = c_frame->Commands;
+	if (c_frame->Comments)
+		frame.Comments = c_frame->Comments;
+	if (c_frame->SaveName)
+		frame.SaveName = c_frame->SaveName;
+	frame.SeedPresent = c_frame->SeedPresent;
+	frame.Seed = c_frame->Seed;
+	frame.BtnState = c_frame->BtnState;
+	frame.Buttons = c_frame->Buttons;
+	frame.LgagstMinSpeedPresent = c_frame->LgagstMinSpeedPresent;
+	frame.LgagstMinSpeed = c_frame->LgagstMinSpeed;
+	frame.ResetFrame = c_frame->ResetFrame;
+	frame.ResetNonSharedRNGSeed = c_frame->ResetNonSharedRNGSeed;
+
+	hltas_input->PushFrame(std::move(frame));
+}
