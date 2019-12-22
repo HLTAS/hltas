@@ -10,7 +10,20 @@ extern "C" {
     );
 }
 extern "C" {
+    pub fn hltas_input_get_property(
+        input: *const ::std::os::raw::c_void,
+        property: *const ::std::os::raw::c_char,
+    ) -> *const ::std::os::raw::c_char;
+}
+extern "C" {
     pub fn hltas_input_push_frame(input: *mut ::std::os::raw::c_void, frame: *const hltas_frame);
+}
+extern "C" {
+    pub fn hltas_input_get_frame(
+        input: *const ::std::os::raw::c_void,
+        index: usize,
+        frame: *mut hltas_frame,
+    ) -> ::std::os::raw::c_int;
 }
 #[repr(i32)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]

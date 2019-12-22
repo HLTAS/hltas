@@ -10,7 +10,9 @@ extern "C" {
 	struct hltas_frame;
 
 	void hltas_input_set_property(void* input, const char* property, const char* value);
+	const char* hltas_input_get_property(const void* input, const char* property);
 	void hltas_input_push_frame(void* input, const hltas_frame* frame);
+	int hltas_input_get_frame(const void* input, size_t index, hltas_frame* frame);
 }
 
 namespace HLTAS
@@ -93,6 +95,7 @@ namespace HLTAS
 		// We know what we're doing, so save us from a lot of hassle.
 		friend class Input;
 		friend void ::hltas_input_push_frame(void* input, const hltas_frame* frame);
+		friend int ::hltas_input_get_frame(const void* input, size_t index, hltas_frame* frame);
 
 		Frame() :
 			Strafe(false),

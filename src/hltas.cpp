@@ -996,3 +996,82 @@ extern "C" void hltas_input_push_frame(void* input, const hltas_frame* c_frame) 
 
 	hltas_input->PushFrame(std::move(frame));
 }
+
+extern "C" const char* hltas_input_get_property(const void* input, const char* property) {
+	const HLTAS::Input* hltas_input = static_cast<const HLTAS::Input*>(input);
+
+	const auto& properties = hltas_input->GetProperties();
+	if (properties.find(property) != properties.cend())
+		return properties.at(property).data();
+
+	return nullptr;
+}
+
+extern "C" int hltas_input_get_frame(const void* input, size_t index, hltas_frame* c_frame) {
+	const HLTAS::Input* hltas_input = static_cast<const HLTAS::Input*>(input);
+
+	const auto& frames = hltas_input->GetFrames();
+	if (index >= frames.size())
+		return 1;
+
+	const auto& frame = frames[index];
+	c_frame->Strafe = frame.Strafe;
+	c_frame->Lgagst = frame.Lgagst;
+	c_frame->Autojump = frame.Autojump;
+	c_frame->Ducktap = frame.Ducktap;
+	c_frame->Jumpbug = frame.Jumpbug;
+	c_frame->Dbc = frame.Dbc;
+	c_frame->Dbg = frame.Dbg;
+	c_frame->Dwj = frame.Dwj;
+	c_frame->Type = frame.Type;
+	c_frame->Dir = frame.Dir;
+	c_frame->LgagstFullMaxspeed = frame.LgagstFullMaxspeed;
+	c_frame->LgagstTimes = frame.LgagstTimes;
+	c_frame->AutojumpTimes = frame.AutojumpTimes;
+	c_frame->Ducktap0ms = frame.Ducktap0ms;
+	c_frame->DucktapTimes = frame.DucktapTimes;
+	c_frame->JumpbugTimes = frame.JumpbugTimes;
+	c_frame->DbcCeilings = frame.DbcCeilings;
+	c_frame->DbcTimes = frame.DbcTimes;
+	c_frame->DbgTimes = frame.DbgTimes;
+	c_frame->DwjTimes = frame.DwjTimes;
+	c_frame->Forward = frame.Forward;
+	c_frame->Left = frame.Left;
+	c_frame->Right = frame.Right;
+	c_frame->Back = frame.Back;
+	c_frame->Up = frame.Up;
+	c_frame->Down = frame.Down;
+	c_frame->Jump = frame.Jump;
+	c_frame->Duck = frame.Duck;
+	c_frame->Use = frame.Use;
+	c_frame->Attack1 = frame.Attack1;
+	c_frame->Attack2 = frame.Attack2;
+	c_frame->Reload = frame.Reload;
+	c_frame->Frametime = frame.Frametime.data();
+	c_frame->PitchPresent = frame.PitchPresent;
+	c_frame->YawPresent = frame.YawPresent;
+	if (frame.Dir == HLTAS::StrafeDir::POINT) {
+		c_frame->X = frame.X;
+		c_frame->Y = frame.Y;
+	} else {
+		c_frame->Yaw = frame.Yaw;
+	}
+	c_frame->Pitch = frame.Pitch;
+	c_frame->Repeats = frame.Repeats;
+	if (!frame.Commands.empty())
+		c_frame->Commands = frame.Commands.data();
+	if (!frame.Comments.empty())
+		c_frame->Comments = frame.Comments.data();
+	if (!frame.SaveName.empty())
+		c_frame->SaveName = frame.SaveName.data();
+	c_frame->SeedPresent = frame.SeedPresent;
+	c_frame->Seed = frame.Seed;
+	c_frame->BtnState = frame.BtnState;
+	c_frame->Buttons = frame.Buttons;
+	c_frame->LgagstMinSpeedPresent = frame.LgagstMinSpeedPresent;
+	c_frame->LgagstMinSpeed = frame.LgagstMinSpeed;
+	c_frame->ResetFrame = frame.ResetFrame;
+	c_frame->ResetNonSharedRNGSeed = frame.ResetNonSharedRNGSeed;
+
+	return 0;
+}
