@@ -17,6 +17,7 @@
 #include "hltas.hpp"
 
 extern "C" HLTAS::ErrorDescription hltas_rs_read(void* input, const char* filename);
+extern "C" HLTAS::ErrorDescription hltas_rs_write(const void* input, const char* filename);
 
 namespace HLTAS
 {
@@ -312,7 +313,9 @@ namespace HLTAS
 
 	std::future<ErrorDescription> Input::Save(const std::string& filename, int version)
 	{
-		return std::async(&Input::SaveInternal, this, filename, version);
+		return std::async([=] (std::string filename) {
+			return hltas_rs_write(this, filename.data());
+		}, filename);
 	}
 
 	ErrorDescription Input::Error(ErrorCode code)
