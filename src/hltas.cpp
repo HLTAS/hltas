@@ -16,6 +16,8 @@
 
 #include "hltas.hpp"
 
+extern "C" HLTAS::ErrorDescription hltas_rs_read(void* input, const char* filename);
+
 namespace HLTAS
 {
 	static const std::string ErrorMessages[] =
@@ -300,7 +302,12 @@ namespace HLTAS
 	std::future<ErrorDescription> Input::Open(const std::string& filename)
 	{
 		Clear();
-		return std::async(&Input::OpenInternal, this, filename);
+
+		return std::async([=] (std::string filename) {
+			auto error = hltas_rs_read(this, filename.data());
+			Version = 1;
+			return error;
+		}, filename);
 	}
 
 	std::future<ErrorDescription> Input::Save(const std::string& filename, int version)
