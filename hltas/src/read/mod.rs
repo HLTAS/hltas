@@ -12,7 +12,7 @@ use crate::types::HLTAS;
 mod line;
 use line::line;
 
-mod properties;
+pub(crate) mod properties;
 use properties::properties;
 
 fn version(i: &str) -> IResult<&str, ()> {

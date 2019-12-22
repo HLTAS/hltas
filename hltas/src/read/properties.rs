@@ -22,7 +22,7 @@ pub(crate) fn non_shared_seed(i: &str) -> IResult<&str, i64> {
     map_res(recognize(pair(opt(char('-')), digit1)), i64::from_str)(i)
 }
 
-fn seeds(i: &str) -> IResult<&str, Seeds> {
+pub(crate) fn seeds(i: &str) -> IResult<&str, Seeds> {
     map(
         separated_pair(shared_seed, space1, non_shared_seed),
         |(shared, non_shared)| Seeds { shared, non_shared },
