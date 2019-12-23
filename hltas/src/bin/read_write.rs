@@ -5,7 +5,7 @@ use std::{
     fs::{read_to_string, File},
 };
 
-use hltas_rs::{write, HLTAS};
+use hltas_rs::HLTAS;
 
 fn main() {
     let input_filename = args().nth(1).unwrap();
@@ -15,7 +15,7 @@ fn main() {
     match HLTAS::from_str(&contents) {
         Ok(hltas) => {
             let output_file = File::create(output_filename).unwrap();
-            println!("{:#?}", write::hltas(output_file, &hltas));
+            println!("{:#?}", hltas.to_writer(output_file));
         }
         Err(e) => println!("{}", e),
     }

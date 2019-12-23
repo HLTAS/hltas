@@ -241,7 +241,7 @@ fn line<'a, W: Write>(line: &'a Line<'a>) -> impl SerializeFn<W> + 'a {
     }
 }
 
-pub fn hltas<W: Write>(w: W, hltas: &HLTAS) -> Result<(), GenError> {
+pub(crate) fn hltas<W: Write>(w: W, hltas: &HLTAS) -> Result<(), GenError> {
     let mut w = gen_simple(string("version 1\n"), w)?;
 
     if let Some(demo) = hltas.properties.demo {

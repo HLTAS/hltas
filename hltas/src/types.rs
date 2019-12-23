@@ -1,8 +1,9 @@
-use std::num::NonZeroU32;
+use std::{io::Write, num::NonZeroU32};
 
+use cookie_factory::GenError;
 use nom;
 
-use crate::read;
+use crate::{read, write};
 
 /// A HLTAS script.
 #[derive(Debug, Clone, PartialEq, Default)]
@@ -313,5 +314,24 @@ impl<'a> HLTAS<'a> {
             }
             Err(nom::Err::Incomplete(_)) => unreachable!(), // We don't use streaming parsers.
         }
+    }
+
+    /// Outputs the script in the `.hltas` format.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # extern crate hltas_rs;
+    /// use std::fs::File;
+    /// use hltas_rs::HLTAS;
+    ///
+    /// fn save_script(hltas: &HLTAS) -> Result<(), Box<dyn std::error::Error>> {
+    ///     let file = File::create("script.hltas")?;
+    ///     hltas.to_writer(file)?;
+    ///     Ok(())
+    /// }
+    /// ```
+    pub fn to_writer<W: Write>(&self, writer: W) -> Result<(), GenError> {
+        write::hltas(writer, self)
     }
 }
