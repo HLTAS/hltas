@@ -1,3 +1,5 @@
+//! Types representing various parts of `.hltas` scripts.
+
 use std::{io::Write, num::NonZeroU32};
 
 use cookie_factory::GenError;
