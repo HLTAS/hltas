@@ -44,7 +44,7 @@ pub enum Context {
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub struct Error<'a> {
     pub input: &'a str,
-    pub whole_input: &'a str,
+    pub(crate) whole_input: &'a str,
     kind: ErrorKind,
     pub context: Option<Context>,
 }
@@ -213,7 +213,7 @@ fn whitespace(i: &str) -> IResult<()> {
 }
 
 /// Parses an entire HLTAS script, ensuring nothing is left in the input.
-pub fn hltas(i: &str) -> IResult<HLTAS> {
+pub(crate) fn hltas(i: &str) -> IResult<HLTAS> {
     let (i, _) = context(Context::ErrorReadingVersion, version)(i)?;
     let (i, properties) = properties(i)?;
     let (i, _) = preceded(many1(line_ending), tag("frames"))(i)?;

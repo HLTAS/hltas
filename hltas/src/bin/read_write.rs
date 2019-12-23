@@ -5,21 +5,18 @@ use std::{
     fs::{read_to_string, File},
 };
 
-use nom::Err;
-
-use hltas_rs::{read, write};
+use hltas_rs::{write, HLTAS};
 
 fn main() {
     let input_filename = args().nth(1).unwrap();
     let output_filename = args().nth(2).unwrap();
     let contents = read_to_string(input_filename).unwrap();
 
-    match read::hltas(&contents) {
-        Ok((_, hltas)) => {
+    match HLTAS::from_str(&contents) {
+        Ok(hltas) => {
             let output_file = File::create(output_filename).unwrap();
             println!("{:#?}", write::hltas(output_file, &hltas));
         }
-        Err(Err::Error(e)) | Err(Err::Failure(e)) => println!("{:#?}", e),
-        _ => unreachable!(),
+        Err(e) => println!("{}", e),
     }
 }

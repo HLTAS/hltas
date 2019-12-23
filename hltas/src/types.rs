@@ -1,5 +1,9 @@
 use std::num::NonZeroU32;
 
+use nom;
+
+use crate::read;
+
 /// A HLTAS script.
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct HLTAS<'a> {
@@ -275,4 +279,39 @@ pub struct ActionKeys {
     pub attack_2: bool,
     /// `+reload`
     pub reload: bool,
+}
+
+impl<'a> HLTAS<'a> {
+    /// Parses a `.hltas` script.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # extern crate hltas_rs;
+    /// # fn foo() -> Result<(), Box<dyn std::error::Error>> {
+    /// use std::fs::read_to_string;
+    /// use hltas_rs::HLTAS;
+    ///
+    /// let contents = read_to_string("script.hltas")?;
+    /// match HLTAS::from_str(&contents) {
+    ///     Ok(hltas) => { /* ... */ }
+    ///
+    ///     // The errors are pretty-printed with context.
+    ///     Err(error) => println!("{}", error),
+    /// }
+    /// # Ok(())
+    /// # }
+    /// ```
+    #[allow(clippy::should_implement_trait)] // FromStr does not allow borrowing from the &str.
+    pub fn from_str(input: &'a str) -> Result<Self, read::Error> {
+        match read::hltas(input) {
+            Ok((_, hltas)) => Ok(hltas),
+            Err(nom::Err::Error(mut e)) | Err(nom::Err::Failure(mut e)) => {
+                // Set the whole input to get correct line and column numbers in the error message.
+                e.whole_input = input;
+                Err(e)
+            }
+            Err(nom::Err::Incomplete(_)) => unreachable!(), // We don't use streaming parsers.
+        }
+    }
 }
