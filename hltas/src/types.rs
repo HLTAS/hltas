@@ -395,11 +395,9 @@ mod tests {
     }
 
     #[test]
-    fn validate() {
-        let contents = read_to_string("../test-data/parse/bhop.hltas").unwrap();
-        let hltas = HLTAS::from_str(&contents).unwrap();
 
-        let gt = HLTAS {
+    fn bhop_gt() -> HLTAS<'static> {
+        HLTAS {
             properties: Properties {
                 demo: Some("bhop"),
                 frametime_0ms: Some("0.0000001"),
@@ -468,7 +466,17 @@ mod tests {
                     ..FrameBulk::with_frame_time("0.001")
                 }),
             ],
-        };
+        }
+    }
+
+    #[test]
+    fn validate() {
+        let contents = read_to_string("../test-data/parse/bhop.hltas").unwrap();
+        let hltas = HLTAS::from_str(&contents).unwrap();
+
+        let gt = bhop_gt();
+        assert_eq!(hltas, gt);
+    }
 
         assert_eq!(hltas, gt);
     }
