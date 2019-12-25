@@ -4,7 +4,7 @@ use nom::{
     branch::alt,
     bytes::complete::{is_not, tag},
     character::complete::{anychar, char, digit0, not_line_ending, one_of, space1},
-    combinator::{cut, map, map_res, opt, recognize, verify},
+    combinator::{cut, map, map_res, not, opt, peek, recognize, verify},
     number::complete::recognize_float,
     sequence::{pair, preceded, separated_pair, tuple},
 };
@@ -76,6 +76,13 @@ fn lgagst_action_speed(i: &str) -> IResult<LeaveGroundActionSpeed> {
 fn lgagst_action(i: &str) -> IResult<LeaveGroundAction> {
     let (i, speed) = lgagst_action_speed(i)?;
     let (i, times) = times(i)?;
+
+    // Check for the both autojump and ducktap error.
+    cut(context(
+        Context::BothAutoJumpAndDuckTap,
+        not(peek(tuple((char('j'), alt((char('d'), char('D'))))))),
+    ))(i)?;
+
     cut(alt((
         map(tag("j-"), move |_| LeaveGroundAction {
             speed,
@@ -97,6 +104,13 @@ fn lgagst_action(i: &str) -> IResult<LeaveGroundAction> {
 
 fn non_lgagst_action(i: &str) -> IResult<LeaveGroundAction> {
     let (i, _) = char('-')(i)?;
+
+    // Check for the both autojump and ducktap error.
+    cut(context(
+        Context::BothAutoJumpAndDuckTap,
+        not(peek(tuple((char('j'), times, alt((char('d'), char('D'))))))),
+    ))(i)?;
+
     alt((
         map(tuple((char('j'), times, char('-'))), |(_, times, _)| {
             LeaveGroundAction {
@@ -495,6 +509,28 @@ mod tests {
         let err = line_reset(input).unwrap_err();
         if let nom::Err::Failure(err) = err {
             assert_eq!(err.context, Some(Context::NoResetSeed));
+        } else {
+            unreachable!()
+        }
+    }
+
+    #[test]
+    fn both_autojump_ducktap() {
+        let input = "----jd----";
+        let err = auto_actions(input).unwrap_err();
+        if let nom::Err::Failure(err) = err {
+            assert_eq!(err.context, Some(Context::BothAutoJumpAndDuckTap));
+        } else {
+            unreachable!()
+        }
+    }
+
+    #[test]
+    fn both_autojump_ducktap_lgagst() {
+        let input = "---ljd----";
+        let err = auto_actions(input).unwrap_err();
+        if let nom::Err::Failure(err) = err {
+            assert_eq!(err.context, Some(Context::BothAutoJumpAndDuckTap));
         } else {
             unreachable!()
         }
