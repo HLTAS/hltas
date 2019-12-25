@@ -3,7 +3,7 @@ use std::{num::NonZeroU32, str::FromStr};
 use nom::{
     branch::alt,
     bytes::complete::{is_not, tag},
-    character::complete::{char, digit0, not_line_ending, one_of, space1},
+    character::complete::{anychar, char, digit0, not_line_ending, one_of, space1},
     combinator::{cut, map, map_res, opt, recognize, verify},
     number::complete::recognize_float,
     sequence::{pair, preceded, separated_pair, tuple},
@@ -11,8 +11,9 @@ use nom::{
 
 use crate::{
     read::{
+        context,
         properties::{non_shared_seed, property, shared_seed},
-        IResult,
+        Context, IResult,
     },
     types::*,
 };
@@ -348,6 +349,7 @@ fn line_frame_bulk(i: &str) -> IResult<FrameBulk> {
 fn line_save(i: &str) -> IResult<&str> {
     let (i, (name, value)) = property(i)?;
     tag("save")(name)?;
+    cut(context(Context::NoSaveName, anychar))(value)?;
     Ok((i, value))
 }
 
@@ -427,4 +429,20 @@ pub(crate) fn line(i: &str) -> IResult<Line> {
         }),
         map(line_comment, Line::Comment),
     ))(i)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn no_save_name() {
+        let input = "save ";
+        let err = line_save(input).unwrap_err();
+        if let nom::Err::Failure(err) = err {
+            assert_eq!(err.context, Some(Context::NoSaveName));
+        } else {
+            unreachable!()
+        }
+    }
 }
