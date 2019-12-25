@@ -337,3 +337,28 @@ impl<'a> HLTAS<'a> {
         write::hltas(writer, self)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    use std::fs::{read_dir, read_to_string};
+
+    #[test]
+    fn parse() {
+        for entry in read_dir("../test-data/parse")
+            .unwrap()
+            .filter_map(Result::ok)
+            .filter(|entry| {
+                entry
+                    .file_name()
+                    .to_str()
+                    .map(|name| name.ends_with(".hltas"))
+                    .unwrap_or(false)
+            })
+        {
+            let contents = read_to_string(entry.path()).unwrap();
+            assert!(HLTAS::from_str(&contents).is_ok());
+        }
+    }
+}
