@@ -338,6 +338,38 @@ impl<'a> HLTAS<'a> {
     }
 }
 
+impl<'a> FrameBulk<'a> {
+    /// Returns a `FrameBulk` with the given frame time and frame count of 1 and otherwise empty.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # extern crate hltas_rs;
+    /// # fn foo() {
+    /// use hltas_rs::types::FrameBulk;
+    ///
+    /// let frame_bulk = FrameBulk::with_frame_time("0.001");
+    /// assert_eq!(frame_bulk.frame_time, "0.001");
+    /// assert_eq!(frame_bulk.frame_count.get(), 1);
+    ///
+    /// // The rest is empty.
+    /// assert_eq!(frame_bulk.movement_keys.forward, false);
+    /// # }
+    /// ```
+    #[inline]
+    pub fn with_frame_time(frame_time: &'a str) -> Self {
+        Self {
+            auto_actions: Default::default(),
+            movement_keys: Default::default(),
+            action_keys: Default::default(),
+            frame_time,
+            pitch: None,
+            frame_count: NonZeroU32::new(1).unwrap(),
+            console_command: None,
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
