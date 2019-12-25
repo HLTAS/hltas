@@ -393,4 +393,83 @@ mod tests {
             assert!(HLTAS::from_str(&contents).is_ok());
         }
     }
+
+    #[test]
+    fn validate() {
+        let contents = read_to_string("../test-data/parse/bhop.hltas").unwrap();
+        let hltas = HLTAS::from_str(&contents).unwrap();
+
+        let gt = HLTAS {
+            properties: Properties {
+                demo: Some("bhop"),
+                frametime_0ms: Some("0.0000001"),
+                save: None,
+                seeds: None,
+            },
+            lines: vec![
+                Line::FrameBulk(FrameBulk {
+                    console_command: Some("sensitivity 0;bxt_timer_reset;bxt_taslog"),
+                    ..FrameBulk::with_frame_time("0.001")
+                }),
+                Line::FrameBulk(FrameBulk {
+                    frame_count: NonZeroU32::new(5).unwrap(),
+                    ..FrameBulk::with_frame_time("0.001")
+                }),
+                Line::FrameBulk(FrameBulk {
+                    auto_actions: AutoActions {
+                        yaw_adjustment: Some(YawAdjustment::Strafe(StrafeSettings {
+                            type_: StrafeType::MaxAccel,
+                            dir: StrafeDir::Yaw(170.),
+                        })),
+                        ..AutoActions::default()
+                    },
+                    frame_count: NonZeroU32::new(400).unwrap(),
+                    pitch: Some(0.),
+                    ..FrameBulk::with_frame_time("0.001")
+                }),
+                Line::FrameBulk(FrameBulk {
+                    frame_count: NonZeroU32::new(2951).unwrap(),
+                    ..FrameBulk::with_frame_time("0.001")
+                }),
+                Line::FrameBulk(FrameBulk {
+                    auto_actions: AutoActions {
+                        yaw_adjustment: Some(YawAdjustment::Strafe(StrafeSettings {
+                            type_: StrafeType::MaxAccel,
+                            dir: StrafeDir::Yaw(90.),
+                        })),
+                        ..AutoActions::default()
+                    },
+                    frame_count: NonZeroU32::new(1).unwrap(),
+                    console_command: Some("bxt_timer_start"),
+                    ..FrameBulk::with_frame_time("0.001")
+                }),
+                Line::Comment(" More frames because some of them get converted to 0ms"),
+                Line::FrameBulk(FrameBulk {
+                    auto_actions: AutoActions {
+                        yaw_adjustment: Some(YawAdjustment::Strafe(StrafeSettings {
+                            type_: StrafeType::MaxAccel,
+                            dir: StrafeDir::Yaw(90.),
+                        })),
+                        leave_ground_action: Some(LeaveGroundAction {
+                            speed: LeaveGroundActionSpeed::Optimal,
+                            times: 0,
+                            type_: LeaveGroundActionType::DuckTap { zero_ms: true },
+                        }),
+                        ..AutoActions::default()
+                    },
+                    frame_count: NonZeroU32::new(5315).unwrap(),
+                    ..FrameBulk::with_frame_time("0.001")
+                }),
+                Line::FrameBulk(FrameBulk {
+                    console_command: Some(
+                        "stop;bxt_timer_stop;pause;sensitivity 1;_bxt_taslog 0;bxt_taslog;\
+                         //condebug",
+                    ),
+                    ..FrameBulk::with_frame_time("0.001")
+                }),
+            ],
+        };
+
+        assert_eq!(hltas, gt);
+    }
 }
