@@ -394,6 +394,7 @@ fn line_buttons(i: &str) -> IResult<Buttons> {
     let (i, _) = tag("buttons")(i)?;
 
     if preceded(space1::<&str, ()>, not_line_ending)(i).is_ok() {
+        cut(context(Context::NoButtons, preceded(space1, anychar)))(i)?;
         cut(buttons)(i)
     } else {
         Ok((i, Buttons::Reset))
@@ -456,5 +457,22 @@ mod tests {
         } else {
             unreachable!()
         }
+    }
+
+    #[test]
+    fn no_buttons() {
+        let input = "buttons ";
+        let err = line_buttons(input).unwrap_err();
+        if let nom::Err::Failure(err) = err {
+            assert_eq!(err.context, Some(Context::NoButtons));
+        } else {
+            unreachable!()
+        }
+    }
+
+    #[test]
+    fn buttons_reset() {
+        let input = "buttons";
+        assert_eq!(line_buttons(input), Ok(("", Buttons::Reset)));
     }
 }
