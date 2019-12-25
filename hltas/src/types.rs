@@ -516,4 +516,24 @@ mod tests {
         let gt = bhop_gt();
         assert_eq!(hltas, gt);
     }
+
+    macro_rules! test_error {
+        ($test_name:ident, $filename:literal, $context:ident) => {
+            #[test]
+            fn $test_name() {
+                let contents =
+                    read_to_string(concat!("../test-data/error/", $filename, ".hltas")).unwrap();
+                let err = HLTAS::from_str(&contents).unwrap_err();
+                assert_eq!(err.context, Some(read::Context::$context));
+            }
+        };
+    }
+
+    test_error! { error_no_version, "no-version", ErrorReadingVersion }
+    test_error! { error_too_high_version, "too-high-version", VersionTooHigh }
+    test_error! { error_no_save_name, "no-save-name", NoSaveName }
+    test_error! { error_no_seed, "no-seed", NoSeed }
+    test_error! { error_no_lgagst_min_speed, "no-lgagst-min-speed", NoLGAGSTMinSpeed }
+    test_error! { error_no_reset_seed, "no-reset-seed", NoResetSeed }
+    test_error! { error_both_autojump_ducktap, "both-j-d", BothAutoJumpAndDuckTap }
 }
