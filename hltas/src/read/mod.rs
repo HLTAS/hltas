@@ -224,3 +224,30 @@ pub(crate) fn hltas(i: &str) -> IResult<HLTAS> {
 
     Ok((i, HLTAS { properties, lines }))
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn version_0() {
+        let input = "version 0";
+        let err = version(input).unwrap_err();
+        if let nom::Err::Error(err) = err {
+            assert_eq!(err.context, Some(Context::ErrorReadingVersion));
+        } else {
+            unreachable!()
+        }
+    }
+
+    #[test]
+    fn version_too_high() {
+        let input = "version 9";
+        let err = version(input).unwrap_err();
+        if let nom::Err::Error(err) = err {
+            assert_eq!(err.context, Some(Context::VersionTooHigh));
+        } else {
+            unreachable!()
+        }
+    }
+}
