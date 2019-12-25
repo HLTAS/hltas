@@ -389,9 +389,13 @@ fn button(i: &str) -> IResult<Button> {
 }
 
 fn buttons(i: &str) -> IResult<Buttons> {
+    cut(context(Context::NoButtons, preceded(space1, anychar)))(i)?;
     let (i, air_left) = preceded(space1, button)(i)?;
+    cut(context(Context::NoButtons, preceded(space1, anychar)))(i)?;
     let (i, air_right) = preceded(space1, button)(i)?;
+    cut(context(Context::NoButtons, preceded(space1, anychar)))(i)?;
     let (i, ground_left) = preceded(space1, button)(i)?;
+    cut(context(Context::NoButtons, preceded(space1, anychar)))(i)?;
     let (i, ground_right) = preceded(space1, button)(i)?;
     Ok((
         i,
@@ -408,7 +412,6 @@ fn line_buttons(i: &str) -> IResult<Buttons> {
     let (i, _) = tag("buttons")(i)?;
 
     if preceded(space1::<&str, ()>, not_line_ending)(i).is_ok() {
-        cut(context(Context::NoButtons, preceded(space1, anychar)))(i)?;
         cut(buttons)(i)
     } else {
         Ok((i, Buttons::Reset))
@@ -478,6 +481,17 @@ mod tests {
     #[test]
     fn no_buttons() {
         let input = "buttons ";
+        let err = line_buttons(input).unwrap_err();
+        if let nom::Err::Failure(err) = err {
+            assert_eq!(err.context, Some(Context::NoButtons));
+        } else {
+            unreachable!()
+        }
+    }
+
+    #[test]
+    fn no_buttons_1() {
+        let input = "buttons 1";
         let err = line_buttons(input).unwrap_err();
         if let nom::Err::Failure(err) = err {
             assert_eq!(err.context, Some(Context::NoButtons));
