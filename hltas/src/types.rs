@@ -119,7 +119,7 @@ pub struct FrameBulk<'a> {
 }
 
 /// Automatic actions such as strafing, auto-jump, etc.
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Default)]
 pub struct AutoActions {
     /// Yaw angle adjustment and strafing.
     pub yaw_adjustment: Option<YawAdjustment>,
@@ -251,7 +251,7 @@ pub struct DuckWhenJump {
 }
 
 /// Manually specified movement keys.
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Default)]
 pub struct MovementKeys {
     /// `+forward`
     pub forward: bool,
@@ -268,7 +268,7 @@ pub struct MovementKeys {
 }
 
 /// Manually specified action keys.
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Default)]
 pub struct ActionKeys {
     /// `+jump`
     pub jump: bool,
