@@ -404,6 +404,7 @@ fn line_buttons(i: &str) -> IResult<Buttons> {
 fn line_lgagst_min_speed(i: &str) -> IResult<f32> {
     let (i, (name, value)) = property(i)?;
     tag("lgagstminspeed")(name)?;
+    cut(context(Context::NoLGAGSTMinSpeed, anychar))(value)?;
     let (_, lgagst_min_speed) = cut(float)(value)?;
     Ok((i, lgagst_min_speed))
 }
@@ -474,5 +475,16 @@ mod tests {
     fn buttons_reset() {
         let input = "buttons";
         assert_eq!(line_buttons(input), Ok(("", Buttons::Reset)));
+    }
+
+    #[test]
+    fn no_lgagst_min_speed() {
+        let input = "lgagstminspeed ";
+        let err = line_lgagst_min_speed(input).unwrap_err();
+        if let nom::Err::Failure(err) = err {
+            assert_eq!(err.context, Some(Context::NoLGAGSTMinSpeed));
+        } else {
+            unreachable!()
+        }
     }
 }
