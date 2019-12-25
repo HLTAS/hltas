@@ -83,6 +83,9 @@ fn lgagst_action(i: &str) -> IResult<LeaveGroundAction> {
         not(peek(tuple((char('j'), alt((char('d'), char('D'))))))),
     ))(i)?;
 
+    // Check for the no leave ground action error.
+    cut(context(Context::NoLeaveGroundAction, not(peek(tag("--")))))(i)?;
+
     cut(alt((
         map(tag("j-"), move |_| LeaveGroundAction {
             speed,
@@ -545,6 +548,17 @@ mod tests {
         let err = auto_actions(input).unwrap_err();
         if let nom::Err::Failure(err) = err {
             assert_eq!(err.context, Some(Context::BothAutoJumpAndDuckTap));
+        } else {
+            unreachable!()
+        }
+    }
+
+    #[test]
+    fn no_leave_ground_action() {
+        let input = "---l------";
+        let err = auto_actions(input).unwrap_err();
+        if let nom::Err::Failure(err) = err {
+            assert_eq!(err.context, Some(Context::NoLeaveGroundAction));
         } else {
             unreachable!()
         }
