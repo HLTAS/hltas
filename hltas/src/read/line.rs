@@ -356,6 +356,7 @@ fn line_save(i: &str) -> IResult<&str> {
 fn line_seed(i: &str) -> IResult<u32> {
     let (i, (name, value)) = property(i)?;
     tag("seed")(name)?;
+    cut(context(Context::NoSeed, anychar))(value)?;
     let (_, seed) = cut(shared_seed)(value)?;
     Ok((i, seed))
 }
@@ -441,6 +442,17 @@ mod tests {
         let err = line_save(input).unwrap_err();
         if let nom::Err::Failure(err) = err {
             assert_eq!(err.context, Some(Context::NoSaveName));
+        } else {
+            unreachable!()
+        }
+    }
+
+    #[test]
+    fn no_seed() {
+        let input = "seed ";
+        let err = line_seed(input).unwrap_err();
+        if let nom::Err::Failure(err) = err {
+            assert_eq!(err.context, Some(Context::NoSeed));
         } else {
             unreachable!()
         }
