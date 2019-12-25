@@ -299,6 +299,8 @@ fn yaw_field<'a>(
         }
         Some(YawAdjustment::Strafe(StrafeSettings { dir, type_ })) => match dir {
             StrafeDir::Yaw(_) => {
+                context(Context::NoYaw, not(pair(not(recognize_float), char('-'))))(i)?;
+
                 let (i, yaw) = float(i)?;
                 Ok((
                     i,
@@ -309,6 +311,8 @@ fn yaw_field<'a>(
                 ))
             }
             StrafeDir::Line { .. } => {
+                context(Context::NoYaw, not(pair(not(recognize_float), char('-'))))(i)?;
+
                 let (i, yaw) = float(i)?;
                 Ok((
                     i,
@@ -319,6 +323,8 @@ fn yaw_field<'a>(
                 ))
             }
             StrafeDir::Point { .. } => {
+                context(Context::NoYaw, not(pair(not(recognize_float), char('-'))))(i)?;
+
                 let (i, (x, y)) = separated_pair(float, space1, float)(i)?;
                 Ok((
                     i,
@@ -620,5 +626,30 @@ mod tests {
         } else {
             unreachable!()
         }
+    }
+
+    #[test]
+    fn no_yaw() {
+        let input = "-";
+        let err = yaw_field(Some(YawAdjustment::Strafe(StrafeSettings {
+            type_: StrafeType::MaxAccel,
+            dir: StrafeDir::Yaw(0.),
+        })))(input)
+        .unwrap_err();
+        if let nom::Err::Error(err) = err {
+            assert_eq!(err.context, Some(Context::NoYaw));
+        } else {
+            unreachable!()
+        }
+    }
+
+    #[test]
+    fn yaw_negative() {
+        let input = "-1";
+        assert!(yaw_field(Some(YawAdjustment::Strafe(StrafeSettings {
+            type_: StrafeType::MaxAccel,
+            dir: StrafeDir::Yaw(0.),
+        })))(input)
+        .is_ok());
     }
 }
