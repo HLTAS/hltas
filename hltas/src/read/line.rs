@@ -412,6 +412,7 @@ fn line_lgagst_min_speed(i: &str) -> IResult<f32> {
 fn line_reset(i: &str) -> IResult<i64> {
     let (i, (name, value)) = property(i)?;
     tag("reset")(name)?;
+    cut(context(Context::NoResetSeed, anychar))(value)?;
     let (_, seed) = cut(non_shared_seed)(value)?;
     Ok((i, seed))
 }
@@ -483,6 +484,17 @@ mod tests {
         let err = line_lgagst_min_speed(input).unwrap_err();
         if let nom::Err::Failure(err) = err {
             assert_eq!(err.context, Some(Context::NoLGAGSTMinSpeed));
+        } else {
+            unreachable!()
+        }
+    }
+
+    #[test]
+    fn no_reset_seed() {
+        let input = "reset ";
+        let err = line_reset(input).unwrap_err();
+        if let nom::Err::Failure(err) = err {
+            assert_eq!(err.context, Some(Context::NoResetSeed));
         } else {
             unreachable!()
         }
