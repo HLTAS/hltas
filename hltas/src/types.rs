@@ -374,7 +374,10 @@ impl<'a> FrameBulk<'a> {
 mod tests {
     use super::*;
 
-    use std::fs::{read_dir, read_to_string};
+    use std::{
+        fs::{read_dir, read_to_string},
+        str::from_utf8,
+    };
 
     #[test]
     fn parse() {
@@ -395,6 +398,28 @@ mod tests {
     }
 
     #[test]
+    fn parse_write_parse() {
+        for entry in read_dir("../test-data/parse")
+            .unwrap()
+            .filter_map(Result::ok)
+            .filter(|entry| {
+                entry
+                    .file_name()
+                    .to_str()
+                    .map(|name| name.ends_with(".hltas"))
+                    .unwrap_or(false)
+            })
+        {
+            let contents = read_to_string(entry.path()).unwrap();
+            let hltas = HLTAS::from_str(&contents).unwrap();
+
+            let mut output = Vec::new();
+            hltas.to_writer(&mut output).unwrap();
+
+            let hltas_2 = HLTAS::from_str(from_utf8(&output).unwrap()).unwrap();
+            assert_eq!(hltas, hltas_2);
+        }
+    }
 
     fn bhop_gt() -> HLTAS<'static> {
         HLTAS {
@@ -478,6 +503,17 @@ mod tests {
         assert_eq!(hltas, gt);
     }
 
+    #[test]
+    fn parse_write_parse_validate() {
+        let contents = read_to_string("../test-data/parse/bhop.hltas").unwrap();
+        let hltas = HLTAS::from_str(&contents).unwrap();
+
+        let mut output = Vec::new();
+        hltas.to_writer(&mut output).unwrap();
+
+        let hltas = HLTAS::from_str(from_utf8(&output).unwrap()).unwrap();
+
+        let gt = bhop_gt();
         assert_eq!(hltas, gt);
     }
 }
