@@ -80,11 +80,25 @@ fn lgagst_action(i: &str) -> IResult<LeaveGroundAction> {
     // Check for the both autojump and ducktap error.
     cut(context(
         Context::BothAutoJumpAndDuckTap,
-        not(peek(tuple((char('j'), alt((char('d'), char('D'))))))),
+        not(peek(tuple((
+            char('j'),
+            parse_times,
+            alt((char('d'), char('D'))),
+        )))),
     ))(i)?;
 
     // Check for the no leave ground action error.
     cut(context(Context::NoLeaveGroundAction, not(peek(tag("--")))))(i)?;
+
+    // Check for the times on leave ground action error.
+    cut(context(
+        Context::TimesOnLeaveGroundAction,
+        not(peek(alt((
+            preceded(char('j'), non_zero_u32),
+            preceded(tag("-d"), non_zero_u32),
+            preceded(tag("-D"), non_zero_u32),
+        )))),
+    ))(i)?;
 
     cut(alt((
         map(tag("j-"), move |_| LeaveGroundAction {
@@ -570,6 +584,39 @@ mod tests {
         let err = auto_actions(input).unwrap_err();
         if let nom::Err::Failure(err) = err {
             assert_eq!(err.context, Some(Context::NoLeaveGroundAction));
+        } else {
+            unreachable!()
+        }
+    }
+
+    #[test]
+    fn times_on_leave_ground_action_autojump() {
+        let input = "---lj2-----";
+        let err = auto_actions(input).unwrap_err();
+        if let nom::Err::Failure(err) = err {
+            assert_eq!(err.context, Some(Context::TimesOnLeaveGroundAction));
+        } else {
+            unreachable!()
+        }
+    }
+
+    #[test]
+    fn times_on_leave_ground_action_ducktap() {
+        let input = "---l-d2----";
+        let err = auto_actions(input).unwrap_err();
+        if let nom::Err::Failure(err) = err {
+            assert_eq!(err.context, Some(Context::TimesOnLeaveGroundAction));
+        } else {
+            unreachable!()
+        }
+    }
+
+    #[test]
+    fn both_autojump_ducktap_with_times() {
+        let input = "---lj2d2----";
+        let err = auto_actions(input).unwrap_err();
+        if let nom::Err::Failure(err) = err {
+            assert_eq!(err.context, Some(Context::BothAutoJumpAndDuckTap));
         } else {
             unreachable!()
         }
