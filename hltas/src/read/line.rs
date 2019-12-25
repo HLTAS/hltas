@@ -59,7 +59,7 @@ fn non_zero_u32(i: &str) -> IResult<NonZeroU32> {
     )(i)
 }
 
-fn times(i: &str) -> IResult<u32> {
+fn parse_times(i: &str) -> IResult<u32> {
     let (i, times) = opt(non_zero_u32)(i)?;
     Ok((i, times.map(NonZeroU32::get).unwrap_or(0)))
 }
@@ -75,7 +75,7 @@ fn lgagst_action_speed(i: &str) -> IResult<LeaveGroundActionSpeed> {
 
 fn lgagst_action(i: &str) -> IResult<LeaveGroundAction> {
     let (i, speed) = lgagst_action_speed(i)?;
-    let (i, times) = times(i)?;
+    let (i, times) = parse_times(i)?;
 
     // Check for the both autojump and ducktap error.
     cut(context(
@@ -111,26 +111,35 @@ fn non_lgagst_action(i: &str) -> IResult<LeaveGroundAction> {
     // Check for the both autojump and ducktap error.
     cut(context(
         Context::BothAutoJumpAndDuckTap,
-        not(peek(tuple((char('j'), times, alt((char('d'), char('D'))))))),
+        not(peek(tuple((
+            char('j'),
+            parse_times,
+            alt((char('d'), char('D'))),
+        )))),
     ))(i)?;
 
     alt((
-        map(tuple((char('j'), times, char('-'))), |(_, times, _)| {
-            LeaveGroundAction {
+        map(
+            tuple((char('j'), parse_times, char('-'))),
+            |(_, times, _)| LeaveGroundAction {
                 speed: LeaveGroundActionSpeed::Any,
                 times,
                 type_: LeaveGroundActionType::Jump,
+            },
+        ),
+        map(pair(tag("-d"), parse_times), |(_, times)| {
+            LeaveGroundAction {
+                speed: LeaveGroundActionSpeed::Any,
+                times,
+                type_: LeaveGroundActionType::DuckTap { zero_ms: false },
             }
         }),
-        map(pair(tag("-d"), times), |(_, times)| LeaveGroundAction {
-            speed: LeaveGroundActionSpeed::Any,
-            times,
-            type_: LeaveGroundActionType::DuckTap { zero_ms: false },
-        }),
-        map(pair(tag("-D"), times), |(_, times)| LeaveGroundAction {
-            speed: LeaveGroundActionSpeed::Any,
-            times,
-            type_: LeaveGroundActionType::DuckTap { zero_ms: true },
+        map(pair(tag("-D"), parse_times), |(_, times)| {
+            LeaveGroundAction {
+                speed: LeaveGroundActionSpeed::Any,
+                times,
+                type_: LeaveGroundActionType::DuckTap { zero_ms: true },
+            }
         }),
     ))(i)
 }
@@ -146,20 +155,22 @@ fn leave_ground_action(i: &str) -> IResult<Option<LeaveGroundAction>> {
 fn jump_bug(i: &str) -> IResult<Option<JumpBug>> {
     alt((
         map(char('-'), |_| None),
-        map(preceded(char('b'), times), |times| Some(JumpBug { times })),
+        map(preceded(char('b'), parse_times), |times| {
+            Some(JumpBug { times })
+        }),
     ))(i)
 }
 
 fn duck_before_collision(i: &str) -> IResult<Option<DuckBeforeCollision>> {
     alt((
         map(char('-'), |_| None),
-        map(preceded(char('c'), times), |times| {
+        map(preceded(char('c'), parse_times), |times| {
             Some(DuckBeforeCollision {
                 times,
                 including_ceilings: false,
             })
         }),
-        map(preceded(char('C'), times), |times| {
+        map(preceded(char('C'), parse_times), |times| {
             Some(DuckBeforeCollision {
                 times,
                 including_ceilings: true,
@@ -171,7 +182,7 @@ fn duck_before_collision(i: &str) -> IResult<Option<DuckBeforeCollision>> {
 fn duck_before_ground(i: &str) -> IResult<Option<DuckBeforeGround>> {
     alt((
         map(char('-'), |_| None),
-        map(preceded(char('g'), times), |times| {
+        map(preceded(char('g'), parse_times), |times| {
             Some(DuckBeforeGround { times })
         }),
     ))(i)
@@ -180,7 +191,7 @@ fn duck_before_ground(i: &str) -> IResult<Option<DuckBeforeGround>> {
 fn duck_when_jump(i: &str) -> IResult<Option<DuckWhenJump>> {
     alt((
         map(char('-'), |_| None),
-        map(preceded(char('w'), times), |times| {
+        map(preceded(char('w'), parse_times), |times| {
             Some(DuckWhenJump { times })
         }),
     ))(i)
