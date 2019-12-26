@@ -36,7 +36,7 @@
 pub mod types;
 pub use types::HLTAS;
 
-mod read;
+pub mod read;
 mod write;
 
 #[cfg(not(test))]

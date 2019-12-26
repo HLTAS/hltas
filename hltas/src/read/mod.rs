@@ -1,3 +1,5 @@
+//! Reading `.hltas` files.
+
 use std::fmt::{self, Display, Formatter};
 
 use nom::{
@@ -26,26 +28,41 @@ enum ErrorKind {
     Other(nom::error::ErrorKind),
 }
 
+/// Enumeration of possible semantic errors.
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub enum Context {
+    /// Failed to read the version.
     ErrorReadingVersion,
+    /// The version is too high.
     VersionTooHigh,
+    /// Both autojump and ducktap are enabled at once.
     BothAutoJumpAndDuckTap,
+    /// LGAGST is enabled without autojump or ducktap.
     NoLeaveGroundAction,
+    /// Times is specified on the LGAGST action.
     TimesOnLeaveGroundAction,
+    /// Save name is not specified.
     NoSaveName,
+    /// Seed is not specified.
     NoSeed,
+    /// Yaw is required but not specified.
     NoYaw,
+    /// Buttons are not specified.
     NoButtons,
+    /// The LGAGST min speed valueis not specified.
     NoLGAGSTMinSpeed,
+    /// The reset seed is not specified.
     NoResetSeed,
 }
 
+/// `.hltas` parsing error.
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub struct Error<'a> {
+    /// Remaining input at the point of failure.
     pub input: &'a str,
     pub(crate) whole_input: &'a str,
     kind: ErrorKind,
+    /// Semantic meaning of the parsing error.
     pub context: Option<Context>,
 }
 
