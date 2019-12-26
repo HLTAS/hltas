@@ -1,6 +1,6 @@
 #!/bin/sh
 
-exec bindgen ../src/hltas.hpp \
+exec bindgen cpp/src/hltas.hpp \
 	-o src/hltas_cpp.rs \
 	--whitelist-function 'hltas_.*' \
 	--whitelist-type 'HLTAS::ErrorDescription' \

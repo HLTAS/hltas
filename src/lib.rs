@@ -3,9 +3,9 @@
 //! # Examples
 //!
 //! ```
-//! # extern crate hltas_rs;
+//! # extern crate hltas;
 //! # fn foo() -> Result<(), Box<dyn std::error::Error>> {
-//! use hltas_rs::{HLTAS, types::{JumpBug, Line, Times}};
+//! use hltas::{HLTAS, types::{JumpBug, Line, Times}};
 //!
 //! let contents = "\
 //! version 1
@@ -42,7 +42,6 @@ pub use types::HLTAS;
 pub mod read;
 mod write;
 
-#[cfg(not(test))]
 pub mod capi;
 #[allow(non_camel_case_types, non_snake_case, dead_code)]
 mod hltas_cpp;

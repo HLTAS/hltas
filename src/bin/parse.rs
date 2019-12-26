@@ -1,8 +1,8 @@
-extern crate hltas_rs;
+extern crate hltas;
 
 use std::{env::args, fs::read_to_string};
 
-use hltas_rs::HLTAS;
+use hltas::HLTAS;
 
 fn main() {
     let filename = args().nth(1).unwrap();

@@ -301,10 +301,10 @@ impl<'a> HLTAS<'a> {
     /// # Examples
     ///
     /// ```no_run
-    /// # extern crate hltas_rs;
+    /// # extern crate hltas;
     /// # fn foo() -> Result<(), Box<dyn std::error::Error>> {
     /// use std::fs::read_to_string;
-    /// use hltas_rs::HLTAS;
+    /// use hltas::HLTAS;
     ///
     /// let contents = read_to_string("script.hltas")?;
     /// match HLTAS::from_str(&contents) {
@@ -334,9 +334,9 @@ impl<'a> HLTAS<'a> {
     /// # Examples
     ///
     /// ```no_run
-    /// # extern crate hltas_rs;
+    /// # extern crate hltas;
     /// use std::fs::File;
-    /// use hltas_rs::HLTAS;
+    /// use hltas::HLTAS;
     ///
     /// fn save_script(hltas: &HLTAS) -> Result<(), Box<dyn std::error::Error>> {
     ///     let file = File::create("script.hltas")?;
@@ -355,9 +355,9 @@ impl<'a> FrameBulk<'a> {
     /// # Examples
     ///
     /// ```
-    /// # extern crate hltas_rs;
+    /// # extern crate hltas;
     /// # fn foo() {
-    /// use hltas_rs::types::FrameBulk;
+    /// use hltas::types::FrameBulk;
     ///
     /// let frame_bulk = FrameBulk::with_frame_time("0.001");
     /// assert_eq!(frame_bulk.frame_time, "0.001");
@@ -414,7 +414,7 @@ mod tests {
 
     #[test]
     fn parse() {
-        for entry in read_dir("../test-data/parse")
+        for entry in read_dir("test-data/parse")
             .unwrap()
             .filter_map(Result::ok)
             .filter(|entry| {
@@ -432,7 +432,7 @@ mod tests {
 
     #[test]
     fn parse_write_parse() {
-        for entry in read_dir("../test-data/parse")
+        for entry in read_dir("test-data/parse")
             .unwrap()
             .filter_map(Result::ok)
             .filter(|entry| {
@@ -529,7 +529,7 @@ mod tests {
 
     #[test]
     fn validate() {
-        let contents = read_to_string("../test-data/parse/bhop.hltas").unwrap();
+        let contents = read_to_string("test-data/parse/bhop.hltas").unwrap();
         let hltas = HLTAS::from_str(&contents).unwrap();
 
         let gt = bhop_gt();
@@ -538,7 +538,7 @@ mod tests {
 
     #[test]
     fn parse_write_parse_validate() {
-        let contents = read_to_string("../test-data/parse/bhop.hltas").unwrap();
+        let contents = read_to_string("test-data/parse/bhop.hltas").unwrap();
         let hltas = HLTAS::from_str(&contents).unwrap();
 
         let mut output = Vec::new();
@@ -555,7 +555,7 @@ mod tests {
             #[test]
             fn $test_name() {
                 let contents =
-                    read_to_string(concat!("../test-data/error/", $filename, ".hltas")).unwrap();
+                    read_to_string(concat!("test-data/error/", $filename, ".hltas")).unwrap();
                 let err = HLTAS::from_str(&contents).unwrap_err();
                 assert_eq!(err.context, Some(read::Context::$context));
             }

@@ -1,11 +1,11 @@
-extern crate hltas_rs;
+extern crate hltas;
 
 use std::{
     env::args,
     fs::{read_to_string, File},
 };
 
-use hltas_rs::HLTAS;
+use hltas::HLTAS;
 
 fn main() {
     let input_filename = args().nth(1).unwrap();

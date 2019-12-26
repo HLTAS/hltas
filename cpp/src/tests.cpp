@@ -30,7 +30,7 @@ TEST_CASE("Parse") {
 
 	for (const auto file : parse_files) {
 		SECTION(file) {
-			const auto path = std::string("test-data/parse/") + file;
+			const auto path = std::string("../test-data/parse/") + file;
 			const auto err = input.Open(path).get();
 			CHECK(err.Code == HLTAS::ErrorCode::OK);
 		}
@@ -42,9 +42,9 @@ TEST_CASE("Parse, write, parse") {
 
 	for (const auto file : parse_files) {
 		SECTION(file) {
-			auto path = std::string("test-data/parse/") + file;
+			auto path = std::string("../test-data/parse/") + file;
 			REQUIRE(input.Open(path).get().Code == HLTAS::ErrorCode::OK);
-			path = std::string("test-data/write-output/") + file;
+			path = std::string("../test-data/write-output/") + file;
 			REQUIRE(input.Save(path).get().Code == HLTAS::ErrorCode::OK);
 			REQUIRE(input.Open(path).get().Code == HLTAS::ErrorCode::OK);
 		}
@@ -75,7 +75,7 @@ TEST_CASE("Error") {
 		const auto code = test.second;
 
 		SECTION(file) {
-			const auto path = std::string("test-data/error/") + file;
+			const auto path = std::string("../test-data/error/") + file;
 			const auto err = input.Open(path).get();
 			CHECK(err.Code == code);
 		}
@@ -148,16 +148,16 @@ void validate(const HLTAS::Input& input) {
 
 TEST_CASE("Parse and validate") {
 	HLTAS::Input input;
-	REQUIRE(input.Open("test-data/parse/bhop.hltas").get().Code == HLTAS::ErrorCode::OK);
+	REQUIRE(input.Open("../test-data/parse/bhop.hltas").get().Code == HLTAS::ErrorCode::OK);
 
 	validate(input);
 }
 
 TEST_CASE("Parse, write, parse and validate") {
 	HLTAS::Input input;
-	REQUIRE(input.Open("test-data/parse/bhop.hltas").get().Code == HLTAS::ErrorCode::OK);
-	REQUIRE(input.Save("test-data/write-output/bhop.hltas").get().Code == HLTAS::ErrorCode::OK);
-	REQUIRE(input.Open("test-data/write-output/bhop.hltas").get().Code == HLTAS::ErrorCode::OK);
+	REQUIRE(input.Open("../test-data/parse/bhop.hltas").get().Code == HLTAS::ErrorCode::OK);
+	REQUIRE(input.Save("../test-data/write-output/bhop.hltas").get().Code == HLTAS::ErrorCode::OK);
+	REQUIRE(input.Open("../test-data/write-output/bhop.hltas").get().Code == HLTAS::ErrorCode::OK);
 
 	validate(input);
 }
