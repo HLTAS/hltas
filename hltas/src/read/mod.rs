@@ -188,6 +188,25 @@ impl<'a> ParseError<&'a str> for Error<'a> {
     }
 }
 
+impl Error<'_> {
+    /// Returns the line number on which the error has occurred.
+    pub fn line(&self) -> usize {
+        let mut line = 0;
+        let mut offset = self.whole_input.offset(self.input);
+
+        for (j, l) in self.whole_input.lines().enumerate() {
+            if offset <= l.len() {
+                line = j;
+                break;
+            } else {
+                offset = offset - l.len() - 1;
+            }
+        }
+
+        line
+    }
+}
+
 /// Adds context to the potential parser error.
 ///
 /// If the error already has context stored, does nothing.
