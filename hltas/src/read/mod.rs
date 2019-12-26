@@ -52,6 +52,8 @@ pub enum Context {
     NoLGAGSTMinSpeed,
     /// The reset seed is not specified.
     NoResetSeed,
+    /// Failed to parse a frames entry.
+    ErrorParsingLine,
 }
 
 /// `.hltas` parsing error.
@@ -101,6 +103,7 @@ impl Display for Context {
             NoLGAGSTMinSpeed => write!(f, "missing lgagstminspeed value"),
             NoResetSeed => write!(f, "missing reset seed"),
             NoYaw => write!(f, "missing yaw value"),
+            ErrorParsingLine => write!(f, "failed to parse the line"),
         }
     }
 }
@@ -233,7 +236,10 @@ pub(crate) fn hltas(i: &str) -> IResult<HLTAS> {
     let (i, _) = context(Context::ErrorReadingVersion, version)(i)?;
     let (i, properties) = properties(i)?;
     let (i, _) = preceded(many1(line_ending), tag("frames"))(i)?;
-    let (i, (lines, _)) = many_till(preceded(whitespace, line), all_consuming(multispace0))(i)?;
+    let (i, (lines, _)) = context(
+        Context::ErrorParsingLine,
+        many_till(preceded(whitespace, line), all_consuming(multispace0)),
+    )(i)?;
 
     Ok((i, HLTAS { properties, lines }))
 }
