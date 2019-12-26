@@ -1,9 +1,7 @@
 find_package(Threads REQUIRED)
-find_package(Boost 1.57.0 REQUIRED)
 
 add_library(hltas-cpp src/hltas.cpp)
 set_property(TARGET hltas-cpp PROPERTY CXX_STANDARD 14)
-target_include_directories(hltas-cpp SYSTEM PRIVATE ${Boost_INCLUDE_DIRS})
 target_include_directories(hltas-cpp PUBLIC src)
 target_link_libraries(hltas-cpp INTERFACE Threads::Threads)
 

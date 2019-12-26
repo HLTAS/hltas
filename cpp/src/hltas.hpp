@@ -289,7 +289,7 @@ namespace HLTAS
 
 	public:
 		std::future<ErrorDescription> Open(const std::string& filename);
-		std::future<ErrorDescription> Save(const std::string& filename, int version = MAX_SUPPORTED_VERSION);
+		std::future<ErrorDescription> Save(const std::string& filename);
 		void Clear();
 
 		int GetVersion() const;
@@ -308,13 +308,9 @@ namespace HLTAS
 		Frame& GetFrame(std::size_t n);
 
 	protected:
-		ErrorDescription Error(ErrorCode code);
 		ErrorDescription OpenInternal(const std::string& filename);
-		ErrorDescription SaveInternal(const std::string& filename, int version);
-		void ReadProperties(std::ifstream& file);
-		void ReadFrames(std::ifstream& file);
+		ErrorDescription SaveInternal(const std::string& filename);
 		mutable std::shared_timed_mutex Mutex;
-		unsigned CurrentLineNumber;
 
 		int Version;
 		std::unordered_map<std::string, std::string> Properties;
