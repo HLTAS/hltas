@@ -1,8 +1,19 @@
 [package]
 name = "hltas"
 version = "0.1.0"
-authors = ["Ivan Molodetskikh <yalterz@gmail.com>"]
+authors = [
+    "Ivan Molodetskikh <yalterz@gmail.com>",
+    "Chong Jiang Wei <randolphchong@gmail.com>",
+]
 edition = "2018"
+description = "Reading and writing Half-Life TAS scripts (`.hltas`)."
+license = "MIT/Apache-2.0"
+
+readme = "README.md"
+documentation = "https://docs.rs/hltas"
+repository = "https://github.com/HLTAS/hltas"
+keywords = ["half-life", "goldsource", "hltas", "tas", "parser"]
+categories = ["game-engines", "games", "parser-implementations", "parsing"]
 
 [dependencies]
 nom = "5.0.1"

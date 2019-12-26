@@ -36,6 +36,9 @@
 //! # }
 //! ```
 
+#![doc(html_root_url = "https://docs.rs/hltas/0.1.0")]
+#![deny(unsafe_code)]
+
 pub mod types;
 pub use types::HLTAS;
 
