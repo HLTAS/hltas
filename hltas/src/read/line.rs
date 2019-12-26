@@ -221,7 +221,7 @@ fn auto_actions(i: &str) -> IResult<AutoActions> {
     Ok((
         i,
         AutoActions {
-            yaw_adjustment: strafe.map(YawAdjustment::Strafe),
+            movement: strafe.map(AutoMovement::Strafe),
             leave_ground_action,
             jump_bug,
             duck_before_collision,
@@ -279,7 +279,7 @@ fn float(i: &str) -> IResult<f32> {
     verify(map_res(recognize_float, f32::from_str), |x| x.is_finite())(i)
 }
 
-/// Returns a parser for the yaw field given a `YawAdjustment`.
+/// Returns a parser for the yaw field given a `AutoMovement`.
 ///
 /// The yaw field contents depend on the strafing:
 /// - If strafing is disabled, the yaw field can be either empty or contain one float (the yaw
@@ -290,21 +290,21 @@ fn float(i: &str) -> IResult<f32> {
 ///   coordinates).
 /// - If strafing is enabled with other dirs, the yaw field should be empty.
 fn yaw_field<'a>(
-    yaw_adjustment: Option<YawAdjustment>,
-) -> impl Fn(&'a str) -> IResult<Option<YawAdjustment>> {
-    move |i: &str| match yaw_adjustment {
+    movement: Option<AutoMovement>,
+) -> impl Fn(&'a str) -> IResult<Option<AutoMovement>> {
+    move |i: &str| match movement {
         None => {
             let (i, yaw) = alt((map(float, Some), map(char('-'), |_| None)))(i)?;
-            Ok((i, yaw.map(YawAdjustment::Set)))
+            Ok((i, yaw.map(AutoMovement::SetYaw)))
         }
-        Some(YawAdjustment::Strafe(StrafeSettings { dir, type_ })) => match dir {
+        Some(AutoMovement::Strafe(StrafeSettings { dir, type_ })) => match dir {
             StrafeDir::Yaw(_) => {
                 context(Context::NoYaw, not(pair(not(recognize_float), char('-'))))(i)?;
 
                 let (i, yaw) = float(i)?;
                 Ok((
                     i,
-                    Some(YawAdjustment::Strafe(StrafeSettings {
+                    Some(AutoMovement::Strafe(StrafeSettings {
                         type_,
                         dir: StrafeDir::Yaw(yaw),
                     })),
@@ -316,7 +316,7 @@ fn yaw_field<'a>(
                 let (i, yaw) = float(i)?;
                 Ok((
                     i,
-                    Some(YawAdjustment::Strafe(StrafeSettings {
+                    Some(AutoMovement::Strafe(StrafeSettings {
                         type_,
                         dir: StrafeDir::Line { yaw },
                     })),
@@ -328,7 +328,7 @@ fn yaw_field<'a>(
                 let (i, (x, y)) = separated_pair(float, space1, float)(i)?;
                 Ok((
                     i,
-                    Some(YawAdjustment::Strafe(StrafeSettings {
+                    Some(AutoMovement::Strafe(StrafeSettings {
                         type_,
                         dir: StrafeDir::Point { x, y },
                     })),
@@ -336,10 +336,7 @@ fn yaw_field<'a>(
             }
             dir => {
                 let (i, _) = char('-')(i)?;
-                Ok((
-                    i,
-                    Some(YawAdjustment::Strafe(StrafeSettings { type_, dir })),
-                ))
+                Ok((i, Some(AutoMovement::Strafe(StrafeSettings { type_, dir }))))
             }
         },
         _ => unreachable!(),
@@ -359,7 +356,7 @@ fn frame_count(i: &str) -> IResult<NonZeroU32> {
 }
 
 fn line_frame_bulk(i: &str) -> IResult<FrameBulk> {
-    // Mutable because the yaw_adjustment parameter will be filled in later.
+    // Mutable because the movement parameter will be filled in later.
     let (i, mut auto_actions) = auto_actions(i)?;
     // Backwards compatibility: HLTAS didn't check the first field length, so extra characters were
     // permitted.
@@ -369,10 +366,9 @@ fn line_frame_bulk(i: &str) -> IResult<FrameBulk> {
     let (i, action_keys) = cut(preceded(char('|'), action_keys))(i)?;
     let (i, frame_time) = cut(preceded(char('|'), recognize_float))(i)?;
 
-    // Parse the yaw field and get the updated yaw_adjustment.
-    let (i, new_yaw_adjustment) =
-        cut(preceded(char('|'), yaw_field(auto_actions.yaw_adjustment)))(i)?;
-    auto_actions.yaw_adjustment = new_yaw_adjustment;
+    // Parse the yaw field and get the updated movement.
+    let (i, new_movement) = cut(preceded(char('|'), yaw_field(auto_actions.movement)))(i)?;
+    auto_actions.movement = new_movement;
 
     let (i, pitch) = cut(preceded(char('|'), pitch))(i)?;
     let (i, frame_count) = cut(preceded(char('|'), frame_count))(i)?;
@@ -631,7 +627,7 @@ mod tests {
     #[test]
     fn no_yaw() {
         let input = "-";
-        let err = yaw_field(Some(YawAdjustment::Strafe(StrafeSettings {
+        let err = yaw_field(Some(AutoMovement::Strafe(StrafeSettings {
             type_: StrafeType::MaxAccel,
             dir: StrafeDir::Yaw(0.),
         })))(input)
@@ -646,7 +642,7 @@ mod tests {
     #[test]
     fn yaw_negative() {
         let input = "-1";
-        assert!(yaw_field(Some(YawAdjustment::Strafe(StrafeSettings {
+        assert!(yaw_field(Some(AutoMovement::Strafe(StrafeSettings {
             type_: StrafeType::MaxAccel,
             dir: StrafeDir::Yaw(0.),
         })))(input)

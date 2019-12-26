@@ -56,9 +56,9 @@ fn gen_times<W: Write>(times: u32) -> impl SerializeFn<W> {
 
 fn auto_actions<'a, W: Write>(aa: &'a AutoActions) -> impl SerializeFn<W> + 'a {
     move |out: WriteContext<W>| {
-        let out = match aa.yaw_adjustment {
-            None | Some(YawAdjustment::Set(_)) => string("---")(out)?,
-            Some(YawAdjustment::Strafe(StrafeSettings { type_, dir })) => {
+        let out = match aa.movement {
+            None | Some(AutoMovement::SetYaw(_)) => string("---")(out)?,
+            Some(AutoMovement::Strafe(StrafeSettings { type_, dir })) => {
                 tuple((string("s"), strafe_type(type_), strafe_dir(dir)))(out)?
             }
         };
@@ -149,11 +149,11 @@ fn action_keys<W: Write>(ak: ActionKeys) -> impl SerializeFn<W> {
     ))
 }
 
-fn yaw_field<'a, W: Write>(yaw_adjustment: &'a Option<YawAdjustment>) -> impl SerializeFn<W> + 'a {
-    move |out: WriteContext<W>| match yaw_adjustment {
+fn yaw_field<'a, W: Write>(movement: &'a Option<AutoMovement>) -> impl SerializeFn<W> + 'a {
+    move |out: WriteContext<W>| match movement {
         None => string("-")(out),
-        Some(YawAdjustment::Set(yaw)) => display(yaw)(out),
-        Some(YawAdjustment::Strafe(StrafeSettings { dir, .. })) => match dir {
+        Some(AutoMovement::SetYaw(yaw)) => display(yaw)(out),
+        Some(AutoMovement::Strafe(StrafeSettings { dir, .. })) => match dir {
             StrafeDir::Yaw(yaw) => display(yaw)(out),
             StrafeDir::Point { x, y } => tuple((display(x), string(" "), display(y)))(out),
             StrafeDir::Line { yaw } => display(yaw)(out),
@@ -172,7 +172,7 @@ fn line_frame_bulk<'a, W: Write>(frame_bulk: &'a FrameBulk<'a>) -> impl Serializ
         let out = string("|")(out)?;
         let out = string(frame_bulk.frame_time)(out)?;
         let out = string("|")(out)?;
-        let out = yaw_field(&frame_bulk.auto_actions.yaw_adjustment)(out)?;
+        let out = yaw_field(&frame_bulk.auto_actions.movement)(out)?;
 
         let out = string("|")(out)?;
         let out = if let Some(pitch) = frame_bulk.pitch {

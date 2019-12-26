@@ -135,12 +135,12 @@ pub unsafe extern "C" fn hltas_rs_read(
                                 frame.Comments = comments_cstring.as_ptr();
                                 comments = String::new();
 
-                                match frame_bulk.auto_actions.yaw_adjustment {
-                                    Some(YawAdjustment::Set(yaw)) => {
+                                match frame_bulk.auto_actions.movement {
+                                    Some(AutoMovement::SetYaw(yaw)) => {
                                         frame.YawPresent = true;
                                         frame.Yaw = f64::from(yaw);
                                     }
-                                    Some(YawAdjustment::Strafe(StrafeSettings { type_, dir })) => {
+                                    Some(AutoMovement::Strafe(StrafeSettings { type_, dir })) => {
                                         frame.Strafe = true;
                                         frame.Type = type_.into();
                                         match dir {
@@ -515,9 +515,9 @@ pub unsafe extern "C" fn hltas_rs_write(
                     continue;
                 }
 
-                let yaw_adjustment = if frame.Strafe {
+                let movement = if frame.Strafe {
                     use hltas_cpp::StrafeDir::*;
-                    Some(YawAdjustment::Strafe(StrafeSettings {
+                    Some(AutoMovement::Strafe(StrafeSettings {
                         type_: frame.Type.into(),
                         dir: match frame.Dir {
                             LEFT => StrafeDir::Left,
@@ -534,7 +534,7 @@ pub unsafe extern "C" fn hltas_rs_write(
                         },
                     }))
                 } else if frame.YawPresent {
-                    Some(YawAdjustment::Set(frame.Yaw as f32))
+                    Some(AutoMovement::SetYaw(frame.Yaw as f32))
                 } else {
                     None
                 };
@@ -663,7 +663,7 @@ pub unsafe extern "C" fn hltas_rs_write(
 
                 let frame_bulk = FrameBulk {
                     auto_actions: AutoActions {
-                        yaw_adjustment,
+                        movement,
                         leave_ground_action,
                         jump_bug,
                         duck_before_collision,

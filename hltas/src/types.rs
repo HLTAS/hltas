@@ -122,7 +122,7 @@ pub struct FrameBulk<'a> {
 #[derive(Debug, Clone, Copy, PartialEq, Default)]
 pub struct AutoActions {
     /// Yaw angle adjustment and strafing.
-    pub yaw_adjustment: Option<YawAdjustment>,
+    pub movement: Option<AutoMovement>,
     /// Automatic jumping and ducktapping.
     pub leave_ground_action: Option<LeaveGroundAction>,
     /// Automatic jumpbug.
@@ -137,9 +137,9 @@ pub struct AutoActions {
 
 /// Automatic yaw angle adjustment and strafing.
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub enum YawAdjustment {
+pub enum AutoMovement {
     /// Set the yaw angle to this value.
-    Set(f32),
+    SetYaw(f32),
     /// Automatic strafing.
     Strafe(StrafeSettings),
 }
@@ -440,7 +440,7 @@ mod tests {
                 }),
                 Line::FrameBulk(FrameBulk {
                     auto_actions: AutoActions {
-                        yaw_adjustment: Some(YawAdjustment::Strafe(StrafeSettings {
+                        movement: Some(AutoMovement::Strafe(StrafeSettings {
                             type_: StrafeType::MaxAccel,
                             dir: StrafeDir::Yaw(170.),
                         })),
@@ -456,7 +456,7 @@ mod tests {
                 }),
                 Line::FrameBulk(FrameBulk {
                     auto_actions: AutoActions {
-                        yaw_adjustment: Some(YawAdjustment::Strafe(StrafeSettings {
+                        movement: Some(AutoMovement::Strafe(StrafeSettings {
                             type_: StrafeType::MaxAccel,
                             dir: StrafeDir::Yaw(90.),
                         })),
@@ -469,7 +469,7 @@ mod tests {
                 Line::Comment(" More frames because some of them get converted to 0ms"),
                 Line::FrameBulk(FrameBulk {
                     auto_actions: AutoActions {
-                        yaw_adjustment: Some(YawAdjustment::Strafe(StrafeSettings {
+                        movement: Some(AutoMovement::Strafe(StrafeSettings {
                             type_: StrafeType::MaxAccel,
                             dir: StrafeDir::Yaw(90.),
                         })),
