@@ -21,16 +21,21 @@ jobs:
         toolchain: stable
         override: true
 
-    - name: Generate the build system
+    - name: Test the Rust crate
+      run: |
+        cargo build
+        cargo test
+
+    - name: Generate the C++ build system
       run: |
         mkdir build
         cd build
         cmake ..
 
-    - name: Build
+    - name: Build the C++ library
       run: cmake --build build
 
-    - name: Test
+    - name: Test the C++ library
       run: |
         cd build
         ctest --output-on-failure
