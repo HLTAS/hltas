@@ -242,21 +242,6 @@ namespace HLTAS
 		ResetNonSharedRNGSeed = value;
 	}
 
-	static unsigned ReadNumber(const char* str, std::size_t* pos)
-	{
-		unsigned ret = 0;
-		if (!str)
-			return ret;
-		while (std::isdigit(*str)) {
-			ret *= 10;
-			ret += *str - '0';
-			str++;
-			if (pos)
-				(*pos)++;
-		}
-		return ret;
-	}
-
 	void Input::Clear()
 	{
 		Properties.clear();
