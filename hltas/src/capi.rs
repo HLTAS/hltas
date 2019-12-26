@@ -9,7 +9,7 @@ use std::{
 use crate::{
     hltas_cpp::{
         self, hltas_input_get_frame, hltas_input_get_property, hltas_input_push_frame,
-        hltas_input_set_property,
+        hltas_input_set_error_message, hltas_input_set_property,
     },
     read::{self, properties::seeds},
     types::*,
@@ -76,6 +76,28 @@ impl From<hltas_cpp::StrafeType> for StrafeType {
     }
 }
 
+impl From<read::Context> for hltas_cpp::ErrorCode {
+    #[inline]
+    fn from(x: read::Context) -> Self {
+        use hltas_cpp::ErrorCode::*;
+        use read::Context::*;
+        match x {
+            ErrorReadingVersion => FAILVER,
+            VersionTooHigh => NOTSUPPORTED,
+            BothAutoJumpAndDuckTap => BOTHAJDT,
+            NoLeaveGroundAction => NOLGAGSTACTION,
+            TimesOnLeaveGroundAction => LGAGSTACTIONTIMES,
+            NoSaveName => NOSAVENAME,
+            NoSeed => NOSEED,
+            NoYaw => NOYAW,
+            NoButtons => NOBUTTONS,
+            NoLGAGSTMinSpeed => NOLGAGSTMINSPEED,
+            NoResetSeed => NORESETSEED,
+            ErrorParsingLine => FAILFRAME,
+        }
+    }
+}
+
 /// Reads the HLTAS from `filename` and writes it into `input`.
 ///
 /// This is meant to be used internally from the C++ HLTAS library.
@@ -90,8 +112,8 @@ pub unsafe extern "C" fn hltas_rs_read(
 ) -> hltas_cpp::ErrorDescription {
     if let Ok(filename) = CStr::from_ptr(filename).to_str() {
         if let Ok(contents) = read_to_string(filename) {
-            match read::hltas(&contents) {
-                Ok((_, hltas)) => {
+            match HLTAS::from_str(&contents) {
+                Ok(hltas) => {
                     if let Some(demo) = hltas.properties.demo {
                         let demo = CString::new(demo).unwrap();
                         hltas_input_set_property(
@@ -348,10 +370,22 @@ pub unsafe extern "C" fn hltas_rs_read(
                         LineNumber: 0,
                     }
                 }
-                Err(_) => hltas_cpp::ErrorDescription {
-                    Code: hltas_cpp::ErrorCode::FAILLINE,
-                    LineNumber: 0,
-                },
+                Err(error) => {
+                    let code = error
+                        .context
+                        .map(hltas_cpp::ErrorCode::from)
+                        .unwrap_or(hltas_cpp::ErrorCode::FAILLINE);
+
+                    let message = format!("{}", error);
+                    if let Ok(message) = CString::new(message) {
+                        hltas_input_set_error_message(input, message.as_ptr());
+                    }
+
+                    hltas_cpp::ErrorDescription {
+                        Code: code,
+                        LineNumber: error.line() as u32,
+                    }
+                }
             }
         } else {
             hltas_cpp::ErrorDescription {
