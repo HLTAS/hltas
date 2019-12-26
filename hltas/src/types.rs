@@ -163,7 +163,7 @@ pub enum StrafeType {
     /// Lose as much speed as possible.
     MaxDeccel,
     /// Turn without changing the velocity magnitude.
-    ConstantSpeed,
+    ConstSpeed,
 }
 
 /// Direction of automatic strafing.

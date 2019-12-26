@@ -57,7 +57,7 @@ impl From<StrafeType> for hltas_cpp::StrafeType {
             MaxAccel => Self::MAXACCEL,
             MaxAngle => Self::MAXANGLE,
             MaxDeccel => Self::MAXDECCEL,
-            ConstantSpeed => Self::CONSTSPEED,
+            ConstSpeed => Self::CONSTSPEED,
         }
     }
 }
@@ -70,7 +70,7 @@ impl From<hltas_cpp::StrafeType> for StrafeType {
             MAXACCEL => Self::MaxAccel,
             MAXANGLE => Self::MaxAngle,
             MAXDECCEL => Self::MaxDeccel,
-            CONSTSPEED => Self::ConstantSpeed,
+            CONSTSPEED => Self::ConstSpeed,
         }
     }
 }

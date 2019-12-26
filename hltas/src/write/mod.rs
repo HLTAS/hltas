@@ -27,7 +27,7 @@ fn strafe_type<W: Write>(type_: StrafeType) -> impl SerializeFn<W> {
         MaxAccel => string("0"),
         MaxAngle => string("1"),
         MaxDeccel => string("2"),
-        ConstantSpeed => string("3"),
+        ConstSpeed => string("3"),
     }
 }
 
