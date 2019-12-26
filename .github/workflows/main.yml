@@ -21,14 +21,6 @@ jobs:
         toolchain: stable
         override: true
 
-    - name: Install Boost on Ubuntu
-      if: matrix.os == 'ubuntu-latest'
-      run: sudo apt install libboost-dev
-
-    - name: Install Boost on macOS
-      if: matrix.os == 'macOS-latest'
-      run: brew install boost
-
     - name: Generate the build system
       run: |
         mkdir build
