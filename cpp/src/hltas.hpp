@@ -1,7 +1,5 @@
 #pragma once
 #include <ctime>
-#include <future>
-#include <shared_mutex>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -288,8 +286,8 @@ namespace HLTAS
 		friend void ::hltas_input_set_error_message(void* input, const char* message);
 
 	public:
-		std::future<ErrorDescription> Open(const std::string& filename);
-		std::future<ErrorDescription> Save(const std::string& filename);
+		ErrorDescription Open(const std::string& filename);
+		ErrorDescription Save(const std::string& filename);
 		void Clear();
 
 		int GetVersion() const;
@@ -308,10 +306,6 @@ namespace HLTAS
 		Frame& GetFrame(std::size_t n);
 
 	protected:
-		ErrorDescription OpenInternal(const std::string& filename);
-		ErrorDescription SaveInternal(const std::string& filename);
-		mutable std::shared_timed_mutex Mutex;
-
 		int Version;
 		std::unordered_map<std::string, std::string> Properties;
 		std::vector<Frame> Frames;

@@ -3,7 +3,6 @@
 #include <cstdlib>
 #include <ctime>
 #include <fstream>
-#include <future>
 #include <iostream>
 #include <locale>
 #include <string>
@@ -266,109 +265,82 @@ namespace HLTAS
 
 	void Input::Clear()
 	{
-		std::unique_lock<std::shared_timed_mutex> lock(Mutex);
 		Properties.clear();
 		Frames.clear();
 		ErrorMessage.clear();
 	}
 
-	std::future<ErrorDescription> Input::Open(const std::string& filename)
+	ErrorDescription Input::Open(const std::string& filename)
 	{
 		Clear();
 
-		return std::async([=] (std::string filename) {
-			return OpenInternal(filename);
-		}, filename);
-	}
-
-	std::future<ErrorDescription> Input::Save(const std::string& filename)
-	{
-		return std::async([=] (std::string filename) {
-			return SaveInternal(filename);
-		}, filename);
-	}
-
-	ErrorDescription Input::OpenInternal(const std::string& filename)
-	{
 		auto error = hltas_rs_read(this, filename.data());
 		Version = 1;
 		return error;
 	}
 
-	ErrorDescription Input::SaveInternal(const std::string& filename)
+	ErrorDescription Input::Save(const std::string& filename)
 	{
 		return hltas_rs_write(this, filename.data());
 	}
 
 	int Input::GetVersion() const
 	{
-		std::shared_lock<std::shared_timed_mutex> lock(Mutex);
 		return Version;
 	}
 
 	const std::unordered_map<std::string, std::string>& Input::GetProperties() const
 	{
-		std::shared_lock<std::shared_timed_mutex> lock(Mutex);
 		return Properties;
 	}
 
 	const std::vector<Frame>& Input::GetFrames() const
 	{
-		std::shared_lock<std::shared_timed_mutex> lock(Mutex);
 		return Frames;
 	}
 
 	const std::string& Input::GetErrorMessage() const
 	{
-		std::shared_lock<std::shared_timed_mutex> lock(Mutex);
 		return ErrorMessage;
 	}
 
 	void Input::SetProperty(const std::string& property, const std::string& value)
 	{
-		std::unique_lock<std::shared_timed_mutex> lock(Mutex);
 		Properties[property] = value;
 	}
 
 	void Input::RemoveProperty(const std::string& property)
 	{
-		std::unique_lock<std::shared_timed_mutex> lock(Mutex);
 		Properties.erase(property);
 	}
 
 	void Input::ClearProperties()
 	{
-		std::unique_lock<std::shared_timed_mutex> lock(Mutex);
 		Properties.clear();
 	}
 
 	void Input::PushFrame(const Frame& frame)
 	{
-		std::unique_lock<std::shared_timed_mutex> lock(Mutex);
 		Frames.push_back(frame);
 	}
 
 	void Input::InsertFrame(std::size_t n, const Frame& frame)
 	{
-		std::unique_lock<std::shared_timed_mutex> lock(Mutex);
 		Frames.insert(Frames.begin() + n, frame);
 	}
 
 	void Input::RemoveFrame(std::size_t n)
 	{
-		std::unique_lock<std::shared_timed_mutex> lock(Mutex);
 		Frames.erase(Frames.begin() + n);
 	}
 
 	void Input::ClearFrames()
 	{
-		std::unique_lock<std::shared_timed_mutex> lock(Mutex);
 		Frames.clear();
 	}
 
 	Frame& Input::GetFrame(std::size_t n)
 	{
-		std::shared_lock<std::shared_timed_mutex> lock(Mutex);
 		return Frames[n];
 	}
 }
