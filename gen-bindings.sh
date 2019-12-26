@@ -1,7 +1,7 @@
 #!/bin/sh
 
 exec bindgen cpp/src/hltas.hpp \
-	-o src/hltas_cpp.rs \
+	-o hltas-cpp-bridge/src/hltas_cpp.rs \
 	--whitelist-function 'hltas_.*' \
 	--whitelist-type 'HLTAS::ErrorDescription' \
 	--rustified-enum 'HLTAS::StrafeType|StrafeDir|ButtonState|Button|ErrorCode' \
