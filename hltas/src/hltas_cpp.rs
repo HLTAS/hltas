@@ -25,6 +25,12 @@ extern "C" {
         frame: *mut hltas_frame,
     ) -> ::std::os::raw::c_int;
 }
+extern "C" {
+    pub fn hltas_input_set_error_message(
+        input: *mut ::std::os::raw::c_void,
+        message: *const ::std::os::raw::c_char,
+    );
+}
 #[repr(i32)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum ErrorCode {

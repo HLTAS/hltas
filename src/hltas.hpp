@@ -13,6 +13,7 @@ extern "C" {
 	const char* hltas_input_get_property(const void* input, const char* property);
 	void hltas_input_push_frame(void* input, const hltas_frame* frame);
 	int hltas_input_get_frame(const void* input, size_t index, hltas_frame* frame);
+	void hltas_input_set_error_message(void* input, const char* message);
 }
 
 namespace HLTAS
@@ -284,6 +285,8 @@ namespace HLTAS
 
 	class Input
 	{
+		friend void ::hltas_input_set_error_message(void* input, const char* message);
+
 	public:
 		std::future<ErrorDescription> Open(const std::string& filename);
 		std::future<ErrorDescription> Save(const std::string& filename, int version = MAX_SUPPORTED_VERSION);

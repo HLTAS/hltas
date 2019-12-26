@@ -1085,3 +1085,9 @@ extern "C" int hltas_input_get_frame(const void* input, size_t index, hltas_fram
 
 	return 0;
 }
+
+extern "C" void hltas_input_set_error_message(void* input, const char* message)
+{
+	HLTAS::Input* hltas_input = static_cast<HLTAS::Input*>(input);
+	hltas_input->ErrorMessage = message;
+}
