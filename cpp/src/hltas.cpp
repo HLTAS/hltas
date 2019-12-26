@@ -1,13 +1,7 @@
-#include <algorithm>
 #include <cassert>
 #include <cstdlib>
 #include <ctime>
-#include <fstream>
-#include <iostream>
-#include <locale>
 #include <string>
-#include <sstream>
-#include <utility>
 
 #include "hltas.hpp"
 
