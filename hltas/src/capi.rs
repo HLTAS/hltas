@@ -187,21 +187,23 @@ pub unsafe extern "C" fn hltas_rs_read(
                                     }
 
                                     if frame.Lgagst {
-                                        frame.LgagstTimes = leave_ground_action.times;
+                                        frame.LgagstTimes = leave_ground_action.times.into();
                                     }
 
                                     match leave_ground_action.type_ {
                                         LeaveGroundActionType::Jump => {
                                             frame.Autojump = true;
                                             if !frame.Lgagst {
-                                                frame.AutojumpTimes = leave_ground_action.times;
+                                                frame.AutojumpTimes =
+                                                    leave_ground_action.times.into();
                                             }
                                         }
                                         LeaveGroundActionType::DuckTap { zero_ms } => {
                                             frame.Ducktap = true;
                                             frame.Ducktap0ms = zero_ms;
                                             if !frame.Lgagst {
-                                                frame.DucktapTimes = leave_ground_action.times;
+                                                frame.DucktapTimes =
+                                                    leave_ground_action.times.into();
                                             }
                                         }
                                     }
@@ -209,7 +211,7 @@ pub unsafe extern "C" fn hltas_rs_read(
 
                                 if let Some(JumpBug { times }) = frame_bulk.auto_actions.jump_bug {
                                     frame.Jumpbug = true;
-                                    frame.JumpbugTimes = times;
+                                    frame.JumpbugTimes = times.into();
                                 }
 
                                 if let Some(DuckBeforeCollision {
@@ -219,21 +221,21 @@ pub unsafe extern "C" fn hltas_rs_read(
                                 {
                                     frame.Dbc = true;
                                     frame.DbcCeilings = including_ceilings;
-                                    frame.DbcTimes = times;
+                                    frame.DbcTimes = times.into();
                                 }
 
                                 if let Some(DuckBeforeGround { times }) =
                                     frame_bulk.auto_actions.duck_before_ground
                                 {
                                     frame.Dbg = true;
-                                    frame.DbgTimes = times;
+                                    frame.DbgTimes = times.into();
                                 }
 
                                 if let Some(DuckWhenJump { times }) =
                                     frame_bulk.auto_actions.duck_when_jump
                                 {
                                     frame.Dwj = true;
-                                    frame.DwjTimes = times;
+                                    frame.DwjTimes = times.into();
                                 }
 
                                 frame.Forward = frame_bulk.movement_keys.forward;
@@ -549,13 +551,13 @@ pub unsafe extern "C" fn hltas_rs_write(
                     if frame.Autojump {
                         Some(LeaveGroundAction {
                             speed,
-                            times: frame.LgagstTimes,
+                            times: frame.LgagstTimes.into(),
                             type_: LeaveGroundActionType::Jump,
                         })
                     } else {
                         Some(LeaveGroundAction {
                             speed,
-                            times: frame.LgagstTimes,
+                            times: frame.LgagstTimes.into(),
                             type_: LeaveGroundActionType::DuckTap {
                                 zero_ms: frame.Ducktap0ms,
                             },
@@ -564,13 +566,13 @@ pub unsafe extern "C" fn hltas_rs_write(
                 } else if frame.Autojump {
                     Some(LeaveGroundAction {
                         speed: LeaveGroundActionSpeed::Any,
-                        times: frame.AutojumpTimes,
+                        times: frame.AutojumpTimes.into(),
                         type_: LeaveGroundActionType::Jump,
                     })
                 } else if frame.Ducktap {
                     Some(LeaveGroundAction {
                         speed: LeaveGroundActionSpeed::Any,
-                        times: frame.DucktapTimes,
+                        times: frame.DucktapTimes.into(),
                         type_: LeaveGroundActionType::DuckTap {
                             zero_ms: frame.Ducktap0ms,
                         },
@@ -581,7 +583,7 @@ pub unsafe extern "C" fn hltas_rs_write(
 
                 let jump_bug = if frame.Jumpbug {
                     Some(JumpBug {
-                        times: frame.JumpbugTimes,
+                        times: frame.JumpbugTimes.into(),
                     })
                 } else {
                     None
@@ -589,7 +591,7 @@ pub unsafe extern "C" fn hltas_rs_write(
 
                 let duck_before_collision = if frame.Dbc {
                     Some(DuckBeforeCollision {
-                        times: frame.DbcTimes,
+                        times: frame.DbcTimes.into(),
                         including_ceilings: frame.DbcCeilings,
                     })
                 } else {
@@ -598,7 +600,7 @@ pub unsafe extern "C" fn hltas_rs_write(
 
                 let duck_before_ground = if frame.Dbg {
                     Some(DuckBeforeGround {
-                        times: frame.DbgTimes,
+                        times: frame.DbgTimes.into(),
                     })
                 } else {
                     None
@@ -606,7 +608,7 @@ pub unsafe extern "C" fn hltas_rs_write(
 
                 let duck_when_jump = if frame.Dwj {
                     Some(DuckWhenJump {
-                        times: frame.DwjTimes,
+                        times: frame.DwjTimes.into(),
                     })
                 } else {
                     None

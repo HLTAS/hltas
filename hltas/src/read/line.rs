@@ -59,9 +59,14 @@ fn non_zero_u32(i: &str) -> IResult<NonZeroU32> {
     )(i)
 }
 
-fn parse_times(i: &str) -> IResult<u32> {
+fn parse_times(i: &str) -> IResult<Times> {
     let (i, times) = opt(non_zero_u32)(i)?;
-    Ok((i, times.map(NonZeroU32::get).unwrap_or(0)))
+    Ok((
+        i,
+        times
+            .map(Times::Limited)
+            .unwrap_or(Times::UnlimitedWithinFrameBulk),
+    ))
 }
 
 fn lgagst_action_speed(i: &str) -> IResult<LeaveGroundActionSpeed> {

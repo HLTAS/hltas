@@ -186,13 +186,24 @@ pub enum StrafeDir {
     },
 }
 
+/// Number of times this action must be executed.
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+pub enum Times {
+    /// Any number of times over the duration of this frame bulk.
+    UnlimitedWithinFrameBulk,
+    /// This exact number of times, possibly past this frame bulk.
+    ///
+    /// The action is overridden by the next frame bulk with the same action.
+    Limited(NonZeroU32),
+}
+
 /// Leave the ground automatically.
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub struct LeaveGroundAction {
     /// Speed at which to leave the ground.
     pub speed: LeaveGroundActionSpeed,
     /// Number of times to do the action. `0` means unlimited.
-    pub times: u32,
+    pub times: Times,
     /// How to leave the ground.
     pub type_: LeaveGroundActionType,
 }
@@ -225,14 +236,14 @@ pub enum LeaveGroundActionType {
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub struct JumpBug {
     /// Number of times to do the action. `0` means unlimited.
-    pub times: u32,
+    pub times: Times,
 }
 
 /// Duck-before-collision properties.
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub struct DuckBeforeCollision {
     /// Number of times to do the action. `0` means unlimited.
-    pub times: u32,
+    pub times: Times,
     pub including_ceilings: bool,
 }
 
@@ -240,14 +251,14 @@ pub struct DuckBeforeCollision {
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub struct DuckBeforeGround {
     /// Number of times to do the action. `0` means unlimited.
-    pub times: u32,
+    pub times: Times,
 }
 
 /// Duck-when-jump properties.
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub struct DuckWhenJump {
     /// Number of times to do the action. `0` means unlimited.
-    pub times: u32,
+    pub times: Times,
 }
 
 /// Manually specified movement keys.
@@ -370,6 +381,28 @@ impl<'a> FrameBulk<'a> {
     }
 }
 
+impl From<u32> for Times {
+    #[inline]
+    fn from(x: u32) -> Self {
+        if x == 0 {
+            Times::UnlimitedWithinFrameBulk
+        } else {
+            Times::Limited(NonZeroU32::new(x).unwrap())
+        }
+    }
+}
+
+impl From<Times> for u32 {
+    #[inline]
+    fn from(x: Times) -> Self {
+        if let Times::Limited(t) = x {
+            t.get()
+        } else {
+            0
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -475,7 +508,7 @@ mod tests {
                         })),
                         leave_ground_action: Some(LeaveGroundAction {
                             speed: LeaveGroundActionSpeed::Optimal,
-                            times: 0,
+                            times: Times::UnlimitedWithinFrameBulk,
                             type_: LeaveGroundActionType::DuckTap { zero_ms: true },
                         }),
                         ..AutoActions::default()

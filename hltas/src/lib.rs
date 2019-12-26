@@ -5,7 +5,7 @@
 //! ```
 //! # extern crate hltas_rs;
 //! # fn foo() -> Result<(), Box<dyn std::error::Error>> {
-//! use hltas_rs::{HLTAS, types::{Line, JumpBug}};
+//! use hltas_rs::{HLTAS, types::{JumpBug, Line, Times}};
 //!
 //! let contents = "\
 //! version 1
@@ -18,7 +18,10 @@
 //!         assert_eq!(hltas.properties.demo, Some("test"));
 //!
 //!         if let Line::FrameBulk(frame_bulk) = hltas.lines[0] {
-//!             assert_eq!(frame_bulk.auto_actions.jump_bug, Some(JumpBug { times: 0 }));
+//!             assert_eq!(
+//!                 frame_bulk.auto_actions.jump_bug,
+//!                 Some(JumpBug { times: Times::UnlimitedWithinFrameBulk })
+//!             );
 //!             assert_eq!(frame_bulk.frame_time, "0.001");
 //!             assert_eq!(frame_bulk.frame_count.get(), 5);
 //!         } else {

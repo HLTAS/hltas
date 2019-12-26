@@ -43,13 +43,12 @@ fn strafe_dir<W: Write>(dir: StrafeDir) -> impl SerializeFn<W> {
     }
 }
 
-/// Generates an empty string if times is `0`, or a number if times is above `0`.
-fn gen_times<W: Write>(times: u32) -> impl SerializeFn<W> {
+fn gen_times<W: Write>(times: Times) -> impl SerializeFn<W> {
     move |out: WriteContext<W>| {
-        if times == 0 {
-            Ok(out)
-        } else {
+        if let Times::Limited(times) = times {
             display(times)(out)
+        } else {
+            Ok(out)
         }
     }
 }
