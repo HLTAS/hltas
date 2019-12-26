@@ -6,10 +6,9 @@ use nom::{
     self,
     bytes::complete::tag,
     character::complete::{line_ending, multispace0, one_of, space1},
-    combinator::verify,
-    eof,
+    combinator::{all_consuming, verify},
     error::ParseError,
-    multi::{many0, many1},
+    multi::{many1, many_till},
     sequence::preceded,
     Offset,
 };
@@ -234,10 +233,7 @@ pub(crate) fn hltas(i: &str) -> IResult<HLTAS> {
     let (i, _) = context(Context::ErrorReadingVersion, version)(i)?;
     let (i, properties) = properties(i)?;
     let (i, _) = preceded(many1(line_ending), tag("frames"))(i)?;
-    let (i, lines) = many0(preceded(whitespace, line))(i)?;
-
-    let (i, _) = multispace0(i)?; // There can be arbitrary space in the end.
-    let (i, _) = eof!(i,)?; // Error out if we didn't parse the whole input.
+    let (i, (lines, _)) = many_till(preceded(whitespace, line), all_consuming(multispace0))(i)?;
 
     Ok((i, HLTAS { properties, lines }))
 }
