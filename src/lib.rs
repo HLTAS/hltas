@@ -41,7 +41,3 @@ pub use types::HLTAS;
 
 pub mod read;
 mod write;
-
-pub mod capi;
-#[allow(non_camel_case_types, non_snake_case, dead_code)]
-mod hltas_cpp;

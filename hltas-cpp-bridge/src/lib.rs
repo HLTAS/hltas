@@ -4,15 +4,23 @@ use std::{
     mem::zeroed,
     num::NonZeroU32,
     os::raw::{c_char, c_void},
+    str::FromStr,
 };
 
-use crate::{
-    hltas_cpp::{
-        self, hltas_input_get_frame, hltas_input_get_property, hltas_input_push_frame,
-        hltas_input_set_error_message, hltas_input_set_property,
-    },
-    read::{self, properties::seeds},
-    types::*,
+use nom::{
+    character::complete::{char, digit1, space1},
+    combinator::{map, map_res, opt, recognize},
+    sequence::{pair, separated_pair},
+    IResult,
+};
+
+use hltas::{read, types::*};
+
+#[allow(non_camel_case_types, non_snake_case, dead_code)]
+mod hltas_cpp;
+use hltas_cpp::{
+    hltas_input_get_frame, hltas_input_get_property, hltas_input_push_frame,
+    hltas_input_set_error_message, hltas_input_set_property,
 };
 
 impl From<Button> for hltas_cpp::Button {
@@ -95,6 +103,22 @@ impl From<read::Context> for hltas_cpp::ErrorCode {
             ErrorParsingLine => FAILFRAME,
         }
     }
+}
+
+// Three functions copied from hltas::read::properties.
+fn shared_seed(i: &str) -> IResult<&str, u32> {
+    map_res(digit1, u32::from_str)(i)
+}
+
+fn non_shared_seed(i: &str) -> IResult<&str, i64> {
+    map_res(recognize(pair(opt(char('-')), digit1)), i64::from_str)(i)
+}
+
+fn seeds(i: &str) -> IResult<&str, Seeds> {
+    map(
+        separated_pair(shared_seed, space1, non_shared_seed),
+        |(shared, non_shared)| Seeds { shared, non_shared },
+    )(i)
 }
 
 /// Reads the HLTAS from `filename` and writes it into `input`.

@@ -70,8 +70,8 @@ function(cargo_build)
     add_dependencies(${CARGO_NAME} ${CARGO_NAME}_target)
     set_target_properties(${CARGO_NAME} PROPERTIES IMPORTED_LOCATION ${LIB_FILE})
 
-    add_test(Rust ${CARGO_ENV_COMMAND} ${CARGO_EXECUTABLE} test ${CARGO_ARGS})
-    set_tests_properties(Rust PROPERTIES WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+    add_test(${CARGO_NAME} ${CARGO_ENV_COMMAND} ${CARGO_EXECUTABLE} test ${CARGO_ARGS})
+    set_tests_properties(${CARGO_NAME} PROPERTIES WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
     file(WRITE ${CARGO_TARGET_DIR}/rustc_lib_test.rs "")
     execute_process(
