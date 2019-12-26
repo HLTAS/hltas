@@ -13,7 +13,6 @@ use crate::{
     },
     read::{self, properties::seeds},
     types::*,
-    write,
 };
 
 impl From<Button> for hltas_cpp::Button {
@@ -731,7 +730,7 @@ pub unsafe extern "C" fn hltas_rs_write(
                 hltas.lines.push(Line::FrameBulk(frame_bulk));
             }
 
-            if write::hltas(file, &hltas).is_err() {
+            if hltas.to_writer(file).is_err() {
                 hltas_cpp::ErrorDescription {
                     Code: hltas_cpp::ErrorCode::FAILWRITE,
                     LineNumber: 0,
