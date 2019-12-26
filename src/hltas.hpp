@@ -292,6 +292,7 @@ namespace HLTAS
 		int GetVersion() const;
 		const std::unordered_map<std::string, std::string>& GetProperties() const;
 		const std::vector<Frame>& GetFrames() const;
+		const std::string& GetErrorMessage() const;
 
 		void SetProperty(const std::string& property, const std::string& value);
 		void RemoveProperty(const std::string& property);
@@ -315,6 +316,7 @@ namespace HLTAS
 		int Version;
 		std::unordered_map<std::string, std::string> Properties;
 		std::vector<Frame> Frames;
+		std::string ErrorMessage;
 	};
 }
 

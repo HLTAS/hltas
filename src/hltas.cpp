@@ -298,6 +298,7 @@ namespace HLTAS
 		std::unique_lock<std::shared_timed_mutex> lock(Mutex);
 		Properties.clear();
 		Frames.clear();
+		ErrorMessage.clear();
 	}
 
 	std::future<ErrorDescription> Input::Open(const std::string& filename)
@@ -878,6 +879,12 @@ namespace HLTAS
 	{
 		std::shared_lock<std::shared_timed_mutex> lock(Mutex);
 		return Frames;
+	}
+
+	const std::string& Input::GetErrorMessage() const
+	{
+		std::shared_lock<std::shared_timed_mutex> lock(Mutex);
+		return ErrorMessage;
 	}
 
 	void Input::SetProperty(const std::string& property, const std::string& value)
