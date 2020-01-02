@@ -1,19 +1,25 @@
 use std::str::FromStr;
 
 use nom::{
-    character::complete::{alphanumeric1, char, digit1, line_ending, not_line_ending, space1},
+    bytes::complete::take_while1,
+    character::complete::{char, digit1, line_ending, not_line_ending, space1},
     combinator::{map, map_res, opt, recognize},
     multi::many1,
     sequence::{pair, preceded, separated_pair},
+    AsChar,
 };
 
 use crate::{
-    read::IResult,
+    read::{non_zero_u32, IResult},
     types::{Properties, Seeds},
 };
 
 pub(crate) fn property(i: &str) -> IResult<(&str, &str)> {
-    separated_pair(alphanumeric1, space1, not_line_ending)(i)
+    separated_pair(
+        take_while1(|c: char| c.is_alphanum() || c == '_'),
+        space1,
+        not_line_ending,
+    )(i)
 }
 
 pub(crate) fn shared_seed(i: &str) -> IResult<u32> {
@@ -46,6 +52,7 @@ pub(crate) fn properties(mut i: &str) -> IResult<Properties> {
             "save" => properties.save = Some(value),
             "frametime0ms" => properties.frametime_0ms = Some(value),
             "seed" => properties.seeds = Some(seeds(value)?.1),
+            "hlstrafe_version" => properties.hlstrafe_version = Some(non_zero_u32(value)?.1),
             _ => continue,
         }
     }

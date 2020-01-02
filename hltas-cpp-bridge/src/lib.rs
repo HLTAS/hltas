@@ -8,7 +8,7 @@ use std::{
 };
 
 use nom::{
-    character::complete::{char, digit1, space1},
+    character::complete::{char, digit0, digit1, one_of, space1},
     combinator::{map, map_res, opt, recognize},
     sequence::{pair, separated_pair},
     IResult,
@@ -105,6 +105,14 @@ impl From<read::Context> for hltas_cpp::ErrorCode {
     }
 }
 
+// Copied from hltas::read.
+fn non_zero_u32(i: &str) -> IResult<&str, NonZeroU32> {
+    map_res(
+        recognize(pair(one_of("123456789"), digit0)),
+        NonZeroU32::from_str,
+    )(i)
+}
+
 // Three functions copied from hltas::read::properties.
 fn shared_seed(i: &str) -> IResult<&str, u32> {
     map_res(digit1, u32::from_str)(i)
@@ -168,6 +176,14 @@ pub unsafe extern "C" fn hltas_rs_read(
                             input,
                             b"seed\0" as *const u8 as *const c_char,
                             seeds.as_ptr(),
+                        );
+                    }
+                    if let Some(hlstrafe_version) = hltas.properties.hlstrafe_version {
+                        let hlstrafe_version = CString::new(hlstrafe_version.to_string()).unwrap();
+                        hltas_input_set_property(
+                            input,
+                            b"hlstrafe_version\0" as *const u8 as *const c_char,
+                            hlstrafe_version.as_ptr(),
                         );
                     }
 
@@ -494,12 +510,35 @@ pub unsafe extern "C" fn hltas_rs_write(
                 };
             };
 
+            let hlstrafe_version = hltas_input_get_property(
+                input,
+                b"hlstrafe_version\0" as *const u8 as *const c_char,
+            );
+            let hlstrafe_version = if hlstrafe_version.is_null() {
+                None
+            } else if let Ok(hlstrafe_version) = CStr::from_ptr(hlstrafe_version).to_str() {
+                if let Ok((_, hlstrafe_version)) = non_zero_u32(hlstrafe_version) {
+                    Some(hlstrafe_version)
+                } else {
+                    return hltas_cpp::ErrorDescription {
+                        Code: hltas_cpp::ErrorCode::FAILWRITE,
+                        LineNumber: 0,
+                    };
+                }
+            } else {
+                return hltas_cpp::ErrorDescription {
+                    Code: hltas_cpp::ErrorCode::FAILWRITE,
+                    LineNumber: 0,
+                };
+            };
+
             let mut hltas = HLTAS {
                 properties: Properties {
                     demo,
                     save,
                     seeds,
                     frametime_0ms,
+                    hlstrafe_version,
                 },
                 lines: Vec::new(),
             };

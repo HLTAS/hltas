@@ -27,6 +27,11 @@ pub struct Properties<'a> {
     pub frametime_0ms: Option<&'a str>,
     /// RNG seeds.
     pub seeds: Option<Seeds>,
+    /// Version of the HLStrafe prediction this TAS was made for.
+    ///
+    /// This controls some inner workings of HLStrafe and is used to update the prediction code
+    /// without causing old scripts to desync.
+    pub hlstrafe_version: Option<NonZeroU32>,
 }
 
 /// Shared and non-shared RNG seeds.
@@ -461,6 +466,7 @@ mod tests {
                 frametime_0ms: Some("0.0000001"),
                 save: None,
                 seeds: None,
+                hlstrafe_version: Some(NonZeroU32::new(1).unwrap()),
             },
             lines: vec![
                 Line::FrameBulk(FrameBulk {

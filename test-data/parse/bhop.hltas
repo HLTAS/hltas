@@ -1,6 +1,7 @@
 version 1
 demo bhop
 frametime0ms 0.0000001
+hlstrafe_version 1
 frames
 ----------|------|------|0.001|-|-|1|sensitivity 0;bxt_timer_reset;bxt_taslog
 ----------|------|------|0.001|-|-|5

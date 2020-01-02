@@ -86,9 +86,10 @@ void validate(const HLTAS::Input& input) {
 	CHECK(input.GetVersion() == 1);
 
 	const auto& properties = input.GetProperties();
-	CHECK(properties.size() == 2);
+	CHECK(properties.size() == 3);
 	CHECK(properties.at("demo") == "bhop");
 	CHECK(properties.at("frametime0ms") == "0.0000001");
+	CHECK(properties.at("hlstrafe_version") == "1");
 
 	const auto& frames = input.GetFrames();
 	REQUIRE(frames.size() == 7);
