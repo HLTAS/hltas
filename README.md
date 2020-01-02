@@ -4,6 +4,8 @@ hltas
 [![crates.io](https://img.shields.io/crates/v/hltas.svg)](https://crates.io/crates/hltas)
 [![Documentation](https://docs.rs/hltas/badge.svg)](https://docs.rs/hltas)
 
+[CHANGELOG](https://github.com/HLTAS/hltas/blob/master/CHANGELOG.md)
+
 A crate for reading and writing Half-Life TAS scripts (`.hltas`).
 
 ## Examples
