@@ -3,15 +3,15 @@ use std::{num::NonZeroU32, str::FromStr};
 use nom::{
     branch::alt,
     bytes::complete::{is_not, tag},
-    character::complete::{anychar, char, digit0, not_line_ending, one_of, space1},
-    combinator::{cut, map, map_res, not, opt, peek, recognize, verify},
+    character::complete::{anychar, char, not_line_ending, space1},
+    combinator::{cut, map, map_res, not, opt, peek, verify},
     number::complete::recognize_float,
     sequence::{pair, preceded, separated_pair, tuple},
 };
 
 use crate::{
     read::{
-        context,
+        context, non_zero_u32,
         properties::{non_shared_seed, property, shared_seed},
         Context, IResult,
     },
@@ -50,13 +50,6 @@ fn strafe(i: &str) -> IResult<Option<StrafeSettings>> {
         map(tag("---"), |_| None),
         map(preceded(char('s'), strafe_settings), Some),
     ))(i)
-}
-
-fn non_zero_u32(i: &str) -> IResult<NonZeroU32> {
-    map_res(
-        recognize(pair(one_of("123456789"), digit0)),
-        NonZeroU32::from_str,
-    )(i)
 }
 
 fn parse_times(i: &str) -> IResult<Times> {

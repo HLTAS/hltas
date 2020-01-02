@@ -1,15 +1,19 @@
 //! Reading `.hltas` files.
 
-use std::fmt::{self, Display, Formatter};
+use std::{
+    fmt::{self, Display, Formatter},
+    num::NonZeroU32,
+    str::FromStr,
+};
 
 use nom::{
     self,
     bytes::complete::tag,
-    character::complete::{line_ending, multispace0, one_of, space1},
-    combinator::{all_consuming, verify},
+    character::complete::{digit0, line_ending, multispace0, one_of, space1},
+    combinator::{all_consuming, map_res, recognize, verify},
     error::ParseError,
     multi::{many1, many_till},
-    sequence::preceded,
+    sequence::{pair, preceded},
     Offset,
 };
 
@@ -227,6 +231,13 @@ fn context<'a, T>(
             }
         })
     }
+}
+
+fn non_zero_u32(i: &str) -> IResult<NonZeroU32> {
+    map_res(
+        recognize(pair(one_of("123456789"), digit0)),
+        NonZeroU32::from_str,
+    )(i)
 }
 
 fn version(i: &str) -> IResult<()> {
