@@ -58,6 +58,18 @@ pub enum Context {
     NoResetSeed,
     /// Failed to parse a frames entry.
     ErrorParsingLine,
+    /// Invalid strafing algorithm.
+    InvalidStrafingAlgorithm,
+    /// Vectorial strafing constraints are not specified.
+    NoConstraints,
+    /// Vectorial strafing constraint tolerance is not specified.
+    NoTolerance,
+    /// The +- in the vectorial strafing constraints is missing.
+    NoPlusMinusBeforeTolerance,
+    /// The parameters in the yaw range vectorial strafing constraints are not specified.
+    NoFromToParameters,
+    /// The yaw range vectorial strafing constraint is missing the "to" word.
+    NoTo,
 }
 
 /// `.hltas` parsing error.
@@ -108,6 +120,15 @@ impl Display for Context {
             NoResetSeed => write!(f, "missing reset seed"),
             NoYaw => write!(f, "missing yaw value"),
             ErrorParsingLine => write!(f, "failed to parse the line"),
+            InvalidStrafingAlgorithm => write!(
+                f,
+                "invalid strafing algorithm (only \"yaw\" and \"vectorial\" allowed)"
+            ),
+            NoConstraints => write!(f, "missing constraints"),
+            NoTolerance => write!(f, "missing tolerance (e.g. \"+-0.1\")"),
+            NoPlusMinusBeforeTolerance => write!(f, "missing +- before tolerance"),
+            NoFromToParameters => write!(f, "missing from/to parameters"),
+            NoTo => write!(f, "missing \"to\" in the from/to constraint"),
         }
     }
 }

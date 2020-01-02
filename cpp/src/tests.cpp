@@ -7,12 +7,13 @@
 
 #include "hltas.hpp"
 
-const std::array<const char*, 15> parse_files = {
+const std::array<const char*, 17> parse_files = {
 	"bhop_20fps.hltas",
 	"bhop.hltas",
 	"bkz_goldbhop.hltas",
 	"blolly.hltas",
 	"cs_estate.hltas",
+	"destructo-hops.hltas",
 	"extra-letters.hltas",
 	"goldbhop.hltas",
 	"halflife.hltas",
@@ -22,7 +23,8 @@ const std::array<const char*, 15> parse_files = {
 	"rng.hltas",
 	"tas-hazard course-1.32,669.hltas",
 	"triggertest.hltas",
-	"tripminetest.hltas"
+	"tripminetest.hltas",
+	"vectorial.hltas"
 };
 
 TEST_CASE("Parse") {

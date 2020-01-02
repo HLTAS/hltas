@@ -101,6 +101,12 @@ impl From<read::Context> for hltas_cpp::ErrorCode {
             NoLGAGSTMinSpeed => NOLGAGSTMINSPEED,
             NoResetSeed => NORESETSEED,
             ErrorParsingLine => FAILFRAME,
+            InvalidStrafingAlgorithm => INVALID_ALGORITHM,
+            NoConstraints => MISSING_CONSTRAINTS,
+            NoTolerance => MISSING_TOLERANCE,
+            NoPlusMinusBeforeTolerance => NO_PM_IN_TOLERANCE,
+            NoFromToParameters => MISSING_ALGORITHM_FROMTO_PARAMETERS,
+            NoTo => NO_TO_IN_FROMTO_ALGORITHM,
         }
     }
 }
@@ -402,6 +408,79 @@ pub unsafe extern "C" fn hltas_rs_read(
                                 comments.push_str(comment);
                                 comments.push('\n');
                             }
+                            Line::VectorialStrafing(enabled) => {
+                                let mut frame: hltas_cpp::hltas_frame = zeroed();
+                                let comments_cstring = CString::new(comments).unwrap();
+                                frame.Comments = comments_cstring.as_ptr();
+                                comments = String::new();
+
+                                frame.StrafingAlgorithmPresent = true;
+                                frame.Algorithm = if enabled {
+                                    hltas_cpp::StrafingAlgorithm::VECTORIAL
+                                } else {
+                                    hltas_cpp::StrafingAlgorithm::YAW
+                                };
+                                hltas_input_push_frame(input, &frame);
+                            }
+                            Line::VectorialStrafingConstraints(constraints) => {
+                                let mut frame: hltas_cpp::hltas_frame = zeroed();
+                                let comments_cstring = CString::new(comments).unwrap();
+                                frame.Comments = comments_cstring.as_ptr();
+                                comments = String::new();
+
+                                frame.AlgorithmParametersPresent = true;
+
+                                use hltas_cpp::{
+                                    AlgorithmParameters, AlgorithmParameters__bindgen_ty_1,
+                                    AlgorithmParameters__bindgen_ty_1__bindgen_ty_1,
+                                    AlgorithmParameters__bindgen_ty_1__bindgen_ty_2,
+                                    AlgorithmParameters__bindgen_ty_1__bindgen_ty_3,
+                                    AlgorithmParameters__bindgen_ty_1__bindgen_ty_4,
+                                    ConstraintsType,
+                                };
+                                use VectorialStrafingConstraints::*;
+
+                                frame.Parameters = match constraints {
+                                    VelocityYaw { tolerance } => AlgorithmParameters {
+                                        Type: ConstraintsType::VELOCITY,
+                                        Parameters: AlgorithmParameters__bindgen_ty_1 {
+                                            Velocity:
+                                                AlgorithmParameters__bindgen_ty_1__bindgen_ty_1 {
+                                                    Constraints: tolerance as f64,
+                                                },
+                                        },
+                                    },
+                                    AvgVelocityYaw { tolerance } => AlgorithmParameters {
+                                        Type: ConstraintsType::VELOCITY_AVG,
+                                        Parameters: AlgorithmParameters__bindgen_ty_1 {
+                                            VelocityAvg:
+                                                AlgorithmParameters__bindgen_ty_1__bindgen_ty_2 {
+                                                    Constraints: tolerance as f64,
+                                                },
+                                        },
+                                    },
+                                    Yaw { yaw, tolerance } => AlgorithmParameters {
+                                        Type: ConstraintsType::YAW,
+                                        Parameters: AlgorithmParameters__bindgen_ty_1 {
+                                            Yaw: AlgorithmParameters__bindgen_ty_1__bindgen_ty_3 {
+                                                Yaw: yaw as f64,
+                                                Constraints: tolerance as f64,
+                                            },
+                                        },
+                                    },
+                                    YawRange { from, to } => AlgorithmParameters {
+                                        Type: ConstraintsType::YAW_RANGE,
+                                        Parameters: AlgorithmParameters__bindgen_ty_1 {
+                                            YawRange:
+                                                AlgorithmParameters__bindgen_ty_1__bindgen_ty_4 {
+                                                    LowestYaw: from as f64,
+                                                    HighestYaw: to as f64,
+                                                },
+                                        },
+                                    },
+                                };
+                                hltas_input_push_frame(input, &frame);
+                            }
                         }
                     }
                     hltas_cpp::ErrorDescription {
@@ -610,6 +689,39 @@ pub unsafe extern "C" fn hltas_rs_write(
                     hltas.lines.push(Line::Reset {
                         non_shared_seed: frame.ResetNonSharedRNGSeed,
                     });
+                    continue;
+                }
+
+                if frame.StrafingAlgorithmPresent {
+                    hltas.lines.push(Line::VectorialStrafing(
+                        frame.Algorithm == hltas_cpp::StrafingAlgorithm::VECTORIAL,
+                    ));
+                    continue;
+                }
+
+                if frame.AlgorithmParametersPresent {
+                    use hltas_cpp::ConstraintsType;
+                    use VectorialStrafingConstraints::*;
+                    hltas.lines.push(Line::VectorialStrafingConstraints(
+                        match frame.Parameters.Type {
+                            ConstraintsType::VELOCITY => VelocityYaw {
+                                tolerance: frame.Parameters.Parameters.Velocity.Constraints as f32,
+                            },
+                            ConstraintsType::VELOCITY_AVG => AvgVelocityYaw {
+                                tolerance: frame.Parameters.Parameters.VelocityAvg.Constraints
+                                    as f32,
+                            },
+                            ConstraintsType::YAW => Yaw {
+                                yaw: frame.Parameters.Parameters.Yaw.Yaw as f32,
+                                tolerance: frame.Parameters.Parameters.Yaw.Constraints as f32,
+                            },
+                            ConstraintsType::YAW_RANGE => YawRange {
+                                from: frame.Parameters.Parameters.YawRange.LowestYaw as f32,
+                                to: frame.Parameters.Parameters.YawRange.HighestYaw as f32,
+                            },
+                        },
+                    ));
+
                     continue;
                 }
 

@@ -1,0 +1,11 @@
+version 1
+demo bhop
+frametime0ms 0.0000001
+hlstrafe_version 2
+frames
+strafing vectorial
+strafing yaw
+target_yaw velocity +-1
+target_yaw velocity_avg +-2
+target_yaw from 35 to 60
+target_yaw 90 +-0.1

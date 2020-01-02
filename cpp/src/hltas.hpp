@@ -34,7 +34,13 @@ namespace HLTAS
 		NOLGAGSTACTION,
 		NOLGAGSTMINSPEED,
 		LGAGSTACTIONTIMES,
-		NORESETSEED
+		NORESETSEED,
+		INVALID_ALGORITHM,
+		MISSING_CONSTRAINTS,
+		MISSING_TOLERANCE,
+		NO_PM_IN_TOLERANCE,
+		MISSING_ALGORITHM_FROMTO_PARAMETERS,
+		NO_TO_IN_FROMTO_ALGORITHM
 	};
 
 	struct ErrorDescription {
@@ -90,6 +96,56 @@ namespace HLTAS
 		Button GroundRight;
 	};
 
+	enum class StrafingAlgorithm {
+		YAW = 0,
+		VECTORIAL
+	};
+
+	enum class ConstraintsType {
+		VELOCITY = 0,
+		VELOCITY_AVG,
+		YAW,
+		YAW_RANGE
+	};
+
+	struct AlgorithmParameters {
+		ConstraintsType Type;
+
+		union {
+			// Type == VELOCITY
+			struct {
+				// In degrees; allowed angles: velocity yaw +- Constraints.
+				double Constraints;
+			} Velocity;
+
+			// Type == VELOCITY_AVG
+			struct {
+				// In degrees; allowed angles: velocity yaw +- Constraints.
+				double Constraints;
+			} VelocityAvg;
+
+			// Type == YAW
+			struct {
+				// In degrees; allowed angles: Yaw +- Constraints.
+				double Yaw;
+				double Constraints;
+			} Yaw;
+
+			// Type == YAW_RANGE
+			struct {
+				// In degrees; mod 360; allowed angles: LowestYaw to HighestYaw.
+				double LowestYaw;
+				double HighestYaw;
+			} YawRange;
+		} Parameters;
+
+		// Unconstrained by default.
+		AlgorithmParameters() : Type(ConstraintsType::YAW) {
+			Parameters.Yaw.Yaw = 0.0;
+			Parameters.Yaw.Constraints = 180.0;
+		}
+	};
+
 	struct Frame {
 		// We know what we're doing, so save us from a lot of hassle.
 		friend class Input;
@@ -141,7 +197,11 @@ namespace HLTAS
 			LgagstMinSpeedPresent(false),
 			LgagstMinSpeed(0.0f),
 			ResetFrame(false),
-			ResetNonSharedRNGSeed(0) {};
+			ResetNonSharedRNGSeed(0),
+			StrafingAlgorithmPresent(false),
+			Algorithm(StrafingAlgorithm::YAW),
+			AlgorithmParametersPresent(false),
+			Parameters() {};
 
 		// If we have a framebulk with an autofunc with times, we want to reset it after first execution so the times don't get set every time.
 		void ResetAutofuncs();
@@ -279,6 +339,24 @@ namespace HLTAS
 	public:
 		int64_t GetResetNonSharedRNGSeed() const;
 		void SetResetNonSharedRNGSeed(int64_t value);
+
+		bool StrafingAlgorithmPresent;
+
+	protected:
+		StrafingAlgorithm Algorithm;
+
+	public:
+		StrafingAlgorithm GetAlgorithm() const;
+		void SetAlgorithm(StrafingAlgorithm value);
+
+		bool AlgorithmParametersPresent;
+
+	protected:
+		AlgorithmParameters Parameters;
+
+	public:
+		AlgorithmParameters GetAlgorithmParameters() const;
+		void SetAlgorithmParameters(AlgorithmParameters value);
 	};
 
 	class Input
@@ -366,5 +444,9 @@ extern "C" {
 		float LgagstMinSpeed;
 		bool ResetFrame;
 		int64_t ResetNonSharedRNGSeed;
+		bool StrafingAlgorithmPresent;
+		HLTAS::StrafingAlgorithm Algorithm;
+		bool AlgorithmParametersPresent;
+		HLTAS::AlgorithmParameters Parameters;
 	};
 }

@@ -226,6 +226,29 @@ fn line_buttons<W: Write>(buttons: Buttons) -> impl SerializeFn<W> {
     }
 }
 
+fn line_vectorial_strafing_constraints<W: Write>(
+    constraints: VectorialStrafingConstraints,
+) -> impl SerializeFn<W> {
+    move |out: WriteContext<W>| match constraints {
+        VectorialStrafingConstraints::VelocityYaw { tolerance } => property(
+            "target_yaw",
+            pair(string("velocity +-"), display(tolerance)),
+        )(out),
+        VectorialStrafingConstraints::AvgVelocityYaw { tolerance } => property(
+            "target_yaw",
+            pair(string("velocity_avg +-"), display(tolerance)),
+        )(out),
+        VectorialStrafingConstraints::Yaw { yaw, tolerance } => property(
+            "target_yaw",
+            tuple((display(yaw), string(" +-"), display(tolerance))),
+        )(out),
+        VectorialStrafingConstraints::YawRange { from, to } => property(
+            "target_yaw",
+            tuple((string("from "), display(from), string(" to "), display(to))),
+        )(out),
+    }
+}
+
 fn line<'a, W: Write>(line: &'a Line<'a>) -> impl SerializeFn<W> + 'a {
     move |out: WriteContext<W>| match line {
         Line::FrameBulk(frame_bulk) => line_frame_bulk(frame_bulk)(out),
@@ -237,6 +260,13 @@ fn line<'a, W: Write>(line: &'a Line<'a>) -> impl SerializeFn<W> + 'a {
         }
         Line::Reset { non_shared_seed } => property("reset", display(non_shared_seed))(out),
         Line::Comment(comment) => tuple((string("//"), string(comment), string("\n")))(out),
+        Line::VectorialStrafing(enabled) => property(
+            "strafing",
+            string(if *enabled { "vectorial" } else { "yaw" }),
+        )(out),
+        Line::VectorialStrafingConstraints(constraints) => {
+            line_vectorial_strafing_constraints(*constraints)(out)
+        }
     }
 }
 

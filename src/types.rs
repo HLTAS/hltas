@@ -63,6 +63,10 @@ pub enum Line<'a> {
     },
     /// A comment line.
     Comment(&'a str),
+    /// Enables or disables vectorial strafing.
+    VectorialStrafing(bool),
+    /// Sets the constraints for vectorial strafing.
+    VectorialStrafingConstraints(VectorialStrafingConstraints),
 }
 
 /// A buttons line.
@@ -298,6 +302,39 @@ pub struct ActionKeys {
     pub attack_2: bool,
     /// `+reload`
     pub reload: bool,
+}
+
+/// Constraints for the vectorial strafing algorithm.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum VectorialStrafingConstraints {
+    /// Constrains the player yaw relative the velocity yaw.
+    VelocityYaw {
+        /// The player's yaw should remain within velocity yaw ± tolerance degrees.
+        tolerance: f32,
+    },
+    /// Constrains the player yaw relative the yaw of velocity averaged over last two frames.
+    AvgVelocityYaw {
+        /// The player's yaw should remain within average velocity yaw ± tolerance degrees.
+        tolerance: f32,
+    },
+    /// Constrains the player yaw relative to the given yaw.
+    Yaw {
+        /// The target yaw in degrees.
+        yaw: f32,
+        /// The player's yaw should remain within yaw ± tolerance degrees.
+        tolerance: f32,
+    },
+    /// Constrains the player yaw to the given range.
+    ///
+    /// The range is in degrees, mod 360, inclusive from both sides. The order matters: from 10 to
+    /// 350 results in a wide angle range, and from 350 to 10 results in a narrow angle range
+    /// opposite to the first one.
+    YawRange {
+        /// The lowest yaw angle of the range in degrees.
+        from: f32,
+        /// The highest yaw angle of the range in degrees.
+        to: f32,
+    },
 }
 
 impl<'a> HLTAS<'a> {

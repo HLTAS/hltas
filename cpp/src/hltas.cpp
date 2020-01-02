@@ -26,7 +26,13 @@ namespace HLTAS
 		"Lgagst requires either Autojump or Ducktap.",
 		"Lgagst min speed is required.",
 		"You cannot specify the Autojump or Ducktap times if you have Lgagst enabled.",
-		"RNG seed is required."
+		"RNG seed is required.",
+		"Invalid strafing algorithm (only \"yaw\" and \"vectorial\" allowed).",
+		"Missing constraints.",
+		"Missing tolerance.",
+		"Constraints should start with +- (e.g. +-0.5).",
+		"Missing from and to yaw parameters.",
+		"Missing \"to\"."
 	};
 
 	const std::string& GetErrorMessage(ErrorDescription error)
@@ -242,6 +248,30 @@ namespace HLTAS
 		ResetNonSharedRNGSeed = value;
 	}
 
+	StrafingAlgorithm Frame::GetAlgorithm() const
+	{
+		assert(StrafingAlgorithmPresent);
+		return Algorithm;
+	}
+
+	void Frame::SetAlgorithm(StrafingAlgorithm value)
+	{
+		StrafingAlgorithmPresent = true;
+		Algorithm = value;
+	}
+
+	AlgorithmParameters Frame::GetAlgorithmParameters() const
+	{
+		assert(AlgorithmParametersPresent);
+		return Parameters;
+	}
+
+	void Frame::SetAlgorithmParameters(AlgorithmParameters value)
+	{
+		AlgorithmParametersPresent = true;
+		Parameters = value;
+	}
+
 	void Input::Clear()
 	{
 		Properties.clear();
@@ -391,6 +421,10 @@ extern "C" void hltas_input_push_frame(void* input, const hltas_frame* c_frame) 
 	frame.LgagstMinSpeed = c_frame->LgagstMinSpeed;
 	frame.ResetFrame = c_frame->ResetFrame;
 	frame.ResetNonSharedRNGSeed = c_frame->ResetNonSharedRNGSeed;
+	frame.StrafingAlgorithmPresent = c_frame->StrafingAlgorithmPresent;
+	frame.Algorithm = c_frame->Algorithm;
+	frame.AlgorithmParametersPresent = c_frame->AlgorithmParametersPresent;
+	frame.Parameters = c_frame->Parameters;
 
 	hltas_input->PushFrame(std::move(frame));
 }
@@ -470,6 +504,10 @@ extern "C" int hltas_input_get_frame(const void* input, size_t index, hltas_fram
 	c_frame->LgagstMinSpeed = frame.LgagstMinSpeed;
 	c_frame->ResetFrame = frame.ResetFrame;
 	c_frame->ResetNonSharedRNGSeed = frame.ResetNonSharedRNGSeed;
+	c_frame->StrafingAlgorithmPresent = frame.StrafingAlgorithmPresent;
+	c_frame->Algorithm = frame.Algorithm;
+	c_frame->AlgorithmParametersPresent = frame.AlgorithmParametersPresent;
+	c_frame->Parameters = frame.Parameters;
 
 	return 0;
 }

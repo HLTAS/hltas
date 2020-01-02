@@ -466,6 +466,78 @@ fn line_comment(i: &str) -> IResult<&str> {
     preceded(tag("//"), not_line_ending)(i)
 }
 
+fn line_strafing(i: &str) -> IResult<bool> {
+    let (i, (name, value)) = property(i)?;
+    tag("strafing")(name)?;
+    let (_, enabled) = cut(context(
+        Context::InvalidStrafingAlgorithm,
+        alt((map(tag("yaw"), |_| false), map(tag("vectorial"), |_| true))),
+    ))(value)?;
+    Ok((i, enabled))
+}
+
+fn parse_tolerance(i: &str) -> IResult<f32> {
+    preceded(
+        context(Context::NoPlusMinusBeforeTolerance, tag("+-")),
+        float,
+    )(i)
+}
+
+fn line_target_yaw(i: &str) -> IResult<VectorialStrafingConstraints> {
+    let (i, (name, value)) = property(i)?;
+    tag("target_yaw")(name)?;
+
+    cut(context(Context::NoConstraints, anychar))(value)?;
+
+    let constraint_value = opt(preceded(
+        alt((
+            map(tag("velocity"), |_| ()),
+            map(tag("velocity_avg"), |_| ()),
+            map(float, |_| ()),
+        )),
+        preceded(opt(space1), not_line_ending),
+    ))(value);
+
+    // If the constraint should have a tolerance, check that it's present.
+    if let Some(constraint_value) = constraint_value.unwrap().1 {
+        cut(context(Context::NoTolerance, anychar))(constraint_value)?;
+    }
+
+    let constraint_value = opt(preceded(
+        tag("from"),
+        preceded(opt(space1), not_line_ending::<&str, ()>),
+    ))(value);
+
+    // Check that from/to constraint parameters are present.
+    if let Some(constraint_value) = constraint_value.unwrap().1 {
+        cut(context(Context::NoFromToParameters, anychar))(constraint_value)?;
+    }
+
+    let (_, constraints) = cut(alt((
+        map(
+            preceded(tag("velocity "), cut(parse_tolerance)),
+            |tolerance| VectorialStrafingConstraints::VelocityYaw { tolerance },
+        ),
+        map(
+            preceded(tag("velocity_avg "), cut(parse_tolerance)),
+            |tolerance| VectorialStrafingConstraints::AvgVelocityYaw { tolerance },
+        ),
+        map(
+            pair(float, preceded(tag(" "), cut(parse_tolerance))),
+            |(yaw, tolerance)| VectorialStrafingConstraints::Yaw { yaw, tolerance },
+        ),
+        map(
+            pair(
+                preceded(tag("from "), float),
+                preceded(cut(context(Context::NoTo, tag(" to "))), float),
+            ),
+            |(from, to)| VectorialStrafingConstraints::YawRange { from, to },
+        ),
+    )))(value)?;
+
+    Ok((i, constraints))
+}
+
 pub(crate) fn line(i: &str) -> IResult<Line> {
     alt((
         map(line_frame_bulk, Line::FrameBulk),
@@ -477,6 +549,8 @@ pub(crate) fn line(i: &str) -> IResult<Line> {
             non_shared_seed,
         }),
         map(line_comment, Line::Comment),
+        map(line_strafing, Line::VectorialStrafing),
+        map(line_target_yaw, Line::VectorialStrafingConstraints),
     ))(i)
 }
 
@@ -645,5 +719,115 @@ mod tests {
             dir: StrafeDir::Yaw(0.),
         })))(input)
         .is_ok());
+    }
+
+    #[test]
+    fn invalid_strafing_algorithm() {
+        let input = "strafing sdfdsf";
+        let err = line_strafing(input).unwrap_err();
+        if let nom::Err::Failure(err) = err {
+            assert_eq!(err.context, Some(Context::InvalidStrafingAlgorithm));
+        } else {
+            unreachable!()
+        }
+    }
+
+    #[test]
+    fn no_constraints() {
+        let input = "target_yaw ";
+        let err = line_target_yaw(input).unwrap_err();
+        if let nom::Err::Failure(err) = err {
+            assert_eq!(err.context, Some(Context::NoConstraints));
+        } else {
+            unreachable!()
+        }
+    }
+
+    #[test]
+    fn no_plus_minus_before_tolerance_velocity() {
+        let input = "target_yaw velocity 1";
+        let err = line_target_yaw(input).unwrap_err();
+        if let nom::Err::Failure(err) = err {
+            assert_eq!(err.context, Some(Context::NoPlusMinusBeforeTolerance));
+        } else {
+            unreachable!()
+        }
+    }
+
+    #[test]
+    fn no_plus_minus_before_tolerance_velocity_avg() {
+        let input = "target_yaw velocity_avg 1";
+        let err = line_target_yaw(input).unwrap_err();
+        if let nom::Err::Failure(err) = err {
+            assert_eq!(err.context, Some(Context::NoPlusMinusBeforeTolerance));
+        } else {
+            unreachable!()
+        }
+    }
+
+    #[test]
+    fn no_plus_minus_before_tolerance_yaw() {
+        let input = "target_yaw 90 1";
+        let err = line_target_yaw(input).unwrap_err();
+        if let nom::Err::Failure(err) = err {
+            assert_eq!(err.context, Some(Context::NoPlusMinusBeforeTolerance));
+        } else {
+            unreachable!()
+        }
+    }
+
+    #[test]
+    fn no_tolerance() {
+        let input = "target_yaw velocity";
+        let err = line_target_yaw(input).unwrap_err();
+        if let nom::Err::Failure(err) = err {
+            assert_eq!(err.context, Some(Context::NoTolerance));
+        } else {
+            unreachable!()
+        }
+    }
+
+    #[test]
+    fn no_tolerance_space() {
+        let input = "target_yaw velocity ";
+        let err = line_target_yaw(input).unwrap_err();
+        if let nom::Err::Failure(err) = err {
+            assert_eq!(err.context, Some(Context::NoTolerance));
+        } else {
+            unreachable!()
+        }
+    }
+
+    #[test]
+    fn no_from_to_parameters() {
+        let input = "target_yaw from";
+        let err = line_target_yaw(input).unwrap_err();
+        if let nom::Err::Failure(err) = err {
+            assert_eq!(err.context, Some(Context::NoFromToParameters));
+        } else {
+            unreachable!()
+        }
+    }
+
+    #[test]
+    fn no_from_to_parameters_space() {
+        let input = "target_yaw from ";
+        let err = line_target_yaw(input).unwrap_err();
+        if let nom::Err::Failure(err) = err {
+            assert_eq!(err.context, Some(Context::NoFromToParameters));
+        } else {
+            unreachable!()
+        }
+    }
+
+    #[test]
+    fn no_to() {
+        let input = "target_yaw from 123";
+        let err = line_target_yaw(input).unwrap_err();
+        if let nom::Err::Failure(err) = err {
+            assert_eq!(err.context, Some(Context::NoTo));
+        } else {
+            unreachable!()
+        }
     }
 }
