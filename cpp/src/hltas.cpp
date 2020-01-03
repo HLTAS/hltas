@@ -41,6 +41,16 @@ namespace HLTAS
 		return ErrorMessages[static_cast<int>(error.Code) - 1];
 	}
 
+	bool Frame::IsMovement() const {
+		return SaveName.empty()
+			&& !SeedPresent
+			&& BtnState == HLTAS::ButtonState::NOTHING
+			&& !LgagstMinSpeedPresent
+			&& !ResetFrame
+			&& !StrafingAlgorithmPresent
+			&& !AlgorithmParametersPresent;
+	}
+
 	void Frame::ResetAutofuncs()
 	{
 		if (Lgagst && LgagstTimes) {

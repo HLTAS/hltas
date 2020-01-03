@@ -203,6 +203,9 @@ namespace HLTAS
 			AlgorithmParametersPresent(false),
 			Parameters() {};
 
+		// Returns true if this frame is a movement frame.
+		bool IsMovement() const;
+
 		// If we have a framebulk with an autofunc with times, we want to reset it after first execution so the times don't get set every time.
 		void ResetAutofuncs();
 
