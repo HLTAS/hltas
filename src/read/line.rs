@@ -5,7 +5,6 @@ use nom::{
     bytes::complete::{is_not, tag},
     character::complete::{anychar, char, not_line_ending, space1},
     combinator::{cut, map, map_res, not, opt, peek, verify},
-    number::complete::recognize_float,
     sequence::{pair, preceded, separated_pair, tuple},
 };
 
@@ -17,6 +16,18 @@ use crate::{
     },
     types::*,
 };
+
+fn uncut<'a, O, F: Fn(&'a str) -> IResult<O>>(f: F) -> impl Fn(&'a str) -> IResult<O> {
+    move |i| match f(i) {
+        Err(nom::Err::Failure(e)) => Err(nom::Err::Error(e)),
+        x => x
+    }
+}
+
+fn recognize_float<'a>(i: &'a str) -> IResult<'a, &'a str> {
+    // Nom's recognize_float contains a very annoying cut(). Get rid of it.
+    uncut(nom::number::complete::recognize_float)(i)
+}
 
 fn strafe_type(i: &str) -> IResult<StrafeType> {
     alt((
@@ -829,5 +840,12 @@ mod tests {
         } else {
             unreachable!()
         }
+    }
+
+    #[test]
+    fn target_yaw_nom_float_issue() {
+        // https://github.com/Geal/nom/issues/1021
+        let input = "target_yaw 0elocity +-0.1";
+        let _ = line_target_yaw(input);
     }
 }
