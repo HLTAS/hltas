@@ -15,6 +15,11 @@ repository = "https://github.com/HLTAS/hltas"
 keywords = ["half-life", "goldsource", "hltas", "tas", "parser"]
 categories = ["game-engines", "games", "parser-implementations", "parsing"]
 
+[workspace]
+members = [
+    "hltas-cpp-bridge",
+]
+
 [dependencies]
 nom = "5.0.1"
 cookie-factory = "0.3.0"
