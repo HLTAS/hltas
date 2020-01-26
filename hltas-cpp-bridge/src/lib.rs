@@ -111,6 +111,81 @@ impl From<read::Context> for hltas_cpp::ErrorCode {
     }
 }
 
+impl From<VectorialStrafingConstraints> for hltas_cpp::AlgorithmParameters {
+    #[inline]
+    fn from(x: VectorialStrafingConstraints) -> Self {
+        use hltas_cpp::{
+            AlgorithmParameters__bindgen_ty_1, AlgorithmParameters__bindgen_ty_1__bindgen_ty_1,
+            AlgorithmParameters__bindgen_ty_1__bindgen_ty_2,
+            AlgorithmParameters__bindgen_ty_1__bindgen_ty_3,
+            AlgorithmParameters__bindgen_ty_1__bindgen_ty_4, ConstraintsType,
+        };
+
+        use VectorialStrafingConstraints::*;
+        match x {
+            VelocityYaw { tolerance } => Self {
+                Type: ConstraintsType::VELOCITY,
+                Parameters: AlgorithmParameters__bindgen_ty_1 {
+                    Velocity: AlgorithmParameters__bindgen_ty_1__bindgen_ty_1 {
+                        Constraints: tolerance as f64,
+                    },
+                },
+            },
+            AvgVelocityYaw { tolerance } => Self {
+                Type: ConstraintsType::VELOCITY_AVG,
+                Parameters: AlgorithmParameters__bindgen_ty_1 {
+                    VelocityAvg: AlgorithmParameters__bindgen_ty_1__bindgen_ty_2 {
+                        Constraints: tolerance as f64,
+                    },
+                },
+            },
+            Yaw { yaw, tolerance } => Self {
+                Type: ConstraintsType::YAW,
+                Parameters: AlgorithmParameters__bindgen_ty_1 {
+                    Yaw: AlgorithmParameters__bindgen_ty_1__bindgen_ty_3 {
+                        Yaw: yaw as f64,
+                        Constraints: tolerance as f64,
+                    },
+                },
+            },
+            YawRange { from, to } => Self {
+                Type: ConstraintsType::YAW_RANGE,
+                Parameters: AlgorithmParameters__bindgen_ty_1 {
+                    YawRange: AlgorithmParameters__bindgen_ty_1__bindgen_ty_4 {
+                        LowestYaw: from as f64,
+                        HighestYaw: to as f64,
+                    },
+                },
+            },
+        }
+    }
+}
+
+impl From<hltas_cpp::AlgorithmParameters> for VectorialStrafingConstraints {
+    #[inline]
+    fn from(x: hltas_cpp::AlgorithmParameters) -> Self {
+        use hltas_cpp::ConstraintsType;
+        unsafe {
+            match x.Type {
+                ConstraintsType::VELOCITY => Self::VelocityYaw {
+                    tolerance: x.Parameters.Velocity.Constraints as f32,
+                },
+                ConstraintsType::VELOCITY_AVG => Self::AvgVelocityYaw {
+                    tolerance: x.Parameters.VelocityAvg.Constraints as f32,
+                },
+                ConstraintsType::YAW => Self::Yaw {
+                    yaw: x.Parameters.Yaw.Yaw as f32,
+                    tolerance: x.Parameters.Yaw.Constraints as f32,
+                },
+                ConstraintsType::YAW_RANGE => Self::YawRange {
+                    from: x.Parameters.YawRange.LowestYaw as f32,
+                    to: x.Parameters.YawRange.HighestYaw as f32,
+                },
+            }
+        }
+    }
+}
+
 // Copied from hltas::read.
 fn non_zero_u32(i: &str) -> IResult<&str, NonZeroU32> {
     map_res(
@@ -429,56 +504,7 @@ pub unsafe extern "C" fn hltas_rs_read(
                                 comments = String::new();
 
                                 frame.AlgorithmParametersPresent = true;
-
-                                use hltas_cpp::{
-                                    AlgorithmParameters, AlgorithmParameters__bindgen_ty_1,
-                                    AlgorithmParameters__bindgen_ty_1__bindgen_ty_1,
-                                    AlgorithmParameters__bindgen_ty_1__bindgen_ty_2,
-                                    AlgorithmParameters__bindgen_ty_1__bindgen_ty_3,
-                                    AlgorithmParameters__bindgen_ty_1__bindgen_ty_4,
-                                    ConstraintsType,
-                                };
-                                use VectorialStrafingConstraints::*;
-
-                                frame.Parameters = match constraints {
-                                    VelocityYaw { tolerance } => AlgorithmParameters {
-                                        Type: ConstraintsType::VELOCITY,
-                                        Parameters: AlgorithmParameters__bindgen_ty_1 {
-                                            Velocity:
-                                                AlgorithmParameters__bindgen_ty_1__bindgen_ty_1 {
-                                                    Constraints: tolerance as f64,
-                                                },
-                                        },
-                                    },
-                                    AvgVelocityYaw { tolerance } => AlgorithmParameters {
-                                        Type: ConstraintsType::VELOCITY_AVG,
-                                        Parameters: AlgorithmParameters__bindgen_ty_1 {
-                                            VelocityAvg:
-                                                AlgorithmParameters__bindgen_ty_1__bindgen_ty_2 {
-                                                    Constraints: tolerance as f64,
-                                                },
-                                        },
-                                    },
-                                    Yaw { yaw, tolerance } => AlgorithmParameters {
-                                        Type: ConstraintsType::YAW,
-                                        Parameters: AlgorithmParameters__bindgen_ty_1 {
-                                            Yaw: AlgorithmParameters__bindgen_ty_1__bindgen_ty_3 {
-                                                Yaw: yaw as f64,
-                                                Constraints: tolerance as f64,
-                                            },
-                                        },
-                                    },
-                                    YawRange { from, to } => AlgorithmParameters {
-                                        Type: ConstraintsType::YAW_RANGE,
-                                        Parameters: AlgorithmParameters__bindgen_ty_1 {
-                                            YawRange:
-                                                AlgorithmParameters__bindgen_ty_1__bindgen_ty_4 {
-                                                    LowestYaw: from as f64,
-                                                    HighestYaw: to as f64,
-                                                },
-                                        },
-                                    },
-                                };
+                                frame.Parameters = constraints.into();
                                 hltas_input_push_frame(input, &frame);
                             }
                         }
@@ -700,27 +726,9 @@ pub unsafe extern "C" fn hltas_rs_write(
                 }
 
                 if frame.AlgorithmParametersPresent {
-                    use hltas_cpp::ConstraintsType;
-                    use VectorialStrafingConstraints::*;
-                    hltas.lines.push(Line::VectorialStrafingConstraints(
-                        match frame.Parameters.Type {
-                            ConstraintsType::VELOCITY => VelocityYaw {
-                                tolerance: frame.Parameters.Parameters.Velocity.Constraints as f32,
-                            },
-                            ConstraintsType::VELOCITY_AVG => AvgVelocityYaw {
-                                tolerance: frame.Parameters.Parameters.VelocityAvg.Constraints
-                                    as f32,
-                            },
-                            ConstraintsType::YAW => Yaw {
-                                yaw: frame.Parameters.Parameters.Yaw.Yaw as f32,
-                                tolerance: frame.Parameters.Parameters.Yaw.Constraints as f32,
-                            },
-                            ConstraintsType::YAW_RANGE => YawRange {
-                                from: frame.Parameters.Parameters.YawRange.LowestYaw as f32,
-                                to: frame.Parameters.Parameters.YawRange.HighestYaw as f32,
-                            },
-                        },
-                    ));
+                    hltas
+                        .lines
+                        .push(Line::VectorialStrafingConstraints(frame.Parameters.into()));
 
                     continue;
                 }
