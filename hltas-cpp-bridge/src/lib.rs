@@ -17,7 +17,7 @@ use nom::{
 use hltas::{read, types::*};
 
 #[allow(non_camel_case_types, non_snake_case, dead_code)]
-mod hltas_cpp;
+pub mod hltas_cpp;
 use hltas_cpp::{
     hltas_input_get_frame, hltas_input_get_property, hltas_input_push_frame,
     hltas_input_set_error_message, hltas_input_set_property,
