@@ -1,7 +1,7 @@
 use std::{
     ffi::{CStr, CString},
     fs::{read_to_string, File},
-    mem::zeroed,
+    mem::{zeroed, ManuallyDrop},
     num::NonZeroU32,
     os::raw::{c_char, c_void},
     str::FromStr,
@@ -210,6 +210,209 @@ fn seeds(i: &str) -> IResult<&str, Seeds> {
     )(i)
 }
 
+/// Strings which a `hltas_frame` has pointers to.
+#[derive(Default)]
+pub struct AllocatedStrings {
+    frame_time: Option<CString>,
+    console_command: Option<CString>,
+    save_name: Option<CString>,
+}
+
+/// Converts a non-comment line to a `hltas_frame`.
+///
+/// `AllocatedStrings` contains strings to which the pointers in `hltas_frame` point.
+///
+/// # Safety
+///
+/// `AllocatedStrings` must not be dropped before `hltas_frame`.
+///
+/// # Panics
+///
+/// Panics if `line` is `Line::Comment`.
+pub unsafe fn hltas_frame_from_non_comment_line(
+    line: &Line,
+) -> (hltas_cpp::hltas_frame, ManuallyDrop<AllocatedStrings>) {
+    let mut frame: hltas_cpp::hltas_frame = zeroed();
+    let mut strings = AllocatedStrings::default();
+
+    match line {
+        Line::Comment(_) => panic!("can't convert a comment line"),
+        Line::FrameBulk(frame_bulk) => {
+            match frame_bulk.auto_actions.movement {
+                Some(AutoMovement::SetYaw(yaw)) => {
+                    frame.YawPresent = true;
+                    frame.Yaw = f64::from(yaw);
+                }
+                Some(AutoMovement::Strafe(StrafeSettings { type_, dir })) => {
+                    frame.Strafe = true;
+                    frame.Type = type_.into();
+                    match dir {
+                        StrafeDir::Left => {
+                            frame.Dir = hltas_cpp::StrafeDir::LEFT;
+                        }
+                        StrafeDir::Right => {
+                            frame.Dir = hltas_cpp::StrafeDir::RIGHT;
+                        }
+                        StrafeDir::Best => {
+                            frame.Dir = hltas_cpp::StrafeDir::BEST;
+                        }
+                        StrafeDir::Yaw(yaw) => {
+                            frame.Dir = hltas_cpp::StrafeDir::YAW;
+                            frame.YawPresent = true;
+                            frame.Yaw = f64::from(yaw);
+                        }
+                        StrafeDir::Point { x, y } => {
+                            frame.Dir = hltas_cpp::StrafeDir::POINT;
+                            frame.YawPresent = true;
+                            frame.X = f64::from(x);
+                            frame.Y = f64::from(y);
+                        }
+                        StrafeDir::Line { yaw } => {
+                            frame.Dir = hltas_cpp::StrafeDir::LINE;
+                            frame.YawPresent = true;
+                            frame.Yaw = f64::from(yaw);
+                        }
+                    }
+                }
+                None => {}
+            }
+
+            if let Some(leave_ground_action) = frame_bulk.auto_actions.leave_ground_action {
+                match leave_ground_action.speed {
+                    LeaveGroundActionSpeed::Optimal => frame.Lgagst = true,
+                    LeaveGroundActionSpeed::OptimalWithFullMaxspeed => {
+                        frame.Lgagst = true;
+                        frame.LgagstFullMaxspeed = true;
+                    }
+                    LeaveGroundActionSpeed::Any => {}
+                }
+
+                if frame.Lgagst {
+                    frame.LgagstTimes = leave_ground_action.times.into();
+                }
+
+                match leave_ground_action.type_ {
+                    LeaveGroundActionType::Jump => {
+                        frame.Autojump = true;
+                        if !frame.Lgagst {
+                            frame.AutojumpTimes = leave_ground_action.times.into();
+                        }
+                    }
+                    LeaveGroundActionType::DuckTap { zero_ms } => {
+                        frame.Ducktap = true;
+                        frame.Ducktap0ms = zero_ms;
+                        if !frame.Lgagst {
+                            frame.DucktapTimes = leave_ground_action.times.into();
+                        }
+                    }
+                }
+            }
+
+            if let Some(JumpBug { times }) = frame_bulk.auto_actions.jump_bug {
+                frame.Jumpbug = true;
+                frame.JumpbugTimes = times.into();
+            }
+
+            if let Some(DuckBeforeCollision {
+                including_ceilings,
+                times,
+            }) = frame_bulk.auto_actions.duck_before_collision
+            {
+                frame.Dbc = true;
+                frame.DbcCeilings = including_ceilings;
+                frame.DbcTimes = times.into();
+            }
+
+            if let Some(DuckBeforeGround { times }) = frame_bulk.auto_actions.duck_before_ground {
+                frame.Dbg = true;
+                frame.DbgTimes = times.into();
+            }
+
+            if let Some(DuckWhenJump { times }) = frame_bulk.auto_actions.duck_when_jump {
+                frame.Dwj = true;
+                frame.DwjTimes = times.into();
+            }
+
+            frame.Forward = frame_bulk.movement_keys.forward;
+            frame.Left = frame_bulk.movement_keys.left;
+            frame.Right = frame_bulk.movement_keys.right;
+            frame.Back = frame_bulk.movement_keys.back;
+            frame.Up = frame_bulk.movement_keys.up;
+            frame.Down = frame_bulk.movement_keys.down;
+
+            frame.Jump = frame_bulk.action_keys.jump;
+            frame.Duck = frame_bulk.action_keys.duck;
+            frame.Use = frame_bulk.action_keys.use_;
+            frame.Attack1 = frame_bulk.action_keys.attack_1;
+            frame.Attack2 = frame_bulk.action_keys.attack_2;
+            frame.Reload = frame_bulk.action_keys.reload;
+
+            let frame_time = CString::new(frame_bulk.frame_time).unwrap();
+            frame.Frametime = frame_time.as_ptr();
+            strings.frame_time = Some(frame_time);
+
+            if let Some(pitch) = frame_bulk.pitch {
+                frame.PitchPresent = true;
+                frame.Pitch = f64::from(pitch);
+            }
+
+            frame.Repeats = frame_bulk.frame_count.get();
+
+            if let Some(console_command) = frame_bulk.console_command {
+                let console_command_cstring = CString::new(console_command).unwrap();
+                frame.Commands = console_command_cstring.as_ptr();
+                strings.console_command = Some(console_command_cstring);
+            }
+        }
+        Line::Save(save_name) => {
+            let save_name = CString::new(*save_name).unwrap();
+            frame.SaveName = save_name.as_ptr();
+            strings.save_name = Some(save_name);
+        }
+        Line::SharedSeed(seed) => {
+            frame.SeedPresent = true;
+            frame.Seed = *seed;
+        }
+        Line::Buttons(buttons) => match *buttons {
+            Buttons::Reset => frame.BtnState = hltas_cpp::ButtonState::CLEAR,
+            Buttons::Set {
+                air_left,
+                air_right,
+                ground_left,
+                ground_right,
+            } => {
+                frame.BtnState = hltas_cpp::ButtonState::SET;
+                frame.Buttons.AirLeft = air_left.into();
+                frame.Buttons.AirRight = air_right.into();
+                frame.Buttons.GroundLeft = ground_left.into();
+                frame.Buttons.GroundRight = ground_right.into();
+            }
+        },
+        Line::LGAGSTMinSpeed(lgagst_min_speed) => {
+            frame.LgagstMinSpeedPresent = true;
+            frame.LgagstMinSpeed = *lgagst_min_speed;
+        }
+        Line::Reset { non_shared_seed } => {
+            frame.ResetFrame = true;
+            frame.ResetNonSharedRNGSeed = *non_shared_seed;
+        }
+        Line::VectorialStrafing(enabled) => {
+            frame.StrafingAlgorithmPresent = true;
+            frame.Algorithm = if *enabled {
+                hltas_cpp::StrafingAlgorithm::VECTORIAL
+            } else {
+                hltas_cpp::StrafingAlgorithm::YAW
+            };
+        }
+        Line::VectorialStrafingConstraints(constraints) => {
+            frame.AlgorithmParametersPresent = true;
+            frame.Parameters = (*constraints).into();
+        }
+    }
+
+    (frame, ManuallyDrop::new(strings))
+}
+
 /// Reads the HLTAS from `filename` and writes it into `input`.
 ///
 /// This is meant to be used internally from the C++ HLTAS library.
@@ -271,241 +474,20 @@ pub unsafe extern "C" fn hltas_rs_read(
                     let mut comments = String::new();
                     for line in hltas.lines {
                         match line {
-                            Line::FrameBulk(frame_bulk) => {
-                                let mut frame: hltas_cpp::hltas_frame = zeroed();
-                                let comments_cstring = CString::new(comments).unwrap();
-                                frame.Comments = comments_cstring.as_ptr();
-                                comments = String::new();
-
-                                match frame_bulk.auto_actions.movement {
-                                    Some(AutoMovement::SetYaw(yaw)) => {
-                                        frame.YawPresent = true;
-                                        frame.Yaw = f64::from(yaw);
-                                    }
-                                    Some(AutoMovement::Strafe(StrafeSettings { type_, dir })) => {
-                                        frame.Strafe = true;
-                                        frame.Type = type_.into();
-                                        match dir {
-                                            StrafeDir::Left => {
-                                                frame.Dir = hltas_cpp::StrafeDir::LEFT;
-                                            }
-                                            StrafeDir::Right => {
-                                                frame.Dir = hltas_cpp::StrafeDir::RIGHT;
-                                            }
-                                            StrafeDir::Best => {
-                                                frame.Dir = hltas_cpp::StrafeDir::BEST;
-                                            }
-                                            StrafeDir::Yaw(yaw) => {
-                                                frame.Dir = hltas_cpp::StrafeDir::YAW;
-                                                frame.YawPresent = true;
-                                                frame.Yaw = f64::from(yaw);
-                                            }
-                                            StrafeDir::Point { x, y } => {
-                                                frame.Dir = hltas_cpp::StrafeDir::POINT;
-                                                frame.YawPresent = true;
-                                                frame.X = f64::from(x);
-                                                frame.Y = f64::from(y);
-                                            }
-                                            StrafeDir::Line { yaw } => {
-                                                frame.Dir = hltas_cpp::StrafeDir::LINE;
-                                                frame.YawPresent = true;
-                                                frame.Yaw = f64::from(yaw);
-                                            }
-                                        }
-                                    }
-                                    None => {}
-                                }
-
-                                if let Some(leave_ground_action) =
-                                    frame_bulk.auto_actions.leave_ground_action
-                                {
-                                    match leave_ground_action.speed {
-                                        LeaveGroundActionSpeed::Optimal => frame.Lgagst = true,
-                                        LeaveGroundActionSpeed::OptimalWithFullMaxspeed => {
-                                            frame.Lgagst = true;
-                                            frame.LgagstFullMaxspeed = true;
-                                        }
-                                        LeaveGroundActionSpeed::Any => {}
-                                    }
-
-                                    if frame.Lgagst {
-                                        frame.LgagstTimes = leave_ground_action.times.into();
-                                    }
-
-                                    match leave_ground_action.type_ {
-                                        LeaveGroundActionType::Jump => {
-                                            frame.Autojump = true;
-                                            if !frame.Lgagst {
-                                                frame.AutojumpTimes =
-                                                    leave_ground_action.times.into();
-                                            }
-                                        }
-                                        LeaveGroundActionType::DuckTap { zero_ms } => {
-                                            frame.Ducktap = true;
-                                            frame.Ducktap0ms = zero_ms;
-                                            if !frame.Lgagst {
-                                                frame.DucktapTimes =
-                                                    leave_ground_action.times.into();
-                                            }
-                                        }
-                                    }
-                                }
-
-                                if let Some(JumpBug { times }) = frame_bulk.auto_actions.jump_bug {
-                                    frame.Jumpbug = true;
-                                    frame.JumpbugTimes = times.into();
-                                }
-
-                                if let Some(DuckBeforeCollision {
-                                    including_ceilings,
-                                    times,
-                                }) = frame_bulk.auto_actions.duck_before_collision
-                                {
-                                    frame.Dbc = true;
-                                    frame.DbcCeilings = including_ceilings;
-                                    frame.DbcTimes = times.into();
-                                }
-
-                                if let Some(DuckBeforeGround { times }) =
-                                    frame_bulk.auto_actions.duck_before_ground
-                                {
-                                    frame.Dbg = true;
-                                    frame.DbgTimes = times.into();
-                                }
-
-                                if let Some(DuckWhenJump { times }) =
-                                    frame_bulk.auto_actions.duck_when_jump
-                                {
-                                    frame.Dwj = true;
-                                    frame.DwjTimes = times.into();
-                                }
-
-                                frame.Forward = frame_bulk.movement_keys.forward;
-                                frame.Left = frame_bulk.movement_keys.left;
-                                frame.Right = frame_bulk.movement_keys.right;
-                                frame.Back = frame_bulk.movement_keys.back;
-                                frame.Up = frame_bulk.movement_keys.up;
-                                frame.Down = frame_bulk.movement_keys.down;
-
-                                frame.Jump = frame_bulk.action_keys.jump;
-                                frame.Duck = frame_bulk.action_keys.duck;
-                                frame.Use = frame_bulk.action_keys.use_;
-                                frame.Attack1 = frame_bulk.action_keys.attack_1;
-                                frame.Attack2 = frame_bulk.action_keys.attack_2;
-                                frame.Reload = frame_bulk.action_keys.reload;
-
-                                let frametime = CString::new(frame_bulk.frame_time).unwrap();
-                                frame.Frametime = frametime.as_ptr();
-
-                                if let Some(pitch) = frame_bulk.pitch {
-                                    frame.PitchPresent = true;
-                                    frame.Pitch = f64::from(pitch);
-                                }
-
-                                frame.Repeats = frame_bulk.frame_count.get();
-
-                                // So it doesn't go out of scope and de-allocate too early.
-                                let console_command_cstring;
-                                if let Some(console_command) = frame_bulk.console_command {
-                                    console_command_cstring =
-                                        CString::new(console_command).unwrap();
-                                    frame.Commands = console_command_cstring.as_ptr();
-                                }
-
-                                hltas_input_push_frame(input, &frame);
-                            }
-                            Line::Save(save_name) => {
-                                let mut frame: hltas_cpp::hltas_frame = zeroed();
-                                let comments_cstring = CString::new(comments).unwrap();
-                                frame.Comments = comments_cstring.as_ptr();
-                                comments = String::new();
-
-                                let save_name = CString::new(save_name).unwrap();
-                                frame.SaveName = save_name.as_ptr();
-                                hltas_input_push_frame(input, &frame);
-                            }
-                            Line::SharedSeed(seed) => {
-                                let mut frame: hltas_cpp::hltas_frame = zeroed();
-                                let comments_cstring = CString::new(comments).unwrap();
-                                frame.Comments = comments_cstring.as_ptr();
-                                comments = String::new();
-
-                                frame.SeedPresent = true;
-                                frame.Seed = seed;
-                                hltas_input_push_frame(input, &frame);
-                            }
-                            Line::Buttons(buttons) => {
-                                let mut frame: hltas_cpp::hltas_frame = zeroed();
-                                let comments_cstring = CString::new(comments).unwrap();
-                                frame.Comments = comments_cstring.as_ptr();
-                                comments = String::new();
-
-                                match buttons {
-                                    Buttons::Reset => {
-                                        frame.BtnState = hltas_cpp::ButtonState::CLEAR
-                                    }
-                                    Buttons::Set {
-                                        air_left,
-                                        air_right,
-                                        ground_left,
-                                        ground_right,
-                                    } => {
-                                        frame.BtnState = hltas_cpp::ButtonState::SET;
-                                        frame.Buttons.AirLeft = air_left.into();
-                                        frame.Buttons.AirRight = air_right.into();
-                                        frame.Buttons.GroundLeft = ground_left.into();
-                                        frame.Buttons.GroundRight = ground_right.into();
-                                    }
-                                }
-                                hltas_input_push_frame(input, &frame);
-                            }
-                            Line::LGAGSTMinSpeed(lgagst_min_speed) => {
-                                let mut frame: hltas_cpp::hltas_frame = zeroed();
-                                let comments_cstring = CString::new(comments).unwrap();
-                                frame.Comments = comments_cstring.as_ptr();
-                                comments = String::new();
-
-                                frame.LgagstMinSpeedPresent = true;
-                                frame.LgagstMinSpeed = lgagst_min_speed;
-                                hltas_input_push_frame(input, &frame);
-                            }
-                            Line::Reset { non_shared_seed } => {
-                                let mut frame: hltas_cpp::hltas_frame = zeroed();
-                                let comments_cstring = CString::new(comments).unwrap();
-                                frame.Comments = comments_cstring.as_ptr();
-                                comments = String::new();
-
-                                frame.ResetFrame = true;
-                                frame.ResetNonSharedRNGSeed = non_shared_seed;
-                                hltas_input_push_frame(input, &frame);
-                            }
                             Line::Comment(comment) => {
                                 comments.push_str(comment);
                                 comments.push('\n');
                             }
-                            Line::VectorialStrafing(enabled) => {
-                                let mut frame: hltas_cpp::hltas_frame = zeroed();
+                            line => {
+                                let (mut frame, mut strings) =
+                                    hltas_frame_from_non_comment_line(&line);
+
                                 let comments_cstring = CString::new(comments).unwrap();
                                 frame.Comments = comments_cstring.as_ptr();
                                 comments = String::new();
 
-                                frame.StrafingAlgorithmPresent = true;
-                                frame.Algorithm = if enabled {
-                                    hltas_cpp::StrafingAlgorithm::VECTORIAL
-                                } else {
-                                    hltas_cpp::StrafingAlgorithm::YAW
-                                };
                                 hltas_input_push_frame(input, &frame);
-                            }
-                            Line::VectorialStrafingConstraints(constraints) => {
-                                let mut frame: hltas_cpp::hltas_frame = zeroed();
-                                let comments_cstring = CString::new(comments).unwrap();
-                                frame.Comments = comments_cstring.as_ptr();
-                                comments = String::new();
-
-                                frame.AlgorithmParametersPresent = true;
-                                frame.Parameters = constraints.into();
-                                hltas_input_push_frame(input, &frame);
+                                ManuallyDrop::drop(&mut strings);
                             }
                         }
                     }
