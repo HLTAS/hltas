@@ -1,5 +1,6 @@
 use std::{
     ffi::{CStr, CString},
+    fmt::{self, Debug},
     fs::{read_to_string, File},
     mem::{zeroed, ManuallyDrop},
     num::NonZeroU32,
@@ -205,6 +206,26 @@ impl Default for hltas_cpp::AlgorithmParameters {
                 },
             },
         }
+    }
+}
+
+impl Debug for hltas_cpp::AlgorithmParameters {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let mut builder = f.debug_struct("AlgorithmParameters");
+        builder.field("Type", &self.Type);
+
+        use hltas_cpp::ConstraintsType;
+        let field: &dyn Debug = unsafe {
+            match self.Type {
+                ConstraintsType::VELOCITY => &self.Parameters.Velocity,
+                ConstraintsType::VELOCITY_AVG => &self.Parameters.VelocityAvg,
+                ConstraintsType::YAW => &self.Parameters.Yaw,
+                ConstraintsType::YAW_RANGE => &self.Parameters.YawRange,
+            }
+        };
+        builder.field("Parameters", field);
+
+        builder.finish()
     }
 }
 
