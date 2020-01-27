@@ -186,6 +186,13 @@ impl From<hltas_cpp::AlgorithmParameters> for VectorialStrafingConstraints {
     }
 }
 
+impl Default for hltas_cpp::StrafingAlgorithm {
+    #[inline]
+    fn default() -> Self {
+        Self::YAW
+    }
+}
+
 // Copied from hltas::read.
 fn non_zero_u32(i: &str) -> IResult<&str, NonZeroU32> {
     map_res(
