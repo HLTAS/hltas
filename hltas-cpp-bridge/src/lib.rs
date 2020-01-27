@@ -236,6 +236,18 @@ impl Default for hltas_cpp::Button {
     }
 }
 
+impl Default for hltas_cpp::StrafeButtons {
+    #[inline]
+    fn default() -> Self {
+        Self {
+            AirLeft: hltas_cpp::Button::default(),
+            AirRight: hltas_cpp::Button::default(),
+            GroundLeft: hltas_cpp::Button::default(),
+            GroundRight: hltas_cpp::Button::default(),
+        }
+    }
+}
+
 // Copied from hltas::read.
 fn non_zero_u32(i: &str) -> IResult<&str, NonZeroU32> {
     map_res(
