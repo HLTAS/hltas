@@ -2,34 +2,64 @@
 
 pub type __uint32_t = ::std::os::raw::c_uint;
 pub type __int64_t = ::std::os::raw::c_long;
+#[cfg(not(test))]
 extern "C" {
     pub fn hltas_input_set_property(
         input: *mut ::std::os::raw::c_void,
         property: *const ::std::os::raw::c_char,
         value: *const ::std::os::raw::c_char,
     );
-}
-extern "C" {
     pub fn hltas_input_get_property(
         input: *const ::std::os::raw::c_void,
         property: *const ::std::os::raw::c_char,
     ) -> *const ::std::os::raw::c_char;
-}
-extern "C" {
     pub fn hltas_input_push_frame(input: *mut ::std::os::raw::c_void, frame: *const hltas_frame);
-}
-extern "C" {
     pub fn hltas_input_get_frame(
         input: *const ::std::os::raw::c_void,
         index: usize,
         frame: *mut hltas_frame,
     ) -> ::std::os::raw::c_int;
-}
-extern "C" {
     pub fn hltas_input_set_error_message(
         input: *mut ::std::os::raw::c_void,
         message: *const ::std::os::raw::c_char,
     );
+}
+#[cfg(test)]
+pub unsafe extern "C" fn hltas_input_set_property(
+    _input: *mut ::std::os::raw::c_void,
+    _property: *const ::std::os::raw::c_char,
+    _value: *const ::std::os::raw::c_char,
+) {
+    unreachable!()
+}
+#[cfg(test)]
+pub unsafe extern "C" fn hltas_input_get_property(
+    _input: *const ::std::os::raw::c_void,
+    _property: *const ::std::os::raw::c_char,
+) -> *const ::std::os::raw::c_char {
+    unreachable!()
+}
+#[cfg(test)]
+pub unsafe extern "C" fn hltas_input_push_frame(
+    _input: *mut ::std::os::raw::c_void,
+    _frame: *const hltas_frame,
+) {
+    unreachable!()
+}
+#[cfg(test)]
+pub unsafe extern "C" fn hltas_input_get_frame(
+    _input: *const ::std::os::raw::c_void,
+    _index: usize,
+    _frame: *mut hltas_frame,
+) -> ::std::os::raw::c_int {
+    unreachable!()
+}
+#[cfg(test)]
+pub unsafe extern "C" fn hltas_input_set_error_message(
+    _input: *mut ::std::os::raw::c_void,
+    _message: *const ::std::os::raw::c_char,
+) {
+    unreachable!()
 }
 #[repr(i32)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
