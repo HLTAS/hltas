@@ -193,6 +193,21 @@ impl Default for hltas_cpp::StrafingAlgorithm {
     }
 }
 
+impl Default for hltas_cpp::AlgorithmParameters {
+    #[inline]
+    fn default() -> Self {
+        Self {
+            Type: hltas_cpp::ConstraintsType::YAW,
+            Parameters: hltas_cpp::AlgorithmParameters__bindgen_ty_1 {
+                Yaw: hltas_cpp::AlgorithmParameters__bindgen_ty_1__bindgen_ty_3 {
+                    Yaw: 0.,
+                    Constraints: 180.,
+                },
+            },
+        }
+    }
+}
+
 // Copied from hltas::read.
 fn non_zero_u32(i: &str) -> IResult<&str, NonZeroU32> {
     map_res(
