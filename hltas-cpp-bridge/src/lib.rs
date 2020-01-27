@@ -229,6 +229,13 @@ impl Debug for hltas_cpp::AlgorithmParameters {
     }
 }
 
+impl Default for hltas_cpp::Button {
+    #[inline]
+    fn default() -> Self {
+        Self::FORWARD
+    }
+}
+
 // Copied from hltas::read.
 fn non_zero_u32(i: &str) -> IResult<&str, NonZeroU32> {
     map_res(
