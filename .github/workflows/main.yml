@@ -16,6 +16,9 @@ jobs:
           - Linux
           - Windows
           - macOS
+        rust:
+          - stable
+          - beta
 
         include:
           - label: Linux
@@ -29,7 +32,7 @@ jobs:
           - label: macOS
             os: macOS-latest
 
-    name: ${{ matrix.label }}
+    name: ${{ matrix.rust }} - ${{ matrix.label }}
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -44,6 +47,7 @@ jobs:
     - name: Install Rust
       uses: hecrj/setup-rust-action@v1
       with:
+        rust-version: ${{ matrix.rust }}
         targets: ${{ matrix.target }}
 
     - name: Test the Rust crate
