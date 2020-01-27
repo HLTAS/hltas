@@ -79,3 +79,33 @@ jobs:
       run: |
         cd build
         ctest --output-on-failure
+
+  clippy:
+    name: Clippy
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+
+    - name: Install Rust
+      uses: hecrj/setup-rust-action@v1
+      with:
+        components: clippy
+
+    - name: Run Clippy
+      run: cargo clippy
+
+  rustfmt:
+    name: Rustfmt
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+
+    - name: Install Rust
+      uses: hecrj/setup-rust-action@v1
+      with:
+        components: rustfmt
+
+    - name: Run rustfmt
+      run: cargo fmt -- --check
