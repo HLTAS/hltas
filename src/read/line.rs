@@ -20,7 +20,7 @@ use crate::{
 fn uncut<'a, O, F: Fn(&'a str) -> IResult<O>>(f: F) -> impl Fn(&'a str) -> IResult<O> {
     move |i| match f(i) {
         Err(nom::Err::Failure(e)) => Err(nom::Err::Error(e)),
-        x => x
+        x => x,
     }
 }
 
