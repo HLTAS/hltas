@@ -187,6 +187,30 @@ impl From<hltas_cpp::AlgorithmParameters> for VectorialStrafingConstraints {
     }
 }
 
+impl From<ChangeTarget> for hltas_cpp::ChangeTarget {
+    #[inline]
+    fn from(x: ChangeTarget) -> Self {
+        use ChangeTarget::*;
+        match x {
+            Yaw => Self::YAW,
+            Pitch => Self::PITCH,
+            VectorialStrafingYaw => Self::TARGET_YAW,
+        }
+    }
+}
+
+impl From<hltas_cpp::ChangeTarget> for ChangeTarget {
+    #[inline]
+    fn from(x: hltas_cpp::ChangeTarget) -> Self {
+        use hltas_cpp::ChangeTarget::*;
+        match x {
+            YAW => Self::Yaw,
+            PITCH => Self::Pitch,
+            TARGET_YAW => Self::VectorialStrafingYaw,
+        }
+    }
+}
+
 impl Default for hltas_cpp::StrafingAlgorithm {
     #[inline]
     fn default() -> Self {
@@ -469,6 +493,12 @@ pub unsafe fn hltas_frame_from_non_comment_line(
         Line::VectorialStrafingConstraints(constraints) => {
             frame.AlgorithmParametersPresent = true;
             frame.Parameters = (*constraints).into();
+        }
+        Line::Change(change) => {
+            frame.ChangePresent = true;
+            frame.Target = change.target.into();
+            frame.ChangeFinalValue = change.final_value;
+            frame.ChangeOver = change.over;
         }
     }
 
@@ -773,6 +803,16 @@ pub unsafe extern "C" fn hltas_rs_write(
                     hltas
                         .lines
                         .push(Line::VectorialStrafingConstraints(frame.Parameters.into()));
+
+                    continue;
+                }
+
+                if frame.ChangePresent {
+                    hltas.lines.push(Line::Change(Change {
+                        target: frame.Target.into(),
+                        final_value: frame.ChangeFinalValue,
+                        over: frame.ChangeOver,
+                    }));
 
                     continue;
                 }

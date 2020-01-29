@@ -795,6 +795,13 @@ fn bindgen_test_layout_AlgorithmParameters() {
         )
     );
 }
+#[repr(u8)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum ChangeTarget {
+    YAW = 0,
+    PITCH = 1,
+    TARGET_YAW = 2,
+}
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct hltas_frame {
@@ -853,13 +860,17 @@ pub struct hltas_frame {
     pub Algorithm: StrafingAlgorithm,
     pub AlgorithmParametersPresent: bool,
     pub Parameters: AlgorithmParameters,
+    pub ChangePresent: bool,
+    pub Target: ChangeTarget,
+    pub ChangeFinalValue: f32,
+    pub ChangeOver: f32,
 }
 #[cfg(target_arch = "x86_64")]
 #[test]
 fn bindgen_test_layout_hltas_frame() {
     assert_eq!(
         ::std::mem::size_of::<hltas_frame>(),
-        216usize,
+        232usize,
         concat!("Size of: ", stringify!(hltas_frame))
     );
     assert_eq!(
@@ -1425,13 +1436,53 @@ fn bindgen_test_layout_hltas_frame() {
             stringify!(Parameters)
         )
     );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<hltas_frame>())).ChangePresent as *const _ as usize },
+        216usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(hltas_frame),
+            "::",
+            stringify!(ChangePresent)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<hltas_frame>())).Target as *const _ as usize },
+        217usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(hltas_frame),
+            "::",
+            stringify!(Target)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<hltas_frame>())).ChangeFinalValue as *const _ as usize },
+        220usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(hltas_frame),
+            "::",
+            stringify!(ChangeFinalValue)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<hltas_frame>())).ChangeOver as *const _ as usize },
+        224usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(hltas_frame),
+            "::",
+            stringify!(ChangeOver)
+        )
+    );
 }
 #[cfg(all(target_arch = "x86", target_family = "unix"))]
 #[test]
 fn bindgen_test_layout_hltas_frame() {
     assert_eq!(
         ::std::mem::size_of::<hltas_frame>(),
-        180usize,
+        192usize,
         concat!("Size of: ", stringify!(hltas_frame))
     );
     assert_eq!(
@@ -1997,13 +2048,53 @@ fn bindgen_test_layout_hltas_frame() {
             stringify!(Parameters)
         )
     );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<hltas_frame>())).ChangePresent as *const _ as usize },
+        180usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(hltas_frame),
+            "::",
+            stringify!(ChangePresent)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<hltas_frame>())).Target as *const _ as usize },
+        181usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(hltas_frame),
+            "::",
+            stringify!(Target)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<hltas_frame>())).ChangeFinalValue as *const _ as usize },
+        184usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(hltas_frame),
+            "::",
+            stringify!(ChangeFinalValue)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<hltas_frame>())).ChangeOver as *const _ as usize },
+        188usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(hltas_frame),
+            "::",
+            stringify!(ChangeOver)
+        )
+    );
 }
 #[cfg(all(target_arch = "x86", target_family = "windows"))]
 #[test]
 fn bindgen_test_layout_hltas_frame() {
     assert_eq!(
         ::std::mem::size_of::<hltas_frame>(),
-        192usize,
+        208usize,
         concat!("Size of: ", stringify!(hltas_frame))
     );
     assert_eq!(
@@ -2567,6 +2658,46 @@ fn bindgen_test_layout_hltas_frame() {
             stringify!(hltas_frame),
             "::",
             stringify!(Parameters)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<hltas_frame>())).ChangePresent as *const _ as usize },
+        192usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(hltas_frame),
+            "::",
+            stringify!(ChangePresent)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<hltas_frame>())).Target as *const _ as usize },
+        193usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(hltas_frame),
+            "::",
+            stringify!(Target)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<hltas_frame>())).ChangeFinalValue as *const _ as usize },
+        196usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(hltas_frame),
+            "::",
+            stringify!(ChangeFinalValue)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<hltas_frame>())).ChangeOver as *const _ as usize },
+        200usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(hltas_frame),
+            "::",
+            stringify!(ChangeOver)
         )
     );
 }

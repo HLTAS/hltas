@@ -146,6 +146,12 @@ namespace HLTAS
 		}
 	};
 
+	enum class ChangeTarget : unsigned char {
+		YAW = 0,
+		PITCH,
+		TARGET_YAW
+	};
+
 	struct Frame {
 		// We know what we're doing, so save us from a lot of hassle.
 		friend class Input;
@@ -200,7 +206,11 @@ namespace HLTAS
 			StrafingAlgorithmPresent(false),
 			Algorithm(StrafingAlgorithm::YAW),
 			AlgorithmParametersPresent(false),
-			Parameters() {};
+			Parameters(),
+			ChangePresent(false),
+			Target(ChangeTarget::YAW),
+			ChangeFinalValue(0),
+			ChangeOver(0) {};
 
 		Frame(const hltas_frame& c_frame);
 
@@ -361,6 +371,21 @@ namespace HLTAS
 	public:
 		AlgorithmParameters GetAlgorithmParameters() const;
 		void SetAlgorithmParameters(AlgorithmParameters value);
+
+		bool ChangePresent;
+
+	protected:
+		ChangeTarget Target;
+		float ChangeFinalValue;
+		float ChangeOver;
+
+	public:
+		ChangeTarget GetChangeTarget() const;
+		float GetChangeFinalValue() const;
+		float GetChangeOver() const;
+		void SetChangeTarget(ChangeTarget value);
+		void SetChangeFinalValue(float value);
+		void SetChangeOver(float value);
 	};
 
 	class Input
@@ -452,5 +477,9 @@ extern "C" {
 		HLTAS::StrafingAlgorithm Algorithm;
 		bool AlgorithmParametersPresent;
 		HLTAS::AlgorithmParameters Parameters;
+		bool ChangePresent;
+		HLTAS::ChangeTarget Target;
+		float ChangeFinalValue;
+		float ChangeOver;
 	};
 }

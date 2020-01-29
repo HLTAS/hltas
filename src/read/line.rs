@@ -549,6 +549,32 @@ fn line_target_yaw(i: &str) -> IResult<VectorialStrafingConstraints> {
     Ok((i, constraints))
 }
 
+fn line_change(i: &str) -> IResult<Change> {
+    let (i, (name, value)) = property(i)?;
+    tag("change")(name)?;
+
+    let (value, target) = cut(alt((
+        map(tag("yaw"), |_| ChangeTarget::Yaw),
+        map(tag("pitch"), |_| ChangeTarget::Pitch),
+        map(tag("target_yaw"), |_| ChangeTarget::VectorialStrafingYaw),
+    )))(value)?;
+
+    let (value, _) = cut(tag(" to "))(value)?;
+    let (value, final_value) = float(value)?;
+    let (value, _) = cut(tag(" over "))(value)?;
+    let (value, over) = float(value)?;
+    cut(tag(" s"))(value)?;
+
+    Ok((
+        i,
+        Change {
+            target,
+            final_value,
+            over,
+        },
+    ))
+}
+
 pub(crate) fn line(i: &str) -> IResult<Line> {
     alt((
         map(line_frame_bulk, Line::FrameBulk),
@@ -562,6 +588,7 @@ pub(crate) fn line(i: &str) -> IResult<Line> {
         map(line_comment, Line::Comment),
         map(line_strafing, Line::VectorialStrafing),
         map(line_target_yaw, Line::VectorialStrafingConstraints),
+        map(line_change, Line::Change),
     ))(i)
 }
 

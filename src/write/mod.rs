@@ -249,6 +249,26 @@ fn line_vectorial_strafing_constraints<W: Write>(
     }
 }
 
+fn line_change<W: Write>(change: Change) -> impl SerializeFn<W> {
+    move |out: WriteContext<W>| {
+        let out = string("change ")(out)?;
+
+        let out = string(match change.target {
+            ChangeTarget::Yaw => "yaw",
+            ChangeTarget::Pitch => "pitch",
+            ChangeTarget::VectorialStrafingYaw => "target_yaw",
+        })(out)?;
+
+        let out = string(" to ")(out)?;
+        let out = display(change.final_value)(out)?;
+        let out = string(" over ")(out)?;
+        let out = display(change.over)(out)?;
+        let out = string(" s\n")(out)?;
+
+        Ok(out)
+    }
+}
+
 fn line<'a, W: Write>(line: &'a Line<'a>) -> impl SerializeFn<W> + 'a {
     move |out: WriteContext<W>| match line {
         Line::FrameBulk(frame_bulk) => line_frame_bulk(frame_bulk)(out),
@@ -267,6 +287,7 @@ fn line<'a, W: Write>(line: &'a Line<'a>) -> impl SerializeFn<W> + 'a {
         Line::VectorialStrafingConstraints(constraints) => {
             line_vectorial_strafing_constraints(*constraints)(out)
         }
+        Line::Change(change) => line_change(*change)(out),
     }
 }
 

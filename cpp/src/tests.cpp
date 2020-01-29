@@ -7,11 +7,12 @@
 
 #include "hltas.hpp"
 
-const std::array<const char*, 17> parse_files = {
+const std::array<const char*, 18> parse_files = {
 	"bhop_20fps.hltas",
 	"bhop.hltas",
 	"bkz_goldbhop.hltas",
 	"blolly.hltas",
+	"change.hltas",
 	"cs_estate.hltas",
 	"destructo-hops.hltas",
 	"extra-letters.hltas",

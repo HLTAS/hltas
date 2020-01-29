@@ -104,6 +104,10 @@ namespace HLTAS
 		Algorithm = c_frame.Algorithm;
 		AlgorithmParametersPresent = c_frame.AlgorithmParametersPresent;
 		Parameters = c_frame.Parameters;
+		ChangePresent = c_frame.ChangePresent;
+		Target = c_frame.Target;
+		ChangeFinalValue = c_frame.ChangeFinalValue;
+		ChangeOver = c_frame.ChangeOver;
 	}
 
 	bool Frame::IsMovement() const {
@@ -113,7 +117,8 @@ namespace HLTAS
 			&& !LgagstMinSpeedPresent
 			&& !ResetFrame
 			&& !StrafingAlgorithmPresent
-			&& !AlgorithmParametersPresent;
+			&& !AlgorithmParametersPresent
+			&& !ChangePresent;
 	}
 
 	void Frame::ResetAutofuncs()
@@ -347,6 +352,39 @@ namespace HLTAS
 		Parameters = value;
 	}
 
+	ChangeTarget Frame::GetChangeTarget() const
+	{
+		assert(ChangePresent);
+		return Target;
+	}
+
+	float Frame::GetChangeFinalValue() const
+	{
+		assert(ChangePresent);
+		return ChangeFinalValue;
+	}
+
+	float Frame::GetChangeOver() const
+	{
+		assert(ChangePresent);
+		return ChangeOver;
+	}
+
+	void Frame::SetChangeTarget(ChangeTarget value)
+	{
+		Target = value;
+	}
+
+	void Frame::SetChangeFinalValue(float value)
+	{
+		ChangeFinalValue = value;
+	}
+
+	void Frame::SetChangeOver(float value)
+	{
+		ChangeOver = value;
+	}
+
 	void Input::Clear()
 	{
 		Properties.clear();
@@ -521,6 +559,10 @@ extern "C" int hltas_input_get_frame(const void* input, size_t index, hltas_fram
 	c_frame->Algorithm = frame.Algorithm;
 	c_frame->AlgorithmParametersPresent = frame.AlgorithmParametersPresent;
 	c_frame->Parameters = frame.Parameters;
+	c_frame->ChangePresent = frame.ChangePresent;
+	c_frame->Target = frame.Target;
+	c_frame->ChangeFinalValue = frame.ChangeFinalValue;
+	c_frame->ChangeOver = frame.ChangeOver;
 
 	return 0;
 }

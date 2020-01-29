@@ -67,6 +67,8 @@ pub enum Line<'a> {
     VectorialStrafing(bool),
     /// Sets the constraints for vectorial strafing.
     VectorialStrafingConstraints(VectorialStrafingConstraints),
+    /// Starts smoothly changing a value.
+    Change(Change),
 }
 
 /// A buttons line.
@@ -335,6 +337,28 @@ pub enum VectorialStrafingConstraints {
         /// The highest yaw angle of the range in degrees.
         to: f32,
     },
+}
+
+/// Description of the value to change.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Change {
+    /// The value to change.
+    pub target: ChangeTarget,
+    /// The final value after the change.
+    pub final_value: f32,
+    /// Duration, in seconds, over which to change the value.
+    pub over: f32,
+}
+
+/// Values that can be affected by `Change`.
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+pub enum ChangeTarget {
+    /// The player's yaw angle.
+    Yaw,
+    /// The player's pitch angle.
+    Pitch,
+    /// The target yaw angle in the vectorial strafing constraints.
+    VectorialStrafingYaw,
 }
 
 impl<'a> HLTAS<'a> {
