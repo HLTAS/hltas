@@ -7,7 +7,7 @@
 
 #include "hltas.hpp"
 
-const std::array<const char*, 18> parse_files = {
+const std::array<const char*, 19> parse_files = {
 	"bhop_20fps.hltas",
 	"bhop.hltas",
 	"bkz_goldbhop.hltas",
@@ -23,6 +23,7 @@ const std::array<const char*, 18> parse_files = {
 	"nuker.hltas",
 	"rng.hltas",
 	"tas-hazard course-1.32,669.hltas",
+	"tas-kz_summercliff2-1.14.060.hltas",
 	"triggertest.hltas",
 	"tripminetest.hltas",
 	"vectorial.hltas"
