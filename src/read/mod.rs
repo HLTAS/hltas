@@ -62,8 +62,6 @@ pub enum Context {
     InvalidStrafingAlgorithm,
     /// Vectorial strafing constraints are not specified.
     NoConstraints,
-    /// Vectorial strafing constraint tolerance is not specified.
-    NoTolerance,
     /// The +- in the vectorial strafing constraints is missing.
     NoPlusMinusBeforeTolerance,
     /// The parameters in the yaw range vectorial strafing constraints are not specified.
@@ -125,7 +123,6 @@ impl Display for Context {
                 "invalid strafing algorithm (only \"yaw\" and \"vectorial\" allowed)"
             ),
             NoConstraints => write!(f, "missing constraints"),
-            NoTolerance => write!(f, "missing tolerance (e.g. \"+-0.1\")"),
             NoPlusMinusBeforeTolerance => write!(f, "missing +- before tolerance"),
             NoFromToParameters => write!(f, "missing from/to parameters"),
             NoTo => write!(f, "missing \"to\" in the from/to constraint"),

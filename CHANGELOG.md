@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+### Changed
+- Made tolerance optional in `target_yaw` lines. When tolerance is absent (e.g. `target_yaw velocity_avg`) it is assumed to be zero.
 
 ## [0.3.0] - 30 Jan 2020
 ### Added

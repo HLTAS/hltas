@@ -9,3 +9,6 @@ target_yaw velocity +-1
 target_yaw velocity_avg +-2
 target_yaw from 35 to 60
 target_yaw 90 +-0.1
+target_yaw velocity
+target_yaw velocity_avg
+target_yaw 90

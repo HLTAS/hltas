@@ -226,22 +226,31 @@ fn line_buttons<W: Write>(buttons: Buttons) -> impl SerializeFn<W> {
     }
 }
 
+fn gen_tolerance<W: Write>(tolerance: f32) -> impl SerializeFn<W> {
+    move |out: WriteContext<W>| {
+        if tolerance != 0. {
+            pair(string(" +-"), display(tolerance))(out)
+        } else {
+            Ok(out)
+        }
+    }
+}
+
 fn line_vectorial_strafing_constraints<W: Write>(
     constraints: VectorialStrafingConstraints,
 ) -> impl SerializeFn<W> {
     move |out: WriteContext<W>| match constraints {
         VectorialStrafingConstraints::VelocityYaw { tolerance } => property(
             "target_yaw",
-            pair(string("velocity +-"), display(tolerance)),
+            pair(string("velocity"), gen_tolerance(tolerance)),
         )(out),
         VectorialStrafingConstraints::AvgVelocityYaw { tolerance } => property(
             "target_yaw",
-            pair(string("velocity_avg +-"), display(tolerance)),
+            pair(string("velocity_avg"), gen_tolerance(tolerance)),
         )(out),
-        VectorialStrafingConstraints::Yaw { yaw, tolerance } => property(
-            "target_yaw",
-            tuple((display(yaw), string(" +-"), display(tolerance))),
-        )(out),
+        VectorialStrafingConstraints::Yaw { yaw, tolerance } => {
+            property("target_yaw", pair(display(yaw), gen_tolerance(tolerance)))(out)
+        }
         VectorialStrafingConstraints::YawRange { from, to } => property(
             "target_yaw",
             tuple((string("from "), display(from), string(" to "), display(to))),

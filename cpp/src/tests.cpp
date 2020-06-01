@@ -56,7 +56,7 @@ TEST_CASE("Parse, write, parse") {
 }
 
 TEST_CASE("Error") {
-	const std::array<std::pair<const char*, HLTAS::ErrorCode>, 13> files = {
+	const std::array<std::pair<const char*, HLTAS::ErrorCode>, 14> files = {
 		std::make_pair("does-not-exist.hltas", HLTAS::ErrorCode::FAILOPEN),
 		std::make_pair("no-version.hltas", HLTAS::ErrorCode::FAILVER),
 		std::make_pair("too-high-version.hltas", HLTAS::ErrorCode::NOTSUPPORTED),
@@ -70,6 +70,7 @@ TEST_CASE("Error") {
 		std::make_pair("no-lgagst-min-speed.hltas", HLTAS::ErrorCode::NOLGAGSTMINSPEED),
 		std::make_pair("lgagst-action-times.hltas", HLTAS::ErrorCode::LGAGSTACTIONTIMES),
 		std::make_pair("no-reset-seed.hltas", HLTAS::ErrorCode::NORESETSEED),
+		std::make_pair("no-plus-minus-before-tolerance.hltas", HLTAS::ErrorCode::NO_PM_IN_TOLERANCE),
 	};
 
 	HLTAS::Input input;

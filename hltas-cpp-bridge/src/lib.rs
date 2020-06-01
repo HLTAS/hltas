@@ -104,7 +104,6 @@ impl From<read::Context> for hltas_cpp::ErrorCode {
             ErrorParsingLine => FAILFRAME,
             InvalidStrafingAlgorithm => INVALID_ALGORITHM,
             NoConstraints => MISSING_CONSTRAINTS,
-            NoTolerance => MISSING_TOLERANCE,
             NoPlusMinusBeforeTolerance => NO_PM_IN_TOLERANCE,
             NoFromToParameters => MISSING_ALGORITHM_FROMTO_PARAMETERS,
             NoTo => NO_TO_IN_FROMTO_ALGORITHM,

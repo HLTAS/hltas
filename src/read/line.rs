@@ -501,20 +501,6 @@ fn line_target_yaw(i: &str) -> IResult<VectorialStrafingConstraints> {
     cut(context(Context::NoConstraints, anychar))(value)?;
 
     let constraint_value = opt(preceded(
-        alt((
-            map(tag("velocity"), |_| ()),
-            map(tag("velocity_avg"), |_| ()),
-            map(float, |_| ()),
-        )),
-        preceded(opt(space1), not_line_ending),
-    ))(value);
-
-    // If the constraint should have a tolerance, check that it's present.
-    if let Some(constraint_value) = constraint_value.unwrap().1 {
-        cut(context(Context::NoTolerance, anychar))(constraint_value)?;
-    }
-
-    let constraint_value = opt(preceded(
         tag("from"),
         preceded(opt(space1), not_line_ending::<&str, ()>),
     ))(value);
@@ -526,16 +512,29 @@ fn line_target_yaw(i: &str) -> IResult<VectorialStrafingConstraints> {
 
     let (_, constraints) = cut(alt((
         map(
-            preceded(tag("velocity "), cut(parse_tolerance)),
-            |tolerance| VectorialStrafingConstraints::VelocityYaw { tolerance },
+            preceded(
+                tag("velocity_avg"),
+                opt(preceded(tag(" "), cut(parse_tolerance))),
+            ),
+            |tolerance| VectorialStrafingConstraints::AvgVelocityYaw {
+                tolerance: tolerance.unwrap_or(0.),
+            },
         ),
         map(
-            preceded(tag("velocity_avg "), cut(parse_tolerance)),
-            |tolerance| VectorialStrafingConstraints::AvgVelocityYaw { tolerance },
+            preceded(
+                tag("velocity"),
+                opt(preceded(tag(" "), cut(parse_tolerance))),
+            ),
+            |tolerance| VectorialStrafingConstraints::VelocityYaw {
+                tolerance: tolerance.unwrap_or(0.),
+            },
         ),
         map(
-            pair(float, preceded(tag(" "), cut(parse_tolerance))),
-            |(yaw, tolerance)| VectorialStrafingConstraints::Yaw { yaw, tolerance },
+            pair(float, opt(preceded(tag(" "), cut(parse_tolerance)))),
+            |(yaw, tolerance)| VectorialStrafingConstraints::Yaw {
+                yaw,
+                tolerance: tolerance.unwrap_or(0.),
+            },
         ),
         map(
             pair(
@@ -809,28 +808,6 @@ mod tests {
         let err = line_target_yaw(input).unwrap_err();
         if let nom::Err::Failure(err) = err {
             assert_eq!(err.context, Some(Context::NoPlusMinusBeforeTolerance));
-        } else {
-            unreachable!()
-        }
-    }
-
-    #[test]
-    fn no_tolerance() {
-        let input = "target_yaw velocity";
-        let err = line_target_yaw(input).unwrap_err();
-        if let nom::Err::Failure(err) = err {
-            assert_eq!(err.context, Some(Context::NoTolerance));
-        } else {
-            unreachable!()
-        }
-    }
-
-    #[test]
-    fn no_tolerance_space() {
-        let input = "target_yaw velocity ";
-        let err = line_target_yaw(input).unwrap_err();
-        if let nom::Err::Failure(err) = err {
-            assert_eq!(err.context, Some(Context::NoTolerance));
         } else {
             unreachable!()
         }

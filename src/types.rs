@@ -639,5 +639,10 @@ mod tests {
     test_error! { error_both_autojump_ducktap, "both-j-d", BothAutoJumpAndDuckTap }
     test_error! { error_no_yaw, "no-yaw", NoYaw }
     test_error! { error_no_lgagst_action, "no-lgagst-action", NoLeaveGroundAction }
-    test_error! { error_lgagst_action_times, "lgagst-action-times", TimesOnLeaveGroundAction  }
+    test_error! { error_lgagst_action_times, "lgagst-action-times", TimesOnLeaveGroundAction }
+    test_error! {
+        error_no_plus_minus_before_tolerance,
+        "no-plus-minus-before-tolerance",
+        NoPlusMinusBeforeTolerance
+    }
 }
