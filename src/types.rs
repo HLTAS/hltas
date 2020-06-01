@@ -3,7 +3,6 @@
 use std::{io::Write, num::NonZeroU32};
 
 use cookie_factory::GenError;
-use nom;
 
 use crate::{read, write};
 
