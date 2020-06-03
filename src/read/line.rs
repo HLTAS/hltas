@@ -522,6 +522,15 @@ fn line_target_yaw(i: &str) -> IResult<VectorialStrafingConstraints> {
         ),
         map(
             preceded(
+                tag("velocity_lock"),
+                opt(preceded(tag(" "), cut(parse_tolerance))),
+            ),
+            |tolerance| VectorialStrafingConstraints::VelocityYawLocking {
+                tolerance: tolerance.unwrap_or(0.),
+            },
+        ),
+        map(
+            preceded(
                 tag("velocity"),
                 opt(preceded(tag(" "), cut(parse_tolerance))),
             ),
@@ -794,6 +803,17 @@ mod tests {
     #[test]
     fn no_plus_minus_before_tolerance_velocity_avg() {
         let input = "target_yaw velocity_avg 1";
+        let err = line_target_yaw(input).unwrap_err();
+        if let nom::Err::Failure(err) = err {
+            assert_eq!(err.context, Some(Context::NoPlusMinusBeforeTolerance));
+        } else {
+            unreachable!()
+        }
+    }
+
+    #[test]
+    fn no_plus_minus_before_tolerance_velocity_lock() {
+        let input = "target_yaw velocity_lock 1";
         let err = line_target_yaw(input).unwrap_err();
         if let nom::Err::Failure(err) = err {
             assert_eq!(err.context, Some(Context::NoPlusMinusBeforeTolerance));

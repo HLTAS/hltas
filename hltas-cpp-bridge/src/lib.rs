@@ -118,7 +118,8 @@ impl From<VectorialStrafingConstraints> for hltas_cpp::AlgorithmParameters {
             AlgorithmParameters__bindgen_ty_1, AlgorithmParameters__bindgen_ty_1__bindgen_ty_1,
             AlgorithmParameters__bindgen_ty_1__bindgen_ty_2,
             AlgorithmParameters__bindgen_ty_1__bindgen_ty_3,
-            AlgorithmParameters__bindgen_ty_1__bindgen_ty_4, ConstraintsType,
+            AlgorithmParameters__bindgen_ty_1__bindgen_ty_4,
+            AlgorithmParameters__bindgen_ty_1__bindgen_ty_5, ConstraintsType,
         };
 
         use VectorialStrafingConstraints::*;
@@ -139,10 +140,18 @@ impl From<VectorialStrafingConstraints> for hltas_cpp::AlgorithmParameters {
                     },
                 },
             },
+            VelocityYawLocking { tolerance } => Self {
+                Type: ConstraintsType::VELOCITY_LOCK,
+                Parameters: AlgorithmParameters__bindgen_ty_1 {
+                    VelocityLock: AlgorithmParameters__bindgen_ty_1__bindgen_ty_3 {
+                        Constraints: tolerance as f64,
+                    },
+                },
+            },
             Yaw { yaw, tolerance } => Self {
                 Type: ConstraintsType::YAW,
                 Parameters: AlgorithmParameters__bindgen_ty_1 {
-                    Yaw: AlgorithmParameters__bindgen_ty_1__bindgen_ty_3 {
+                    Yaw: AlgorithmParameters__bindgen_ty_1__bindgen_ty_4 {
                         Yaw: yaw as f64,
                         Constraints: tolerance as f64,
                     },
@@ -151,7 +160,7 @@ impl From<VectorialStrafingConstraints> for hltas_cpp::AlgorithmParameters {
             YawRange { from, to } => Self {
                 Type: ConstraintsType::YAW_RANGE,
                 Parameters: AlgorithmParameters__bindgen_ty_1 {
-                    YawRange: AlgorithmParameters__bindgen_ty_1__bindgen_ty_4 {
+                    YawRange: AlgorithmParameters__bindgen_ty_1__bindgen_ty_5 {
                         LowestYaw: from as f64,
                         HighestYaw: to as f64,
                     },
@@ -172,6 +181,9 @@ impl From<hltas_cpp::AlgorithmParameters> for VectorialStrafingConstraints {
                 },
                 ConstraintsType::VELOCITY_AVG => Self::AvgVelocityYaw {
                     tolerance: x.Parameters.VelocityAvg.Constraints as f32,
+                },
+                ConstraintsType::VELOCITY_LOCK => Self::VelocityYawLocking {
+                    tolerance: x.Parameters.VelocityLock.Constraints as f32,
                 },
                 ConstraintsType::YAW => Self::Yaw {
                     yaw: x.Parameters.Yaw.Yaw as f32,
@@ -223,7 +235,7 @@ impl Default for hltas_cpp::AlgorithmParameters {
         Self {
             Type: hltas_cpp::ConstraintsType::YAW,
             Parameters: hltas_cpp::AlgorithmParameters__bindgen_ty_1 {
-                Yaw: hltas_cpp::AlgorithmParameters__bindgen_ty_1__bindgen_ty_3 {
+                Yaw: hltas_cpp::AlgorithmParameters__bindgen_ty_1__bindgen_ty_4 {
                     Yaw: 0.,
                     Constraints: 180.,
                 },
@@ -242,6 +254,7 @@ impl Debug for hltas_cpp::AlgorithmParameters {
             match self.Type {
                 ConstraintsType::VELOCITY => &self.Parameters.Velocity,
                 ConstraintsType::VELOCITY_AVG => &self.Parameters.VelocityAvg,
+                ConstraintsType::VELOCITY_LOCK => &self.Parameters.VelocityLock,
                 ConstraintsType::YAW => &self.Parameters.Yaw,
                 ConstraintsType::YAW_RANGE => &self.Parameters.YawRange,
             }

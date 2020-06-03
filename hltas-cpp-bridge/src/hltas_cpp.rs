@@ -234,8 +234,9 @@ pub enum StrafingAlgorithm {
 pub enum ConstraintsType {
     VELOCITY = 0,
     VELOCITY_AVG = 1,
-    YAW = 2,
-    YAW_RANGE = 3,
+    VELOCITY_LOCK = 2,
+    YAW = 3,
+    YAW_RANGE = 4,
 }
 #[repr(C)]
 #[derive(Copy, Clone)]
@@ -248,8 +249,9 @@ pub struct AlgorithmParameters {
 pub union AlgorithmParameters__bindgen_ty_1 {
     pub Velocity: AlgorithmParameters__bindgen_ty_1__bindgen_ty_1,
     pub VelocityAvg: AlgorithmParameters__bindgen_ty_1__bindgen_ty_2,
-    pub Yaw: AlgorithmParameters__bindgen_ty_1__bindgen_ty_3,
-    pub YawRange: AlgorithmParameters__bindgen_ty_1__bindgen_ty_4,
+    pub VelocityLock: AlgorithmParameters__bindgen_ty_1__bindgen_ty_3,
+    pub Yaw: AlgorithmParameters__bindgen_ty_1__bindgen_ty_4,
+    pub YawRange: AlgorithmParameters__bindgen_ty_1__bindgen_ty_5,
     _bindgen_union_align: [u64; 2usize],
 }
 #[repr(C)]
@@ -397,7 +399,6 @@ fn bindgen_test_layout_AlgorithmParameters__bindgen_ty_1__bindgen_ty_2() {
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct AlgorithmParameters__bindgen_ty_1__bindgen_ty_3 {
-    pub Yaw: f64,
     pub Constraints: f64,
 }
 #[cfg(any(target_arch = "x86_64", target_family = "windows"))]
@@ -405,7 +406,7 @@ pub struct AlgorithmParameters__bindgen_ty_1__bindgen_ty_3 {
 fn bindgen_test_layout_AlgorithmParameters__bindgen_ty_1__bindgen_ty_3() {
     assert_eq!(
         ::std::mem::size_of::<AlgorithmParameters__bindgen_ty_1__bindgen_ty_3>(),
-        16usize,
+        8usize,
         concat!(
             "Size of: ",
             stringify!(AlgorithmParameters__bindgen_ty_1__bindgen_ty_3)
@@ -421,23 +422,10 @@ fn bindgen_test_layout_AlgorithmParameters__bindgen_ty_1__bindgen_ty_3() {
     );
     assert_eq!(
         unsafe {
-            &(*(::std::ptr::null::<AlgorithmParameters__bindgen_ty_1__bindgen_ty_3>())).Yaw
-                as *const _ as usize
-        },
-        0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(AlgorithmParameters__bindgen_ty_1__bindgen_ty_3),
-            "::",
-            stringify!(Yaw)
-        )
-    );
-    assert_eq!(
-        unsafe {
             &(*(::std::ptr::null::<AlgorithmParameters__bindgen_ty_1__bindgen_ty_3>())).Constraints
                 as *const _ as usize
         },
-        8usize,
+        0usize,
         concat!(
             "Offset of field: ",
             stringify!(AlgorithmParameters__bindgen_ty_1__bindgen_ty_3),
@@ -451,7 +439,7 @@ fn bindgen_test_layout_AlgorithmParameters__bindgen_ty_1__bindgen_ty_3() {
 fn bindgen_test_layout_AlgorithmParameters__bindgen_ty_1__bindgen_ty_3() {
     assert_eq!(
         ::std::mem::size_of::<AlgorithmParameters__bindgen_ty_1__bindgen_ty_3>(),
-        16usize,
+        8usize,
         concat!(
             "Size of: ",
             stringify!(AlgorithmParameters__bindgen_ty_1__bindgen_ty_3)
@@ -467,23 +455,10 @@ fn bindgen_test_layout_AlgorithmParameters__bindgen_ty_1__bindgen_ty_3() {
     );
     assert_eq!(
         unsafe {
-            &(*(::std::ptr::null::<AlgorithmParameters__bindgen_ty_1__bindgen_ty_3>())).Yaw
-                as *const _ as usize
-        },
-        0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(AlgorithmParameters__bindgen_ty_1__bindgen_ty_3),
-            "::",
-            stringify!(Yaw)
-        )
-    );
-    assert_eq!(
-        unsafe {
             &(*(::std::ptr::null::<AlgorithmParameters__bindgen_ty_1__bindgen_ty_3>())).Constraints
                 as *const _ as usize
         },
-        8usize,
+        0usize,
         concat!(
             "Offset of field: ",
             stringify!(AlgorithmParameters__bindgen_ty_1__bindgen_ty_3),
@@ -495,8 +470,8 @@ fn bindgen_test_layout_AlgorithmParameters__bindgen_ty_1__bindgen_ty_3() {
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct AlgorithmParameters__bindgen_ty_1__bindgen_ty_4 {
-    pub LowestYaw: f64,
-    pub HighestYaw: f64,
+    pub Yaw: f64,
+    pub Constraints: f64,
 }
 #[cfg(any(target_arch = "x86_64", target_family = "windows"))]
 #[test]
@@ -519,7 +494,7 @@ fn bindgen_test_layout_AlgorithmParameters__bindgen_ty_1__bindgen_ty_4() {
     );
     assert_eq!(
         unsafe {
-            &(*(::std::ptr::null::<AlgorithmParameters__bindgen_ty_1__bindgen_ty_4>())).LowestYaw
+            &(*(::std::ptr::null::<AlgorithmParameters__bindgen_ty_1__bindgen_ty_4>())).Yaw
                 as *const _ as usize
         },
         0usize,
@@ -527,12 +502,12 @@ fn bindgen_test_layout_AlgorithmParameters__bindgen_ty_1__bindgen_ty_4() {
             "Offset of field: ",
             stringify!(AlgorithmParameters__bindgen_ty_1__bindgen_ty_4),
             "::",
-            stringify!(LowestYaw)
+            stringify!(Yaw)
         )
     );
     assert_eq!(
         unsafe {
-            &(*(::std::ptr::null::<AlgorithmParameters__bindgen_ty_1__bindgen_ty_4>())).HighestYaw
+            &(*(::std::ptr::null::<AlgorithmParameters__bindgen_ty_1__bindgen_ty_4>())).Constraints
                 as *const _ as usize
         },
         8usize,
@@ -540,7 +515,7 @@ fn bindgen_test_layout_AlgorithmParameters__bindgen_ty_1__bindgen_ty_4() {
             "Offset of field: ",
             stringify!(AlgorithmParameters__bindgen_ty_1__bindgen_ty_4),
             "::",
-            stringify!(HighestYaw)
+            stringify!(Constraints)
         )
     );
 }
@@ -565,7 +540,7 @@ fn bindgen_test_layout_AlgorithmParameters__bindgen_ty_1__bindgen_ty_4() {
     );
     assert_eq!(
         unsafe {
-            &(*(::std::ptr::null::<AlgorithmParameters__bindgen_ty_1__bindgen_ty_4>())).LowestYaw
+            &(*(::std::ptr::null::<AlgorithmParameters__bindgen_ty_1__bindgen_ty_4>())).Yaw
                 as *const _ as usize
         },
         0usize,
@@ -573,18 +548,116 @@ fn bindgen_test_layout_AlgorithmParameters__bindgen_ty_1__bindgen_ty_4() {
             "Offset of field: ",
             stringify!(AlgorithmParameters__bindgen_ty_1__bindgen_ty_4),
             "::",
-            stringify!(LowestYaw)
+            stringify!(Yaw)
         )
     );
     assert_eq!(
         unsafe {
-            &(*(::std::ptr::null::<AlgorithmParameters__bindgen_ty_1__bindgen_ty_4>())).HighestYaw
+            &(*(::std::ptr::null::<AlgorithmParameters__bindgen_ty_1__bindgen_ty_4>())).Constraints
                 as *const _ as usize
         },
         8usize,
         concat!(
             "Offset of field: ",
             stringify!(AlgorithmParameters__bindgen_ty_1__bindgen_ty_4),
+            "::",
+            stringify!(Constraints)
+        )
+    );
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct AlgorithmParameters__bindgen_ty_1__bindgen_ty_5 {
+    pub LowestYaw: f64,
+    pub HighestYaw: f64,
+}
+#[cfg(any(target_arch = "x86_64", target_family = "windows"))]
+#[test]
+fn bindgen_test_layout_AlgorithmParameters__bindgen_ty_1__bindgen_ty_5() {
+    assert_eq!(
+        ::std::mem::size_of::<AlgorithmParameters__bindgen_ty_1__bindgen_ty_5>(),
+        16usize,
+        concat!(
+            "Size of: ",
+            stringify!(AlgorithmParameters__bindgen_ty_1__bindgen_ty_5)
+        )
+    );
+    assert_eq!(
+        ::std::mem::align_of::<AlgorithmParameters__bindgen_ty_1__bindgen_ty_5>(),
+        8usize,
+        concat!(
+            "Alignment of ",
+            stringify!(AlgorithmParameters__bindgen_ty_1__bindgen_ty_5)
+        )
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<AlgorithmParameters__bindgen_ty_1__bindgen_ty_5>())).LowestYaw
+                as *const _ as usize
+        },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(AlgorithmParameters__bindgen_ty_1__bindgen_ty_5),
+            "::",
+            stringify!(LowestYaw)
+        )
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<AlgorithmParameters__bindgen_ty_1__bindgen_ty_5>())).HighestYaw
+                as *const _ as usize
+        },
+        8usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(AlgorithmParameters__bindgen_ty_1__bindgen_ty_5),
+            "::",
+            stringify!(HighestYaw)
+        )
+    );
+}
+#[cfg(all(target_arch = "x86", target_family = "unix"))]
+#[test]
+fn bindgen_test_layout_AlgorithmParameters__bindgen_ty_1__bindgen_ty_5() {
+    assert_eq!(
+        ::std::mem::size_of::<AlgorithmParameters__bindgen_ty_1__bindgen_ty_5>(),
+        16usize,
+        concat!(
+            "Size of: ",
+            stringify!(AlgorithmParameters__bindgen_ty_1__bindgen_ty_5)
+        )
+    );
+    assert_eq!(
+        ::std::mem::align_of::<AlgorithmParameters__bindgen_ty_1__bindgen_ty_5>(),
+        4usize,
+        concat!(
+            "Alignment of ",
+            stringify!(AlgorithmParameters__bindgen_ty_1__bindgen_ty_5)
+        )
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<AlgorithmParameters__bindgen_ty_1__bindgen_ty_5>())).LowestYaw
+                as *const _ as usize
+        },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(AlgorithmParameters__bindgen_ty_1__bindgen_ty_5),
+            "::",
+            stringify!(LowestYaw)
+        )
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<AlgorithmParameters__bindgen_ty_1__bindgen_ty_5>())).HighestYaw
+                as *const _ as usize
+        },
+        8usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(AlgorithmParameters__bindgen_ty_1__bindgen_ty_5),
             "::",
             stringify!(HighestYaw)
         )

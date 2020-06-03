@@ -318,6 +318,17 @@ pub enum VectorialStrafingConstraints {
         /// The player's yaw should remain within average velocity yaw ± tolerance degrees.
         tolerance: f32,
     },
+    /// Constrains the player yaw to the velocity yaw, locking to the target strafing yaw.
+    ///
+    /// When the velocity yaw rotates past the target strafing yaw (usually the frame bulk yaw),
+    /// the constraint locks the player yaw to the target strafing yaw. When the target strafing
+    /// yaw changes, the yaw is unlocked and follows the velocity yaw until the next time it
+    /// reaches the target strafing yaw, and so on.
+    VelocityYawLocking {
+        /// The player's yaw should remain within velocity yaw or target strafing yaw ± tolerance
+        /// degrees.
+        tolerance: f32,
+    },
     /// Constrains the player yaw relative to the given yaw.
     Yaw {
         /// The target yaw in degrees.

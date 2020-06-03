@@ -248,6 +248,10 @@ fn line_vectorial_strafing_constraints<W: Write>(
             "target_yaw",
             pair(string("velocity_avg"), gen_tolerance(tolerance)),
         )(out),
+        VectorialStrafingConstraints::VelocityYawLocking { tolerance } => property(
+            "target_yaw",
+            pair(string("velocity_lock"), gen_tolerance(tolerance)),
+        )(out),
         VectorialStrafingConstraints::Yaw { yaw, tolerance } => {
             property("target_yaw", pair(display(yaw), gen_tolerance(tolerance)))(out)
         }
