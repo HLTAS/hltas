@@ -36,7 +36,7 @@
 //! # }
 //! ```
 
-#![doc(html_root_url = "https://docs.rs/hltas/0.3.0")]
+#![doc(html_root_url = "https://docs.rs/hltas/0.4.0")]
 #![deny(unsafe_code)]
 
 pub mod types;
