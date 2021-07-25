@@ -311,8 +311,11 @@ fn seeds(i: &str) -> IResult<&str, Seeds> {
 /// Strings which a `hltas_frame` has pointers to.
 #[derive(Default)]
 pub struct AllocatedStrings {
+    #[allow(dead_code)]
     frame_time: Option<CString>,
+    #[allow(dead_code)]
     console_command: Option<CString>,
+    #[allow(dead_code)]
     save_name: Option<CString>,
 }
 
