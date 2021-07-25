@@ -75,7 +75,7 @@ TEST_CASE("Error") {
 
 	HLTAS::Input input;
 
-	for (const auto test : files) {
+	for (const auto& test : files) {
 		const auto file = test.first;
 		const auto code = test.second;
 
