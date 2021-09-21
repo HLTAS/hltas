@@ -169,7 +169,7 @@ fn line_frame_bulk<'a, W: Write>(frame_bulk: &'a FrameBulk<'a>) -> impl Serializ
         let out = string("|")(out)?;
         let out = action_keys(frame_bulk.action_keys)(out)?;
         let out = string("|")(out)?;
-        let out = string(frame_bulk.frame_time)(out)?;
+        let out = string(&frame_bulk.frame_time)(out)?;
         let out = string("|")(out)?;
         let out = yaw_field(&frame_bulk.auto_actions.movement)(out)?;
 
@@ -183,7 +183,7 @@ fn line_frame_bulk<'a, W: Write>(frame_bulk: &'a FrameBulk<'a>) -> impl Serializ
         let out = string("|")(out)?;
         let out = display(frame_bulk.frame_count)(out)?;
 
-        let out = if let Some(console_command) = frame_bulk.console_command {
+        let out = if let Some(console_command) = frame_bulk.console_command.as_deref() {
             tuple((string("|"), string(console_command), string("\n")))(out)?
         } else {
             string("\n")(out)?
@@ -307,17 +307,17 @@ fn line<'a, W: Write>(line: &'a Line<'a>) -> impl SerializeFn<W> + 'a {
 pub(crate) fn hltas<W: Write>(w: W, hltas: &HLTAS) -> Result<(), GenError> {
     let mut w = gen_simple(string("version 1\n"), w)?;
 
-    if let Some(demo) = hltas.properties.demo {
+    if let Some(demo) = hltas.properties.demo.as_deref() {
         w = gen_simple(property("demo", string(demo)), w)?;
     }
-    if let Some(save) = hltas.properties.save {
+    if let Some(save) = hltas.properties.save.as_deref() {
         w = gen_simple(property("save", string(save)), w)?;
     }
     if let Some(Seeds { shared, non_shared }) = hltas.properties.seeds {
         let seeds = tuple((display(shared), string(" "), display(non_shared)));
         w = gen_simple(property("seed", seeds), w)?;
     }
-    if let Some(frametime_0ms) = hltas.properties.frametime_0ms {
+    if let Some(frametime_0ms) = hltas.properties.frametime_0ms.as_deref() {
         w = gen_simple(property("frametime0ms", string(frametime_0ms)), w)?;
     }
     if let Some(hlstrafe_version) = hltas.properties.hlstrafe_version {

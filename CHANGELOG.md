@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+### Changed
+- Changed all `&'a str` types into `Cow<'a, str>` thus making it possible to construct a new `HLTAS` programmatically with owned strings.
 
 ## [0.4.0] - 21 Jun 2020
 ### Added

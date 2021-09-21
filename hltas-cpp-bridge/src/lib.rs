@@ -1,4 +1,5 @@
 use std::{
+    borrow::Cow,
     ffi::{CStr, CString},
     fmt::{self, Debug},
     fs::{read_to_string, File},
@@ -448,7 +449,7 @@ pub unsafe fn hltas_frame_from_non_comment_line(
             frame.Attack2 = frame_bulk.action_keys.attack_2;
             frame.Reload = frame_bulk.action_keys.reload;
 
-            let frame_time = CString::new(frame_bulk.frame_time).unwrap();
+            let frame_time = CString::new(frame_bulk.frame_time.to_string()).unwrap();
             frame.Frametime = frame_time.as_ptr();
             strings.frame_time = Some(frame_time);
 
@@ -459,14 +460,14 @@ pub unsafe fn hltas_frame_from_non_comment_line(
 
             frame.Repeats = frame_bulk.frame_count.get();
 
-            if let Some(console_command) = frame_bulk.console_command {
-                let console_command_cstring = CString::new(console_command).unwrap();
+            if let Some(console_command) = frame_bulk.console_command.as_ref() {
+                let console_command_cstring = CString::new(console_command.to_string()).unwrap();
                 frame.Commands = console_command_cstring.as_ptr();
                 strings.console_command = Some(console_command_cstring);
             }
         }
         Line::Save(save_name) => {
-            let save_name = CString::new(*save_name).unwrap();
+            let save_name = CString::new(save_name.to_string()).unwrap();
             frame.SaveName = save_name.as_ptr();
             strings.save_name = Some(save_name);
         }
@@ -537,7 +538,7 @@ pub unsafe extern "C" fn hltas_rs_read(
             match HLTAS::from_str(&contents) {
                 Ok(hltas) => {
                     if let Some(demo) = hltas.properties.demo {
-                        let demo = CString::new(demo).unwrap();
+                        let demo = CString::new(demo.into_owned()).unwrap();
                         hltas_input_set_property(
                             input,
                             b"demo\0" as *const u8 as *const c_char,
@@ -545,7 +546,7 @@ pub unsafe extern "C" fn hltas_rs_read(
                         );
                     }
                     if let Some(save) = hltas.properties.save {
-                        let save = CString::new(save).unwrap();
+                        let save = CString::new(save.into_owned()).unwrap();
                         hltas_input_set_property(
                             input,
                             b"save\0" as *const u8 as *const c_char,
@@ -553,7 +554,7 @@ pub unsafe extern "C" fn hltas_rs_read(
                         );
                     }
                     if let Some(frametime_0ms) = hltas.properties.frametime_0ms {
-                        let frametime_0ms = CString::new(frametime_0ms).unwrap();
+                        let frametime_0ms = CString::new(frametime_0ms.into_owned()).unwrap();
                         hltas_input_set_property(
                             input,
                             b"frametime0ms\0" as *const u8 as *const c_char,
@@ -582,7 +583,7 @@ pub unsafe extern "C" fn hltas_rs_read(
                     for line in hltas.lines {
                         match line {
                             Line::Comment(comment) => {
-                                comments.push_str(comment);
+                                comments.push_str(&comment);
                                 comments.push('\n');
                             }
                             line => {
@@ -728,10 +729,10 @@ pub unsafe extern "C" fn hltas_rs_write(
 
             let mut hltas = HLTAS {
                 properties: Properties {
-                    demo,
-                    save,
+                    demo: demo.map(Cow::Borrowed),
+                    save: save.map(Cow::Borrowed),
                     seeds,
-                    frametime_0ms,
+                    frametime_0ms: frametime_0ms.map(Cow::Borrowed),
                     hlstrafe_version,
                 },
                 lines: Vec::new(),
@@ -756,7 +757,7 @@ pub unsafe extern "C" fn hltas_rs_write(
                     };
 
                     for line in comments.lines() {
-                        hltas.lines.push(Line::Comment(line));
+                        hltas.lines.push(Line::Comment(Cow::Borrowed(line)));
                     }
                 }
 
@@ -770,7 +771,7 @@ pub unsafe extern "C" fn hltas_rs_write(
                         };
                     };
 
-                    hltas.lines.push(Line::Save(save));
+                    hltas.lines.push(Line::Save(Cow::Borrowed(save)));
                     continue;
                 }
 
@@ -1003,10 +1004,10 @@ pub unsafe extern "C" fn hltas_rs_write(
                         attack_2,
                         reload,
                     },
-                    frame_time,
+                    frame_time: Cow::Borrowed(frame_time),
                     pitch,
                     frame_count,
-                    console_command,
+                    console_command: console_command.map(Cow::Borrowed),
                 };
 
                 hltas.lines.push(Line::FrameBulk(frame_bulk));

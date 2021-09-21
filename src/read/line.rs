@@ -1,4 +1,4 @@
-use std::{num::NonZeroU32, str::FromStr};
+use std::{borrow::Cow, num::NonZeroU32, str::FromStr};
 
 use nom::{
     branch::alt,
@@ -391,10 +391,10 @@ fn line_frame_bulk(i: &str) -> IResult<FrameBulk> {
             auto_actions,
             movement_keys,
             action_keys,
-            frame_time,
+            frame_time: Cow::Borrowed(frame_time),
             pitch,
             frame_count,
-            console_command,
+            console_command: console_command.map(Cow::Borrowed),
         },
     ))
 }
@@ -586,14 +586,14 @@ fn line_change(i: &str) -> IResult<Change> {
 pub(crate) fn line(i: &str) -> IResult<Line> {
     alt((
         map(line_frame_bulk, Line::FrameBulk),
-        map(line_save, Line::Save),
+        map(line_save, |name| Line::Save(Cow::Borrowed(name))),
         map(line_seed, Line::SharedSeed),
         map(line_buttons, Line::Buttons),
         map(line_lgagst_min_speed, Line::LGAGSTMinSpeed),
         map(line_reset, |non_shared_seed| Line::Reset {
             non_shared_seed,
         }),
-        map(line_comment, Line::Comment),
+        map(line_comment, |text| Line::Comment(Cow::Borrowed(text))),
         map(line_strafing, Line::VectorialStrafing),
         map(line_target_yaw, Line::VectorialStrafingConstraints),
         map(line_change, Line::Change),

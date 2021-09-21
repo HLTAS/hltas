@@ -15,14 +15,14 @@
 //!
 //! match HLTAS::from_str(&contents) {
 //!     Ok(hltas) => {
-//!         assert_eq!(hltas.properties.demo, Some("test"));
+//!         assert_eq!(hltas.properties.demo.as_deref(), Some("test"));
 //!
-//!         if let Line::FrameBulk(frame_bulk) = hltas.lines[0] {
+//!         if let Line::FrameBulk(frame_bulk) = &hltas.lines[0] {
 //!             assert_eq!(
 //!                 frame_bulk.auto_actions.jump_bug,
 //!                 Some(JumpBug { times: Times::UnlimitedWithinFrameBulk })
 //!             );
-//!             assert_eq!(frame_bulk.frame_time, "0.001");
+//!             assert_eq!(&frame_bulk.frame_time, "0.001");
 //!             assert_eq!(frame_bulk.frame_count.get(), 5);
 //!         } else {
 //!             unreachable!()
