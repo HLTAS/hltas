@@ -1,6 +1,9 @@
 # Changelog
 
 ## [Unreleased]
+### Added
+- `Properties::load_command`.
+
 ### Changed
 - Changed all `&'a str` types into `Cow<'a, str>` thus making it possible to construct a new `HLTAS` programmatically with owned strings.
 

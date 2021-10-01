@@ -578,6 +578,14 @@ pub unsafe extern "C" fn hltas_rs_read(
                             hlstrafe_version.as_ptr(),
                         );
                     }
+                    if let Some(load_command) = hltas.properties.load_command {
+                        let load_command = CString::new(load_command.into_owned()).unwrap();
+                        hltas_input_set_property(
+                            input,
+                            b"load_command\0" as *const u8 as *const c_char,
+                            load_command.as_ptr(),
+                        );
+                    }
 
                     let mut comments = String::new();
                     for line in hltas.lines {
@@ -727,6 +735,18 @@ pub unsafe extern "C" fn hltas_rs_write(
                 };
             };
 
+            let load_command = hltas_input_get_property(input, b"load_command\0" as *const u8 as *const c_char);
+            let load_command = if load_command.is_null() {
+                None
+            } else if let Ok(load_command) = CStr::from_ptr(load_command).to_str() {
+                Some(load_command)
+            } else {
+                return hltas_cpp::ErrorDescription {
+                    Code: hltas_cpp::ErrorCode::FAILWRITE,
+                    LineNumber: 0,
+                };
+            };
+
             let mut hltas = HLTAS {
                 properties: Properties {
                     demo: demo.map(Cow::Borrowed),
@@ -734,6 +754,7 @@ pub unsafe extern "C" fn hltas_rs_write(
                     seeds,
                     frametime_0ms: frametime_0ms.map(Cow::Borrowed),
                     hlstrafe_version,
+                    load_command: load_command.map(Cow::Borrowed),
                 },
                 lines: Vec::new(),
             };

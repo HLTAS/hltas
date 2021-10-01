@@ -53,6 +53,7 @@ pub(crate) fn properties(mut i: &str) -> IResult<Properties> {
             "frametime0ms" => properties.frametime_0ms = Some(Cow::Borrowed(value)),
             "seed" => properties.seeds = Some(seeds(value)?.1),
             "hlstrafe_version" => properties.hlstrafe_version = Some(non_zero_u32(value)?.1),
+            "load_command" => properties.load_command = Some(Cow::Borrowed(value)),
             _ => continue,
         }
     }

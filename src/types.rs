@@ -31,6 +31,13 @@ pub struct Properties<'a> {
     /// This controls some inner workings of HLStrafe and is used to update the prediction code
     /// without causing old scripts to desync.
     pub hlstrafe_version: Option<NonZeroU32>,
+    /// The command that loads the map or save before running the TAS.
+    ///
+    /// For example, if you need to run the TAS as `map bkz_goldbhop;bxt_tas_loadscript tas.hltas`,
+    /// you can set this property to `map bkz_goldbhop`. Then you will be able to run the TAS by
+    /// simply executing `bxt_tas_loadscript tas.hltas`, and the load command will be run
+    /// automatically.
+    pub load_command: Option<Cow<'a, str>>,
 }
 
 /// Shared and non-shared RNG seeds.
@@ -540,6 +547,7 @@ mod tests {
                 save: None,
                 seeds: None,
                 hlstrafe_version: Some(NonZeroU32::new(1).unwrap()),
+                load_command: None,
             },
             lines: vec![
                 Line::FrameBulk(FrameBulk {

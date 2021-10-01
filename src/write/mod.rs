@@ -323,6 +323,9 @@ pub(crate) fn hltas<W: Write>(w: W, hltas: &HLTAS) -> Result<(), GenError> {
     if let Some(hlstrafe_version) = hltas.properties.hlstrafe_version {
         w = gen_simple(property("hlstrafe_version", display(hlstrafe_version)), w)?;
     }
+    if let Some(load_command) = hltas.properties.load_command.as_deref() {
+        w = gen_simple(property("load_command", string(load_command)), w)?;
+    }
 
     let w = gen_simple(string("frames\n"), w)?;
 
