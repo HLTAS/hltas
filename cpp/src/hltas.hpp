@@ -220,6 +220,8 @@ namespace HLTAS
 
 		Frame(const hltas_frame& c_frame);
 
+		bool IsEqualToMovementFrame(const Frame& rhs) const;
+
 		// Returns true if this frame is a movement frame.
 		bool IsMovement() const;
 

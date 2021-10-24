@@ -385,6 +385,52 @@ namespace HLTAS
 		ChangeOver = value;
 	}
 
+	bool Frame::IsEqualToMovementFrame(const Frame& rhs) const {
+		return IsMovement() && rhs.IsMovement() &&
+		       Strafe == rhs.Strafe &&
+		       Lgagst == rhs.Lgagst &&
+		       Autojump == rhs.Autojump &&
+		       Ducktap == rhs.Ducktap &&
+		       Jumpbug == rhs.Jumpbug &&
+		       Dbc == rhs.Dbc &&
+		       Dbg == rhs.Dbg &&
+		       Dwj == rhs.Dwj &&
+		       Type == rhs.Type &&
+		       Dir == rhs.Dir &&
+		       LgagstFullMaxspeed == rhs.LgagstFullMaxspeed &&
+		       LgagstTimes == rhs.LgagstTimes &&
+		       AutojumpTimes == rhs.AutojumpTimes &&
+		       Ducktap0ms == rhs.Ducktap0ms &&
+		       DucktapTimes == rhs.DucktapTimes &&
+		       JumpbugTimes == rhs.JumpbugTimes &&
+		       DbcCeilings == rhs.DbcCeilings &&
+		       DbcTimes == rhs.DbcTimes &&
+		       DbgTimes == rhs.DbgTimes &&
+		       DwjTimes == rhs.DwjTimes &&
+		       Forward == rhs.Forward &&
+		       Left == rhs.Left &&
+		       Right == rhs.Right &&
+		       Back == rhs.Back &&
+		       Up == rhs.Up &&
+		       Down == rhs.Down &&
+		       Jump == rhs.Jump &&
+		       Duck == rhs.Duck &&
+		       Use == rhs.Use &&
+		       Attack1 == rhs.Attack1 &&
+		       Attack2 == rhs.Attack2 &&
+		       Reload == rhs.Reload &&
+		       Frametime == rhs.Frametime &&
+		       PitchPresent == rhs.PitchPresent &&
+		       YawPresent == rhs.YawPresent &&
+		       Yaw == rhs.Yaw &&
+		       X == rhs.X &&
+		       Y == rhs.Y &&
+		       Pitch == rhs.Pitch &&
+		       Repeats == rhs.Repeats &&
+		       Commands == rhs.Commands &&
+		       Comments == rhs.Comments;
+	}
+
 	void Input::Clear()
 	{
 		Properties.clear();
