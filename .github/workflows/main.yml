@@ -22,15 +22,15 @@ jobs:
 
         include:
           - label: Linux
-            os: ubuntu-latest
+            os: ubuntu-20.04
             target: i686-unknown-linux-gnu
 
           - label: Windows
-            os: windows-latest
+            os: windows-2019
             target: i686-pc-windows-msvc
 
           - label: macOS
-            os: macOS-latest
+            os: macOS-10.15
 
     name: ${{ matrix.rust }} - ${{ matrix.label }}
     runs-on: ${{ matrix.os }}
@@ -39,7 +39,7 @@ jobs:
     - uses: actions/checkout@v1
 
     - name: Install g++-multilib
-      if: matrix.os == 'ubuntu-latest'
+      if: matrix.os == 'ubuntu-20.04'
       run: |
         sudo apt-get update
         sudo apt-get install g++-multilib
@@ -82,7 +82,7 @@ jobs:
 
   clippy:
     name: Clippy
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     steps:
     - uses: actions/checkout@v1
@@ -97,7 +97,7 @@ jobs:
 
   rustfmt:
     name: Rustfmt
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     steps:
     - uses: actions/checkout@v1
