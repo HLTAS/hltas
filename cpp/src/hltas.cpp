@@ -108,6 +108,7 @@ namespace HLTAS
 		Target = c_frame.Target;
 		ChangeFinalValue = c_frame.ChangeFinalValue;
 		ChangeOver = c_frame.ChangeOver;
+		TargetYawOverride = std::vector<float>(c_frame.TargetYawOverride, c_frame.TargetYawOverride + c_frame.TargetYawOverrideCount);
 	}
 
 	bool Frame::IsMovement() const {
@@ -118,7 +119,8 @@ namespace HLTAS
 			&& !ResetFrame
 			&& !StrafingAlgorithmPresent
 			&& !AlgorithmParametersPresent
-			&& !ChangePresent;
+			&& !ChangePresent
+			&& TargetYawOverride.empty();
 	}
 
 	void Frame::ResetAutofuncs()
@@ -609,6 +611,8 @@ extern "C" int hltas_input_get_frame(const void* input, size_t index, hltas_fram
 	c_frame->Target = frame.Target;
 	c_frame->ChangeFinalValue = frame.ChangeFinalValue;
 	c_frame->ChangeOver = frame.ChangeOver;
+	c_frame->TargetYawOverride = frame.TargetYawOverride.data();
+	c_frame->TargetYawOverrideCount = frame.TargetYawOverride.size();
 
 	return 0;
 }

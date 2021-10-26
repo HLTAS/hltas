@@ -4,7 +4,8 @@ use nom::{
     branch::alt,
     bytes::complete::{is_not, tag},
     character::complete::{anychar, char, not_line_ending, space1},
-    combinator::{cut, map, map_res, not, opt, peek, verify},
+    combinator::{all_consuming, cut, map, map_res, not, opt, peek, verify},
+    multi::separated_nonempty_list,
     sequence::{pair, preceded, separated_pair, tuple},
 };
 
@@ -496,7 +497,7 @@ fn parse_tolerance(i: &str) -> IResult<f32> {
 
 fn line_target_yaw(i: &str) -> IResult<VectorialStrafingConstraints> {
     let (i, (name, value)) = property(i)?;
-    tag("target_yaw")(name)?;
+    all_consuming(tag("target_yaw"))(name)?;
 
     cut(context(Context::NoConstraints, anychar))(value)?;
 
@@ -583,6 +584,13 @@ fn line_change(i: &str) -> IResult<Change> {
     ))
 }
 
+fn line_target_yaw_override(i: &str) -> IResult<Vec<f32>> {
+    let (i, (name, value)) = property(i)?;
+    tag("target_yaw_override")(name)?;
+    let (_, yaws) = cut(separated_nonempty_list(space1, float))(value)?;
+    Ok((i, yaws))
+}
+
 pub(crate) fn line(i: &str) -> IResult<Line> {
     alt((
         map(line_frame_bulk, Line::FrameBulk),
@@ -597,6 +605,9 @@ pub(crate) fn line(i: &str) -> IResult<Line> {
         map(line_strafing, Line::VectorialStrafing),
         map(line_target_yaw, Line::VectorialStrafingConstraints),
         map(line_change, Line::Change),
+        map(line_target_yaw_override, |yaws| {
+            Line::TargetYawOverride(yaws.into())
+        }),
     ))(i)
 }
 

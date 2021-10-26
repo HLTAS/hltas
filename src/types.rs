@@ -75,6 +75,11 @@ pub enum Line<'a> {
     VectorialStrafingConstraints(VectorialStrafingConstraints),
     /// Starts smoothly changing a value.
     Change(Change),
+    /// Overrides yaw and target yaw for the subsequent frames.
+    // This could've been a Vec<f32>, however there's one use for the Cow::Borrowed state here: when
+    // writing a C++ HLTAS into a file, we can borrow the slice from the C++ vector for the duration
+    // of the writing function.
+    TargetYawOverride(Cow<'a, [f32]>),
 }
 
 /// A buttons line.

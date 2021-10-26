@@ -1,11 +1,13 @@
 use std::{
     borrow::Cow,
+    convert::TryInto,
     ffi::{CStr, CString},
     fmt::{self, Debug},
     fs::{read_to_string, File},
     mem::{zeroed, ManuallyDrop},
     num::NonZeroU32,
     os::raw::{c_char, c_void},
+    slice,
     str::FromStr,
 };
 
@@ -18,12 +20,71 @@ use nom::{
 
 use hltas::{read, types::*};
 
-#[allow(non_camel_case_types, non_snake_case, dead_code)]
-pub mod hltas_cpp;
+cfg_if::cfg_if! {
+    // Assume Linux bindings are good for macOS, and Windows GNU are good for Windows MSVC.
+    if #[cfg(all(unix, target_arch = "x86_64"))] {
+        #[allow(non_camel_case_types, non_snake_case, dead_code, deref_nullptr)]
+        #[path = "x86_64-unknown-linux-gnu.rs"]
+        pub mod hltas_cpp;
+    } else if #[cfg(all(unix, target_arch = "x86"))] {
+        #[allow(non_camel_case_types, non_snake_case, dead_code, deref_nullptr)]
+        #[path = "i686-unknown-linux-gnu.rs"]
+        pub mod hltas_cpp;
+    } else if #[cfg(all(windows, target_arch = "x86_64"))] {
+        #[allow(non_camel_case_types, non_snake_case, dead_code, deref_nullptr)]
+        #[path = "x86_64-pc-windows-gnu.rs"]
+        pub mod hltas_cpp;
+    } else if #[cfg(all(windows, target_arch = "x86"))] {
+        #[allow(non_camel_case_types, non_snake_case, dead_code, deref_nullptr)]
+        #[path = "i686-pc-windows-gnu.rs"]
+        pub mod hltas_cpp;
+    }
+}
+
+#[cfg(not(test))]
 use hltas_cpp::{
     hltas_input_get_frame, hltas_input_get_property, hltas_input_push_frame,
     hltas_input_set_error_message, hltas_input_set_property,
 };
+
+// Windows cargo tests don't link without these stubs.
+#[cfg(test)]
+pub unsafe extern "C" fn hltas_input_set_property(
+    _input: *mut c_void,
+    _property: *const c_char,
+    _value: *const c_char,
+) {
+    unreachable!()
+}
+#[cfg(test)]
+pub unsafe extern "C" fn hltas_input_get_property(
+    _input: *const c_void,
+    _property: *const c_char,
+) -> *const c_char {
+    unreachable!()
+}
+#[cfg(test)]
+pub unsafe extern "C" fn hltas_input_push_frame(
+    _input: *mut c_void,
+    _frame: *const hltas_cpp::hltas_frame,
+) {
+    unreachable!()
+}
+#[cfg(test)]
+pub unsafe extern "C" fn hltas_input_get_frame(
+    _input: *const c_void,
+    _index: usize,
+    _frame: *mut hltas_cpp::hltas_frame,
+) -> std::os::raw::c_int {
+    unreachable!()
+}
+#[cfg(test)]
+pub unsafe extern "C" fn hltas_input_set_error_message(
+    _input: *mut c_void,
+    _message: *const c_char,
+) {
+    unreachable!()
+}
 
 impl From<Button> for hltas_cpp::Button {
     #[inline]
@@ -309,15 +370,17 @@ fn seeds(i: &str) -> IResult<&str, Seeds> {
     )(i)
 }
 
-/// Strings which a `hltas_frame` has pointers to.
+/// Data which a `hltas_frame` has pointers to.
 #[derive(Default)]
-pub struct AllocatedStrings {
+pub struct AllocatedData {
     #[allow(dead_code)]
     frame_time: Option<CString>,
     #[allow(dead_code)]
     console_command: Option<CString>,
     #[allow(dead_code)]
     save_name: Option<CString>,
+    #[allow(dead_code)]
+    yaws: Option<Box<[f32]>>,
 }
 
 /// Converts a non-comment line to a `hltas_frame`.
@@ -333,9 +396,9 @@ pub struct AllocatedStrings {
 /// Panics if `line` is `Line::Comment`.
 pub unsafe fn hltas_frame_from_non_comment_line(
     line: &Line,
-) -> (hltas_cpp::hltas_frame, ManuallyDrop<AllocatedStrings>) {
+) -> (hltas_cpp::hltas_frame, ManuallyDrop<AllocatedData>) {
     let mut frame: hltas_cpp::hltas_frame = zeroed();
-    let mut strings = AllocatedStrings::default();
+    let mut allocated = AllocatedData::default();
 
     match line {
         Line::Comment(_) => panic!("can't convert a comment line"),
@@ -451,7 +514,7 @@ pub unsafe fn hltas_frame_from_non_comment_line(
 
             let frame_time = CString::new(frame_bulk.frame_time.to_string()).unwrap();
             frame.Frametime = frame_time.as_ptr();
-            strings.frame_time = Some(frame_time);
+            allocated.frame_time = Some(frame_time);
 
             if let Some(pitch) = frame_bulk.pitch {
                 frame.PitchPresent = true;
@@ -463,13 +526,13 @@ pub unsafe fn hltas_frame_from_non_comment_line(
             if let Some(console_command) = frame_bulk.console_command.as_ref() {
                 let console_command_cstring = CString::new(console_command.to_string()).unwrap();
                 frame.Commands = console_command_cstring.as_ptr();
-                strings.console_command = Some(console_command_cstring);
+                allocated.console_command = Some(console_command_cstring);
             }
         }
         Line::Save(save_name) => {
             let save_name = CString::new(save_name.to_string()).unwrap();
             frame.SaveName = save_name.as_ptr();
-            strings.save_name = Some(save_name);
+            allocated.save_name = Some(save_name);
         }
         Line::SharedSeed(seed) => {
             frame.SeedPresent = true;
@@ -516,9 +579,15 @@ pub unsafe fn hltas_frame_from_non_comment_line(
             frame.ChangeFinalValue = change.final_value;
             frame.ChangeOver = change.over;
         }
+        Line::TargetYawOverride(yaws) => {
+            let yaws: Box<[f32]> = yaws.to_owned().into();
+            frame.TargetYawOverride = yaws.as_ptr();
+            frame.TargetYawOverrideCount = yaws.len().try_into().unwrap();
+            allocated.yaws = Some(yaws);
+        }
     }
 
-    (frame, ManuallyDrop::new(strings))
+    (frame, ManuallyDrop::new(allocated))
 }
 
 /// Reads the HLTAS from `filename` and writes it into `input`.
@@ -595,7 +664,7 @@ pub unsafe extern "C" fn hltas_rs_read(
                                 comments.push('\n');
                             }
                             line => {
-                                let (mut frame, mut strings) =
+                                let (mut frame, mut allocated) =
                                     hltas_frame_from_non_comment_line(&line);
 
                                 let comments_cstring = CString::new(comments).unwrap();
@@ -603,7 +672,7 @@ pub unsafe extern "C" fn hltas_rs_read(
                                 comments = String::new();
 
                                 hltas_input_push_frame(input, &frame);
-                                ManuallyDrop::drop(&mut strings);
+                                ManuallyDrop::drop(&mut allocated);
                             }
                         }
                     }
@@ -735,7 +804,8 @@ pub unsafe extern "C" fn hltas_rs_write(
                 };
             };
 
-            let load_command = hltas_input_get_property(input, b"load_command\0" as *const u8 as *const c_char);
+            let load_command =
+                hltas_input_get_property(input, b"load_command\0" as *const u8 as *const c_char);
             let load_command = if load_command.is_null() {
                 None
             } else if let Ok(load_command) = CStr::from_ptr(load_command).to_str() {
@@ -851,6 +921,17 @@ pub unsafe extern "C" fn hltas_rs_write(
                         over: frame.ChangeOver,
                     }));
 
+                    continue;
+                }
+
+                if frame.TargetYawOverrideCount != 0 {
+                    let yaws = slice::from_raw_parts(
+                        frame.TargetYawOverride,
+                        frame.TargetYawOverrideCount.try_into().unwrap(),
+                    );
+                    hltas
+                        .lines
+                        .push(Line::TargetYawOverride(Cow::Borrowed(yaws)));
                     continue;
                 }
 

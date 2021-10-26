@@ -301,6 +301,11 @@ fn line<'a, W: Write>(line: &'a Line<'a>) -> impl SerializeFn<W> + 'a {
             line_vectorial_strafing_constraints(*constraints)(out)
         }
         Line::Change(change) => line_change(*change)(out),
+        Line::TargetYawOverride(yaws) => tuple((
+            string("target_yaw_override"),
+            many_ref(yaws.as_ref(), |yaw| pair(string(" "), display(yaw))),
+            string("\n"),
+        ))(out),
     }
 }
 

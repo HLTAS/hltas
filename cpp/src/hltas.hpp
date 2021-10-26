@@ -394,6 +394,8 @@ namespace HLTAS
 		void SetChangeTarget(ChangeTarget value);
 		void SetChangeFinalValue(float value);
 		void SetChangeOver(float value);
+
+		std::vector<float> TargetYawOverride;
 	};
 
 	class Input
@@ -489,5 +491,7 @@ extern "C" {
 		HLTAS::ChangeTarget Target;
 		float ChangeFinalValue;
 		float ChangeOver;
+		const float* TargetYawOverride;
+		size_t TargetYawOverrideCount;
 	};
 }
