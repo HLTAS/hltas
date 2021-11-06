@@ -1,5 +1,4 @@
 use std::{
-    borrow::Cow,
     convert::TryInto,
     ffi::{CStr, CString},
     fmt::{self, Debug},
@@ -607,7 +606,7 @@ pub unsafe extern "C" fn hltas_rs_read(
             match HLTAS::from_str(&contents) {
                 Ok(hltas) => {
                     if let Some(demo) = hltas.properties.demo {
-                        let demo = CString::new(demo.into_owned()).unwrap();
+                        let demo = CString::new(demo).unwrap();
                         hltas_input_set_property(
                             input,
                             b"demo\0" as *const u8 as *const c_char,
@@ -615,7 +614,7 @@ pub unsafe extern "C" fn hltas_rs_read(
                         );
                     }
                     if let Some(save) = hltas.properties.save {
-                        let save = CString::new(save.into_owned()).unwrap();
+                        let save = CString::new(save).unwrap();
                         hltas_input_set_property(
                             input,
                             b"save\0" as *const u8 as *const c_char,
@@ -623,7 +622,7 @@ pub unsafe extern "C" fn hltas_rs_read(
                         );
                     }
                     if let Some(frametime_0ms) = hltas.properties.frametime_0ms {
-                        let frametime_0ms = CString::new(frametime_0ms.into_owned()).unwrap();
+                        let frametime_0ms = CString::new(frametime_0ms).unwrap();
                         hltas_input_set_property(
                             input,
                             b"frametime0ms\0" as *const u8 as *const c_char,
@@ -648,7 +647,7 @@ pub unsafe extern "C" fn hltas_rs_read(
                         );
                     }
                     if let Some(load_command) = hltas.properties.load_command {
-                        let load_command = CString::new(load_command.into_owned()).unwrap();
+                        let load_command = CString::new(load_command).unwrap();
                         hltas_input_set_property(
                             input,
                             b"load_command\0" as *const u8 as *const c_char,
@@ -819,12 +818,12 @@ pub unsafe extern "C" fn hltas_rs_write(
 
             let mut hltas = HLTAS {
                 properties: Properties {
-                    demo: demo.map(Cow::Borrowed),
-                    save: save.map(Cow::Borrowed),
+                    demo: demo.map(ToOwned::to_owned),
+                    save: save.map(ToOwned::to_owned),
                     seeds,
-                    frametime_0ms: frametime_0ms.map(Cow::Borrowed),
+                    frametime_0ms: frametime_0ms.map(ToOwned::to_owned),
                     hlstrafe_version,
-                    load_command: load_command.map(Cow::Borrowed),
+                    load_command: load_command.map(ToOwned::to_owned),
                 },
                 lines: Vec::new(),
             };
@@ -848,7 +847,7 @@ pub unsafe extern "C" fn hltas_rs_write(
                     };
 
                     for line in comments.lines() {
-                        hltas.lines.push(Line::Comment(Cow::Borrowed(line)));
+                        hltas.lines.push(Line::Comment(line.to_owned()));
                     }
                 }
 
@@ -862,7 +861,7 @@ pub unsafe extern "C" fn hltas_rs_write(
                         };
                     };
 
-                    hltas.lines.push(Line::Save(Cow::Borrowed(save)));
+                    hltas.lines.push(Line::Save(save.to_owned()));
                     continue;
                 }
 
@@ -929,9 +928,7 @@ pub unsafe extern "C" fn hltas_rs_write(
                         frame.TargetYawOverride,
                         frame.TargetYawOverrideCount.try_into().unwrap(),
                     );
-                    hltas
-                        .lines
-                        .push(Line::TargetYawOverride(Cow::Borrowed(yaws)));
+                    hltas.lines.push(Line::TargetYawOverride(yaws.to_owned()));
                     continue;
                 }
 
@@ -1106,10 +1103,10 @@ pub unsafe extern "C" fn hltas_rs_write(
                         attack_2,
                         reload,
                     },
-                    frame_time: Cow::Borrowed(frame_time),
+                    frame_time: frame_time.to_owned(),
                     pitch,
                     frame_count,
-                    console_command: console_command.map(Cow::Borrowed),
+                    console_command: console_command.map(ToOwned::to_owned),
                 };
 
                 hltas.lines.push(Line::FrameBulk(frame_bulk));

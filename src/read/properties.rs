@@ -1,4 +1,4 @@
-use std::{borrow::Cow, str::FromStr};
+use std::str::FromStr;
 
 use nom::{
     bytes::complete::take_while1,
@@ -48,12 +48,12 @@ pub(crate) fn properties(mut i: &str) -> IResult<Properties> {
         i = input;
 
         match name {
-            "demo" => properties.demo = Some(Cow::Borrowed(value)),
-            "save" => properties.save = Some(Cow::Borrowed(value)),
-            "frametime0ms" => properties.frametime_0ms = Some(Cow::Borrowed(value)),
+            "demo" => properties.demo = Some(value.to_owned()),
+            "save" => properties.save = Some(value.to_owned()),
+            "frametime0ms" => properties.frametime_0ms = Some(value.to_owned()),
             "seed" => properties.seeds = Some(seeds(value)?.1),
             "hlstrafe_version" => properties.hlstrafe_version = Some(non_zero_u32(value)?.1),
-            "load_command" => properties.load_command = Some(Cow::Borrowed(value)),
+            "load_command" => properties.load_command = Some(value.to_owned()),
             _ => continue,
         }
     }

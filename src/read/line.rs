@@ -1,4 +1,4 @@
-use std::{borrow::Cow, num::NonZeroU32, str::FromStr};
+use std::{num::NonZeroU32, str::FromStr};
 
 use nom::{
     branch::alt,
@@ -25,7 +25,7 @@ fn uncut<'a, O, F: Fn(&'a str) -> IResult<O>>(f: F) -> impl Fn(&'a str) -> IResu
     }
 }
 
-fn recognize_float<'a>(i: &'a str) -> IResult<'a, &'a str> {
+fn recognize_float(i: &str) -> IResult<&'_ str> {
     // Nom's recognize_float contains a very annoying cut(). Get rid of it.
     uncut(nom::number::complete::recognize_float)(i)
 }
@@ -392,10 +392,10 @@ fn line_frame_bulk(i: &str) -> IResult<FrameBulk> {
             auto_actions,
             movement_keys,
             action_keys,
-            frame_time: Cow::Borrowed(frame_time),
+            frame_time: frame_time.to_owned(),
             pitch,
             frame_count,
-            console_command: console_command.map(Cow::Borrowed),
+            console_command: console_command.map(ToOwned::to_owned),
         },
     ))
 }
@@ -594,20 +594,18 @@ fn line_target_yaw_override(i: &str) -> IResult<Vec<f32>> {
 pub(crate) fn line(i: &str) -> IResult<Line> {
     alt((
         map(line_frame_bulk, Line::FrameBulk),
-        map(line_save, |name| Line::Save(Cow::Borrowed(name))),
+        map(line_save, |name| Line::Save(name.to_owned())),
         map(line_seed, Line::SharedSeed),
         map(line_buttons, Line::Buttons),
         map(line_lgagst_min_speed, Line::LGAGSTMinSpeed),
         map(line_reset, |non_shared_seed| Line::Reset {
             non_shared_seed,
         }),
-        map(line_comment, |text| Line::Comment(Cow::Borrowed(text))),
+        map(line_comment, |text| Line::Comment(text.to_owned())),
         map(line_strafing, Line::VectorialStrafing),
         map(line_target_yaw, Line::VectorialStrafingConstraints),
         map(line_change, Line::Change),
-        map(line_target_yaw_override, |yaws| {
-            Line::TargetYawOverride(yaws.into())
-        }),
+        map(line_target_yaw_override, Line::TargetYawOverride),
     ))(i)
 }
 

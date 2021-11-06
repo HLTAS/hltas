@@ -4,10 +4,9 @@
 ### Added
 - `Properties::load_command`.
 - `Line::TargetYawOverride`.
-- `HLTAS::to_static()`.
 
 ### Changed
-- Changed all `&'a str` types into `Cow<'a, str>` thus making it possible to construct a new `HLTAS` programmatically with owned strings.
+- Changed all reference components of the `HLTAS` type into owned types thus making it easy to construct a `HLTAS` programmatically and to store `HLTAS` instances.
 
 ## [0.4.0] - 21 Jun 2020
 ### Added

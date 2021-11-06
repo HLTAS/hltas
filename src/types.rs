@@ -1,6 +1,6 @@
 //! Types representing various parts of `.hltas` scripts.
 
-use std::{borrow::Cow, io::Write, num::NonZeroU32};
+use std::{io::Write, num::NonZeroU32};
 
 use cookie_factory::GenError;
 
@@ -8,22 +8,22 @@ use crate::{read, write};
 
 /// A HLTAS script.
 #[derive(Debug, Clone, PartialEq, Default)]
-pub struct HLTAS<'a> {
+pub struct HLTAS {
     /// Properties before the frames section.
-    pub properties: Properties<'a>,
+    pub properties: Properties,
     /// Contents of the frames section.
-    pub lines: Vec<Line<'a>>,
+    pub lines: Vec<Line>,
 }
 
 /// Recognized HLTAS properties.
 #[derive(Debug, Clone, Eq, PartialEq, Default)]
-pub struct Properties<'a> {
+pub struct Properties {
     /// Name of the demo to record.
-    pub demo: Option<Cow<'a, str>>,
+    pub demo: Option<String>,
     /// Name of the save file to use for saving after the script has finished.
-    pub save: Option<Cow<'a, str>>,
+    pub save: Option<String>,
     /// Frametime for 0 ms ducktaps.
-    pub frametime_0ms: Option<Cow<'a, str>>,
+    pub frametime_0ms: Option<String>,
     /// RNG seeds.
     pub seeds: Option<Seeds>,
     /// Version of the HLStrafe prediction this TAS was made for.
@@ -37,7 +37,7 @@ pub struct Properties<'a> {
     /// you can set this property to `map bkz_goldbhop`. Then you will be able to run the TAS by
     /// simply executing `bxt_tas_loadscript tas.hltas`, and the load command will be run
     /// automatically.
-    pub load_command: Option<Cow<'a, str>>,
+    pub load_command: Option<String>,
 }
 
 /// Shared and non-shared RNG seeds.
@@ -51,11 +51,11 @@ pub struct Seeds {
 
 /// A line in the frames section.
 #[derive(Debug, Clone, PartialEq)]
-pub enum Line<'a> {
+pub enum Line {
     /// A frame bulk.
-    FrameBulk(FrameBulk<'a>),
+    FrameBulk(FrameBulk),
     /// A save-load.
-    Save(Cow<'a, str>),
+    Save(String),
     /// A line that sets the shared seed to use next load.
     SharedSeed(u32),
     /// Sets or resets the strafing buttons.
@@ -68,7 +68,7 @@ pub enum Line<'a> {
         non_shared_seed: i64,
     },
     /// A comment line.
-    Comment(Cow<'a, str>),
+    Comment(String),
     /// Enables or disables vectorial strafing.
     VectorialStrafing(bool),
     /// Sets the constraints for vectorial strafing.
@@ -76,10 +76,7 @@ pub enum Line<'a> {
     /// Starts smoothly changing a value.
     Change(Change),
     /// Overrides yaw and target yaw for the subsequent frames.
-    // This could've been a Vec<f32>, however there's one use for the Cow::Borrowed state here: when
-    // writing a C++ HLTAS into a file, we can borrow the slice from the C++ vector for the duration
-    // of the writing function.
-    TargetYawOverride(Cow<'a, [f32]>),
+    TargetYawOverride(Vec<f32>),
 }
 
 /// A buttons line.
@@ -123,7 +120,7 @@ pub enum Button {
 
 /// Represents a number of similar frames.
 #[derive(Debug, Clone, PartialEq)]
-pub struct FrameBulk<'a> {
+pub struct FrameBulk {
     /// Automatic actions such as strafing, auto-jump, etc.
     pub auto_actions: AutoActions,
     /// Manually specified movement keys.
@@ -131,13 +128,13 @@ pub struct FrameBulk<'a> {
     /// Manually specified action keys.
     pub action_keys: ActionKeys,
     /// Frame time of each of this frame bulk's frames.
-    pub frame_time: Cow<'a, str>,
+    pub frame_time: String,
     /// Pitch angle to set.
     pub pitch: Option<f32>,
     /// Number of frames in this frame bulk.
     pub frame_count: NonZeroU32,
     /// The console command to run every frame of this frame bulk.
-    pub console_command: Option<Cow<'a, str>>,
+    pub console_command: Option<String>,
 }
 
 /// Automatic actions such as strafing, auto-jump, etc.
@@ -383,7 +380,7 @@ pub enum ChangeTarget {
     VectorialStrafingYaw,
 }
 
-impl<'a> HLTAS<'a> {
+impl HLTAS {
     /// Parses a `.hltas` script.
     ///
     /// # Examples
@@ -405,7 +402,7 @@ impl<'a> HLTAS<'a> {
     /// # }
     /// ```
     #[allow(clippy::should_implement_trait)] // FromStr does not allow borrowing from the &str.
-    pub fn from_str(input: &'a str) -> Result<Self, read::Error> {
+    pub fn from_str(input: &str) -> Result<Self, read::Error> {
         match read::hltas(input) {
             Ok((_, hltas)) => Ok(hltas),
             Err(nom::Err::Error(mut e)) | Err(nom::Err::Failure(mut e)) => {
@@ -435,91 +432,9 @@ impl<'a> HLTAS<'a> {
     pub fn to_writer<W: Write>(&self, writer: W) -> Result<(), GenError> {
         write::hltas(writer, self)
     }
-
-    /// Converts all borrowed data in the `HLTAS` to owned data, returning a type with a `'static`
-    /// lifetime.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # extern crate hltas;
-    /// use std::fs::read_to_string;
-    /// use std::path::Path;
-    /// use hltas::HLTAS;
-    ///
-    /// fn read_script(path: &Path) -> Result<HLTAS<'static>, Box<dyn std::error::Error>> {
-    ///     let contents = read_to_string(path)?;
-    ///
-    ///     // When reading the script, both `hltas` and the error borrow `contents`.
-    ///     let hltas = HLTAS::from_str(&contents).map_err(|err| format!("{:?}", err))?;
-    ///
-    ///     // After `to_static()`, the lifetime does not depend on `contents`.
-    ///     Ok(hltas.to_static())
-    /// }
-    /// ```
-    pub fn to_static(&self) -> HLTAS<'static> {
-        HLTAS {
-            properties: Properties {
-                demo: self
-                    .properties
-                    .demo
-                    .as_ref()
-                    .map(|x| Cow::Owned(x.clone().into_owned())),
-                save: self
-                    .properties
-                    .save
-                    .as_ref()
-                    .map(|x| Cow::Owned(x.clone().into_owned())),
-                frametime_0ms: self
-                    .properties
-                    .frametime_0ms
-                    .as_ref()
-                    .map(|x| Cow::Owned(x.clone().into_owned())),
-                seeds: self.properties.seeds,
-                hlstrafe_version: self.properties.hlstrafe_version,
-                load_command: self
-                    .properties
-                    .load_command
-                    .as_ref()
-                    .map(|x| Cow::Owned(x.clone().into_owned())),
-            },
-            lines: self
-                .lines
-                .iter()
-                .map(|line| match line {
-                    Line::FrameBulk(frame_bulk) => Line::FrameBulk(FrameBulk {
-                        auto_actions: frame_bulk.auto_actions,
-                        movement_keys: frame_bulk.movement_keys,
-                        action_keys: frame_bulk.action_keys,
-                        frame_time: Cow::Owned(frame_bulk.frame_time.clone().into_owned()),
-                        pitch: frame_bulk.pitch,
-                        frame_count: frame_bulk.frame_count,
-                        console_command: frame_bulk
-                            .console_command
-                            .as_ref()
-                            .map(|x| Cow::Owned(x.clone().into_owned())),
-                    }),
-                    Line::Save(x) => Line::Save(Cow::Owned(x.clone().into_owned())),
-                    Line::Comment(x) => Line::Comment(Cow::Owned(x.clone().into_owned())),
-                    Line::TargetYawOverride(x) => {
-                        Line::TargetYawOverride(Cow::Owned(x.clone().into_owned()))
-                    }
-                    Line::SharedSeed(x) => Line::SharedSeed(*x),
-                    Line::Buttons(x) => Line::Buttons(*x),
-                    Line::LGAGSTMinSpeed(x) => Line::LGAGSTMinSpeed(*x),
-                    Line::VectorialStrafing(x) => Line::VectorialStrafing(*x),
-                    Line::VectorialStrafingConstraints(x) => Line::VectorialStrafingConstraints(*x),
-                    Line::Change(x) => Line::Change(*x),
-                    Line::Reset { non_shared_seed } => Line::Reset {
-                        non_shared_seed: *non_shared_seed,
-                    },
-                })
-                .collect(),
-        }
-    }
 }
 
-impl<'a> FrameBulk<'a> {
+impl FrameBulk {
     /// Returns a `FrameBulk` with the given frame time and frame count of 1 and otherwise empty.
     ///
     /// # Examples
@@ -527,10 +442,9 @@ impl<'a> FrameBulk<'a> {
     /// ```
     /// # extern crate hltas;
     /// # fn foo() {
-    /// use std::borrow::Cow;
     /// use hltas::types::FrameBulk;
     ///
-    /// let frame_bulk = FrameBulk::with_frame_time(Cow::Borrowed("0.001"));
+    /// let frame_bulk = FrameBulk::with_frame_time("0.001".to_owned());
     /// assert_eq!(&frame_bulk.frame_time, "0.001");
     /// assert_eq!(frame_bulk.frame_count.get(), 1);
     ///
@@ -539,7 +453,7 @@ impl<'a> FrameBulk<'a> {
     /// # }
     /// ```
     #[inline]
-    pub fn with_frame_time(frame_time: Cow<'a, str>) -> Self {
+    pub fn with_frame_time(frame_time: String) -> Self {
         Self {
             auto_actions: Default::default(),
             movement_keys: Default::default(),
@@ -579,7 +493,6 @@ mod tests {
     use super::*;
 
     use std::{
-        borrow::Cow,
         fs::{read_dir, read_to_string},
         str::from_utf8,
     };
@@ -626,11 +539,11 @@ mod tests {
         }
     }
 
-    fn bhop_gt() -> HLTAS<'static> {
+    fn bhop_gt() -> HLTAS {
         HLTAS {
             properties: Properties {
-                demo: Some(Cow::Borrowed("bhop")),
-                frametime_0ms: Some(Cow::Borrowed("0.0000001")),
+                demo: Some("bhop".to_owned()),
+                frametime_0ms: Some("0.0000001".to_owned()),
                 save: None,
                 seeds: None,
                 hlstrafe_version: Some(NonZeroU32::new(1).unwrap()),
@@ -638,14 +551,12 @@ mod tests {
             },
             lines: vec![
                 Line::FrameBulk(FrameBulk {
-                    console_command: Some(Cow::Borrowed(
-                        "sensitivity 0;bxt_timer_reset;bxt_taslog",
-                    )),
-                    ..FrameBulk::with_frame_time(Cow::Borrowed("0.001"))
+                    console_command: Some("sensitivity 0;bxt_timer_reset;bxt_taslog".to_owned()),
+                    ..FrameBulk::with_frame_time("0.001".to_owned())
                 }),
                 Line::FrameBulk(FrameBulk {
                     frame_count: NonZeroU32::new(5).unwrap(),
-                    ..FrameBulk::with_frame_time(Cow::Borrowed("0.001"))
+                    ..FrameBulk::with_frame_time("0.001".to_owned())
                 }),
                 Line::FrameBulk(FrameBulk {
                     auto_actions: AutoActions {
@@ -657,11 +568,11 @@ mod tests {
                     },
                     frame_count: NonZeroU32::new(400).unwrap(),
                     pitch: Some(0.),
-                    ..FrameBulk::with_frame_time(Cow::Borrowed("0.001"))
+                    ..FrameBulk::with_frame_time("0.001".to_owned())
                 }),
                 Line::FrameBulk(FrameBulk {
                     frame_count: NonZeroU32::new(2951).unwrap(),
-                    ..FrameBulk::with_frame_time(Cow::Borrowed("0.001"))
+                    ..FrameBulk::with_frame_time("0.001".to_owned())
                 }),
                 Line::FrameBulk(FrameBulk {
                     auto_actions: AutoActions {
@@ -672,12 +583,10 @@ mod tests {
                         ..AutoActions::default()
                     },
                     frame_count: NonZeroU32::new(1).unwrap(),
-                    console_command: Some(Cow::Borrowed("bxt_timer_start")),
-                    ..FrameBulk::with_frame_time(Cow::Borrowed("0.001"))
+                    console_command: Some("bxt_timer_start".to_owned()),
+                    ..FrameBulk::with_frame_time("0.001".to_owned())
                 }),
-                Line::Comment(Cow::Borrowed(
-                    " More frames because some of them get converted to 0ms",
-                )),
+                Line::Comment(" More frames because some of them get converted to 0ms".to_owned()),
                 Line::FrameBulk(FrameBulk {
                     auto_actions: AutoActions {
                         movement: Some(AutoMovement::Strafe(StrafeSettings {
@@ -692,14 +601,15 @@ mod tests {
                         ..AutoActions::default()
                     },
                     frame_count: NonZeroU32::new(5315).unwrap(),
-                    ..FrameBulk::with_frame_time(Cow::Borrowed("0.001"))
+                    ..FrameBulk::with_frame_time("0.001".to_owned())
                 }),
                 Line::FrameBulk(FrameBulk {
-                    console_command: Some(Cow::Borrowed(
+                    console_command: Some(
                         "stop;bxt_timer_stop;pause;sensitivity 1;_bxt_taslog 0;bxt_taslog;\
-                         //condebug",
-                    )),
-                    ..FrameBulk::with_frame_time(Cow::Borrowed("0.001"))
+                         //condebug"
+                            .to_owned(),
+                    ),
+                    ..FrameBulk::with_frame_time("0.001".to_owned())
                 }),
             ],
         }

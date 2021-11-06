@@ -53,7 +53,7 @@ fn gen_times<W: Write>(times: Times) -> impl SerializeFn<W> {
     }
 }
 
-fn auto_actions<'a, W: Write>(aa: &'a AutoActions) -> impl SerializeFn<W> + 'a {
+fn auto_actions<W: Write>(aa: &AutoActions) -> impl SerializeFn<W> + '_ {
     move |out: WriteContext<W>| {
         let out = match aa.movement {
             None | Some(AutoMovement::SetYaw(_)) => string("---")(out)?,
@@ -122,7 +122,7 @@ fn auto_actions<'a, W: Write>(aa: &'a AutoActions) -> impl SerializeFn<W> + 'a {
     }
 }
 
-fn key<'a, W: Write>(symbol: &'a str, enabled: bool) -> impl SerializeFn<W> + 'a {
+fn key<W: Write>(symbol: &str, enabled: bool) -> impl SerializeFn<W> + '_ {
     move |out: WriteContext<W>| string(if enabled { symbol } else { "-" })(out)
 }
 
@@ -148,7 +148,7 @@ fn action_keys<W: Write>(ak: ActionKeys) -> impl SerializeFn<W> {
     ))
 }
 
-fn yaw_field<'a, W: Write>(movement: &'a Option<AutoMovement>) -> impl SerializeFn<W> + 'a {
+fn yaw_field<W: Write>(movement: &Option<AutoMovement>) -> impl SerializeFn<W> + '_ {
     move |out: WriteContext<W>| match movement {
         None => string("-")(out),
         Some(AutoMovement::SetYaw(yaw)) => display(yaw)(out),
@@ -161,7 +161,7 @@ fn yaw_field<'a, W: Write>(movement: &'a Option<AutoMovement>) -> impl Serialize
     }
 }
 
-fn line_frame_bulk<'a, W: Write>(frame_bulk: &'a FrameBulk<'a>) -> impl SerializeFn<W> + 'a {
+fn line_frame_bulk<W: Write>(frame_bulk: &FrameBulk) -> impl SerializeFn<W> + '_ {
     move |out: WriteContext<W>| {
         let out = auto_actions(&frame_bulk.auto_actions)(out)?;
         let out = string("|")(out)?;
@@ -282,7 +282,7 @@ fn line_change<W: Write>(change: Change) -> impl SerializeFn<W> {
     }
 }
 
-fn line<'a, W: Write>(line: &'a Line<'a>) -> impl SerializeFn<W> + 'a {
+fn line<W: Write>(line: &Line) -> impl SerializeFn<W> + '_ {
     move |out: WriteContext<W>| match line {
         Line::FrameBulk(frame_bulk) => line_frame_bulk(frame_bulk)(out),
         Line::Save(save) => property("save", string(save))(out),
@@ -303,7 +303,7 @@ fn line<'a, W: Write>(line: &'a Line<'a>) -> impl SerializeFn<W> + 'a {
         Line::Change(change) => line_change(*change)(out),
         Line::TargetYawOverride(yaws) => tuple((
             string("target_yaw_override"),
-            many_ref(yaws.as_ref(), |yaw| pair(string(" "), display(yaw))),
+            many_ref(yaws, |yaw| pair(string(" "), display(yaw))),
             string("\n"),
         ))(out),
     }
