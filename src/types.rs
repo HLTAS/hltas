@@ -435,6 +435,88 @@ impl<'a> HLTAS<'a> {
     pub fn to_writer<W: Write>(&self, writer: W) -> Result<(), GenError> {
         write::hltas(writer, self)
     }
+
+    /// Converts all borrowed data in the `HLTAS` to owned data, returning a type with a `'static`
+    /// lifetime.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # extern crate hltas;
+    /// use std::fs::read_to_string;
+    /// use std::path::Path;
+    /// use hltas::HLTAS;
+    ///
+    /// fn read_script(path: &Path) -> Result<HLTAS<'static>, Box<dyn std::error::Error>> {
+    ///     let contents = read_to_string(path)?;
+    ///
+    ///     // When reading the script, both `hltas` and the error borrow `contents`.
+    ///     let hltas = HLTAS::from_str(&contents).map_err(|err| format!("{:?}", err))?;
+    ///
+    ///     // After `to_static()`, the lifetime does not depend on `contents`.
+    ///     Ok(hltas.to_static())
+    /// }
+    /// ```
+    pub fn to_static(&self) -> HLTAS<'static> {
+        HLTAS {
+            properties: Properties {
+                demo: self
+                    .properties
+                    .demo
+                    .as_ref()
+                    .map(|x| Cow::Owned(x.clone().into_owned())),
+                save: self
+                    .properties
+                    .save
+                    .as_ref()
+                    .map(|x| Cow::Owned(x.clone().into_owned())),
+                frametime_0ms: self
+                    .properties
+                    .frametime_0ms
+                    .as_ref()
+                    .map(|x| Cow::Owned(x.clone().into_owned())),
+                seeds: self.properties.seeds,
+                hlstrafe_version: self.properties.hlstrafe_version,
+                load_command: self
+                    .properties
+                    .load_command
+                    .as_ref()
+                    .map(|x| Cow::Owned(x.clone().into_owned())),
+            },
+            lines: self
+                .lines
+                .iter()
+                .map(|line| match line {
+                    Line::FrameBulk(frame_bulk) => Line::FrameBulk(FrameBulk {
+                        auto_actions: frame_bulk.auto_actions,
+                        movement_keys: frame_bulk.movement_keys,
+                        action_keys: frame_bulk.action_keys,
+                        frame_time: Cow::Owned(frame_bulk.frame_time.clone().into_owned()),
+                        pitch: frame_bulk.pitch,
+                        frame_count: frame_bulk.frame_count,
+                        console_command: frame_bulk
+                            .console_command
+                            .as_ref()
+                            .map(|x| Cow::Owned(x.clone().into_owned())),
+                    }),
+                    Line::Save(x) => Line::Save(Cow::Owned(x.clone().into_owned())),
+                    Line::Comment(x) => Line::Comment(Cow::Owned(x.clone().into_owned())),
+                    Line::TargetYawOverride(x) => {
+                        Line::TargetYawOverride(Cow::Owned(x.clone().into_owned()))
+                    }
+                    Line::SharedSeed(x) => Line::SharedSeed(*x),
+                    Line::Buttons(x) => Line::Buttons(*x),
+                    Line::LGAGSTMinSpeed(x) => Line::LGAGSTMinSpeed(*x),
+                    Line::VectorialStrafing(x) => Line::VectorialStrafing(*x),
+                    Line::VectorialStrafingConstraints(x) => Line::VectorialStrafingConstraints(*x),
+                    Line::Change(x) => Line::Change(*x),
+                    Line::Reset { non_shared_seed } => Line::Reset {
+                        non_shared_seed: *non_shared_seed,
+                    },
+                })
+                .collect(),
+        }
+    }
 }
 
 impl<'a> FrameBulk<'a> {
