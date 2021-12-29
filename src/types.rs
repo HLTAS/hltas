@@ -638,6 +638,29 @@ mod tests {
         assert_eq!(hltas, gt);
     }
 
+    #[test]
+    fn write_to_too_small_buffer() {
+        let contents = read_to_string("test-data/parse/bhop.hltas").unwrap();
+        let hltas = HLTAS::from_str(&contents).unwrap();
+
+        let mut buf = [0; 4];
+        assert!(matches!(
+            hltas.to_writer(&mut buf[..]),
+            Err(GenError::BufferTooSmall(_))
+        ));
+    }
+
+    #[test]
+    fn write_to_big_enough_buffer() {
+        let contents = read_to_string("test-data/parse/bhop.hltas").unwrap();
+        let hltas = HLTAS::from_str(&contents).unwrap();
+
+        let mut buf = [0; 1024];
+        let mut buf = &mut buf[..]; // Get the slice to have its len updated by Write.
+        hltas.to_writer(&mut buf).unwrap();
+        assert!(buf.len() < 1024);
+    }
+
     macro_rules! test_error {
         ($test_name:ident, $filename:literal, $context:ident) => {
             #[test]
