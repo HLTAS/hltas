@@ -7,6 +7,7 @@
 
 extern "C" HLTAS::ErrorDescription hltas_rs_read(void* input, const char* filename);
 extern "C" HLTAS::ErrorDescription hltas_rs_write(const void* input, const char* filename);
+extern "C" HLTAS::ErrorDescription hltas_rs_from_string(void* input, const char* script);
 
 namespace HLTAS
 {
@@ -452,6 +453,15 @@ namespace HLTAS
 	ErrorDescription Input::Save(const std::string& filename)
 	{
 		return hltas_rs_write(this, filename.data());
+	}
+
+	ErrorDescription Input::FromString(const char* script)
+	{
+		Clear();
+
+		auto error = hltas_rs_from_string(this, script);
+		Version = 1;
+		return error;
 	}
 
 	int Input::GetVersion() const

@@ -405,6 +405,7 @@ namespace HLTAS
 	public:
 		ErrorDescription Open(const std::string& filename);
 		ErrorDescription Save(const std::string& filename);
+		ErrorDescription FromString(const char* script);
 		void Clear();
 
 		int GetVersion() const;

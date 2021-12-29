@@ -589,6 +589,127 @@ pub unsafe fn hltas_frame_from_non_comment_line(
     (frame, ManuallyDrop::new(allocated))
 }
 
+unsafe fn hltas_rs_from_str(input: *mut c_void, script: &str) -> hltas_cpp::ErrorDescription {
+    match HLTAS::from_str(script) {
+        Ok(hltas) => {
+            if let Some(demo) = hltas.properties.demo {
+                let demo = CString::new(demo).unwrap();
+                hltas_input_set_property(
+                    input,
+                    b"demo\0" as *const u8 as *const c_char,
+                    demo.as_ptr(),
+                );
+            }
+            if let Some(save) = hltas.properties.save {
+                let save = CString::new(save).unwrap();
+                hltas_input_set_property(
+                    input,
+                    b"save\0" as *const u8 as *const c_char,
+                    save.as_ptr(),
+                );
+            }
+            if let Some(frametime_0ms) = hltas.properties.frametime_0ms {
+                let frametime_0ms = CString::new(frametime_0ms).unwrap();
+                hltas_input_set_property(
+                    input,
+                    b"frametime0ms\0" as *const u8 as *const c_char,
+                    frametime_0ms.as_ptr(),
+                );
+            }
+            if let Some(seeds) = hltas.properties.seeds {
+                let seeds = format!("{} {}", seeds.shared, seeds.non_shared);
+                let seeds = CString::new(seeds).unwrap();
+                hltas_input_set_property(
+                    input,
+                    b"seed\0" as *const u8 as *const c_char,
+                    seeds.as_ptr(),
+                );
+            }
+            if let Some(hlstrafe_version) = hltas.properties.hlstrafe_version {
+                let hlstrafe_version = CString::new(hlstrafe_version.to_string()).unwrap();
+                hltas_input_set_property(
+                    input,
+                    b"hlstrafe_version\0" as *const u8 as *const c_char,
+                    hlstrafe_version.as_ptr(),
+                );
+            }
+            if let Some(load_command) = hltas.properties.load_command {
+                let load_command = CString::new(load_command).unwrap();
+                hltas_input_set_property(
+                    input,
+                    b"load_command\0" as *const u8 as *const c_char,
+                    load_command.as_ptr(),
+                );
+            }
+
+            let mut comments = String::new();
+            for line in hltas.lines {
+                match line {
+                    Line::Comment(comment) => {
+                        comments.push_str(&comment);
+                        comments.push('\n');
+                    }
+                    line => {
+                        let (mut frame, mut allocated) = hltas_frame_from_non_comment_line(&line);
+
+                        let comments_cstring = CString::new(comments).unwrap();
+                        frame.Comments = comments_cstring.as_ptr();
+                        comments = String::new();
+
+                        hltas_input_push_frame(input, &frame);
+                        ManuallyDrop::drop(&mut allocated);
+                    }
+                }
+            }
+            hltas_cpp::ErrorDescription {
+                Code: hltas_cpp::ErrorCode::OK,
+                LineNumber: 0,
+            }
+        }
+        Err(error) => {
+            let code = error
+                .context
+                .map(hltas_cpp::ErrorCode::from)
+                .unwrap_or(hltas_cpp::ErrorCode::FAILLINE);
+
+            let message = format!("{}", error);
+            if let Ok(message) = CString::new(message) {
+                hltas_input_set_error_message(input, message.as_ptr());
+            }
+
+            hltas_cpp::ErrorDescription {
+                Code: code,
+                LineNumber: error.line() as u32,
+            }
+        }
+    }
+}
+
+/// Parses the HLTAS from `script` and writes it into `input`.
+///
+/// This is meant to be used internally from the C++ HLTAS library.
+///
+/// # Safety
+///
+/// `input` must be a valid `HLTAS::Input`, `script` must be a valid null-terminated string.
+#[no_mangle]
+pub unsafe extern "C" fn hltas_rs_from_string(
+    input: *mut c_void,
+    script: *const c_char,
+) -> hltas_cpp::ErrorDescription {
+    let script = match CStr::from_ptr(script).to_str() {
+        Ok(x) => x,
+        Err(_) => {
+            return hltas_cpp::ErrorDescription {
+                Code: hltas_cpp::ErrorCode::FAILOPEN,
+                LineNumber: 0,
+            };
+        }
+    };
+
+    hltas_rs_from_str(input, script)
+}
+
 /// Reads the HLTAS from `filename` and writes it into `input`.
 ///
 /// This is meant to be used internally from the C++ HLTAS library.
@@ -603,100 +724,7 @@ pub unsafe extern "C" fn hltas_rs_read(
 ) -> hltas_cpp::ErrorDescription {
     if let Ok(filename) = CStr::from_ptr(filename).to_str() {
         if let Ok(contents) = read_to_string(filename) {
-            match HLTAS::from_str(&contents) {
-                Ok(hltas) => {
-                    if let Some(demo) = hltas.properties.demo {
-                        let demo = CString::new(demo).unwrap();
-                        hltas_input_set_property(
-                            input,
-                            b"demo\0" as *const u8 as *const c_char,
-                            demo.as_ptr(),
-                        );
-                    }
-                    if let Some(save) = hltas.properties.save {
-                        let save = CString::new(save).unwrap();
-                        hltas_input_set_property(
-                            input,
-                            b"save\0" as *const u8 as *const c_char,
-                            save.as_ptr(),
-                        );
-                    }
-                    if let Some(frametime_0ms) = hltas.properties.frametime_0ms {
-                        let frametime_0ms = CString::new(frametime_0ms).unwrap();
-                        hltas_input_set_property(
-                            input,
-                            b"frametime0ms\0" as *const u8 as *const c_char,
-                            frametime_0ms.as_ptr(),
-                        );
-                    }
-                    if let Some(seeds) = hltas.properties.seeds {
-                        let seeds = format!("{} {}", seeds.shared, seeds.non_shared);
-                        let seeds = CString::new(seeds).unwrap();
-                        hltas_input_set_property(
-                            input,
-                            b"seed\0" as *const u8 as *const c_char,
-                            seeds.as_ptr(),
-                        );
-                    }
-                    if let Some(hlstrafe_version) = hltas.properties.hlstrafe_version {
-                        let hlstrafe_version = CString::new(hlstrafe_version.to_string()).unwrap();
-                        hltas_input_set_property(
-                            input,
-                            b"hlstrafe_version\0" as *const u8 as *const c_char,
-                            hlstrafe_version.as_ptr(),
-                        );
-                    }
-                    if let Some(load_command) = hltas.properties.load_command {
-                        let load_command = CString::new(load_command).unwrap();
-                        hltas_input_set_property(
-                            input,
-                            b"load_command\0" as *const u8 as *const c_char,
-                            load_command.as_ptr(),
-                        );
-                    }
-
-                    let mut comments = String::new();
-                    for line in hltas.lines {
-                        match line {
-                            Line::Comment(comment) => {
-                                comments.push_str(&comment);
-                                comments.push('\n');
-                            }
-                            line => {
-                                let (mut frame, mut allocated) =
-                                    hltas_frame_from_non_comment_line(&line);
-
-                                let comments_cstring = CString::new(comments).unwrap();
-                                frame.Comments = comments_cstring.as_ptr();
-                                comments = String::new();
-
-                                hltas_input_push_frame(input, &frame);
-                                ManuallyDrop::drop(&mut allocated);
-                            }
-                        }
-                    }
-                    hltas_cpp::ErrorDescription {
-                        Code: hltas_cpp::ErrorCode::OK,
-                        LineNumber: 0,
-                    }
-                }
-                Err(error) => {
-                    let code = error
-                        .context
-                        .map(hltas_cpp::ErrorCode::from)
-                        .unwrap_or(hltas_cpp::ErrorCode::FAILLINE);
-
-                    let message = format!("{}", error);
-                    if let Ok(message) = CString::new(message) {
-                        hltas_input_set_error_message(input, message.as_ptr());
-                    }
-
-                    hltas_cpp::ErrorDescription {
-                        Code: code,
-                        LineNumber: error.line() as u32,
-                    }
-                }
-            }
+            hltas_rs_from_str(input, &contents)
         } else {
             hltas_cpp::ErrorDescription {
                 Code: hltas_cpp::ErrorCode::FAILOPEN,

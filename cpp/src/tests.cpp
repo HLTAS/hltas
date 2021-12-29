@@ -169,3 +169,29 @@ TEST_CASE("Parse, write, parse and validate") {
 
 	validate(input);
 }
+
+TEST_CASE("Parse from string and validate") {
+	const char *script = "version 1\n\
+demo bhop\n\
+frametime0ms 0.0000001\n\
+hlstrafe_version 1\n\
+frames\n\
+----------|------|------|0.001|-|-|1|sensitivity 0;bxt_timer_reset;bxt_taslog\n\
+----------|------|------|0.001|-|-|5\n\
+\n\
+s03-------|------|------|0.001|170|0|400\n\
+----------|------|------|0.001|-|-|2951\n\
+\n\
+s03-------|------|------|0.001|90|-|1|bxt_timer_start\n\
+\n\
+// More frames because some of them get converted to 0ms\n\
+s03l-D----|------|------|0.001|90|-|5315\n\
+\n\
+----------|------|------|0.001|-|-|1|stop;bxt_timer_stop;pause;sensitivity 1;_bxt_taslog 0;bxt_taslog;//condebug\n\
+";
+
+	HLTAS::Input input;
+	REQUIRE(input.FromString(script).Code == HLTAS::ErrorCode::OK);
+
+	validate(input);
+}
