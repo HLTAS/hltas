@@ -1,11 +1,13 @@
 use std::{
-    convert::TryInto,
+    convert::{TryFrom, TryInto},
     ffi::{CStr, CString},
     fmt::{self, Debug},
     fs::{read_to_string, File},
+    io::Write,
     mem::{zeroed, ManuallyDrop},
     num::NonZeroU32,
-    os::raw::{c_char, c_void},
+    os::raw::{c_char, c_ulong, c_void},
+    ptr::slice_from_raw_parts_mut,
     slice,
     str::FromStr,
 };
@@ -739,6 +741,448 @@ pub unsafe extern "C" fn hltas_rs_read(
     }
 }
 
+unsafe fn hltas_rs_to_writer(
+    input: *const c_void,
+    writer: impl Write,
+) -> hltas_cpp::ErrorDescription {
+    let demo = hltas_input_get_property(input, b"demo\0" as *const u8 as *const c_char);
+    let demo = if demo.is_null() {
+        None
+    } else if let Ok(demo) = CStr::from_ptr(demo).to_str() {
+        Some(demo)
+    } else {
+        return hltas_cpp::ErrorDescription {
+            Code: hltas_cpp::ErrorCode::FAILWRITE,
+            LineNumber: 0,
+        };
+    };
+
+    let save = hltas_input_get_property(input, b"save\0" as *const u8 as *const c_char);
+    let save = if save.is_null() {
+        None
+    } else if let Ok(save) = CStr::from_ptr(save).to_str() {
+        Some(save)
+    } else {
+        return hltas_cpp::ErrorDescription {
+            Code: hltas_cpp::ErrorCode::FAILWRITE,
+            LineNumber: 0,
+        };
+    };
+
+    let seed = hltas_input_get_property(input, b"seed\0" as *const u8 as *const c_char);
+    let seeds = if seed.is_null() {
+        None
+    } else if let Ok(seed) = CStr::from_ptr(seed).to_str() {
+        if let Ok((_, seeds)) = seeds(seed) {
+            Some(seeds)
+        } else {
+            return hltas_cpp::ErrorDescription {
+                Code: hltas_cpp::ErrorCode::FAILWRITE,
+                LineNumber: 0,
+            };
+        }
+    } else {
+        return hltas_cpp::ErrorDescription {
+            Code: hltas_cpp::ErrorCode::FAILWRITE,
+            LineNumber: 0,
+        };
+    };
+
+    let frametime_0ms =
+        hltas_input_get_property(input, b"frametime0ms\0" as *const u8 as *const c_char);
+    let frametime_0ms = if frametime_0ms.is_null() {
+        None
+    } else if let Ok(frametime_0ms) = CStr::from_ptr(frametime_0ms).to_str() {
+        Some(frametime_0ms)
+    } else {
+        return hltas_cpp::ErrorDescription {
+            Code: hltas_cpp::ErrorCode::FAILWRITE,
+            LineNumber: 0,
+        };
+    };
+
+    let hlstrafe_version =
+        hltas_input_get_property(input, b"hlstrafe_version\0" as *const u8 as *const c_char);
+    let hlstrafe_version = if hlstrafe_version.is_null() {
+        None
+    } else if let Ok(hlstrafe_version) = CStr::from_ptr(hlstrafe_version).to_str() {
+        if let Ok((_, hlstrafe_version)) = non_zero_u32(hlstrafe_version) {
+            Some(hlstrafe_version)
+        } else {
+            return hltas_cpp::ErrorDescription {
+                Code: hltas_cpp::ErrorCode::FAILWRITE,
+                LineNumber: 0,
+            };
+        }
+    } else {
+        return hltas_cpp::ErrorDescription {
+            Code: hltas_cpp::ErrorCode::FAILWRITE,
+            LineNumber: 0,
+        };
+    };
+
+    let load_command =
+        hltas_input_get_property(input, b"load_command\0" as *const u8 as *const c_char);
+    let load_command = if load_command.is_null() {
+        None
+    } else if let Ok(load_command) = CStr::from_ptr(load_command).to_str() {
+        Some(load_command)
+    } else {
+        return hltas_cpp::ErrorDescription {
+            Code: hltas_cpp::ErrorCode::FAILWRITE,
+            LineNumber: 0,
+        };
+    };
+
+    let mut hltas = HLTAS {
+        properties: Properties {
+            demo: demo.map(ToOwned::to_owned),
+            save: save.map(ToOwned::to_owned),
+            seeds,
+            frametime_0ms: frametime_0ms.map(ToOwned::to_owned),
+            hlstrafe_version,
+            load_command: load_command.map(ToOwned::to_owned),
+        },
+        lines: Vec::new(),
+    };
+
+    let mut index = 0;
+    loop {
+        let mut frame = zeroed();
+        if hltas_input_get_frame(input, index, &mut frame) != 0 {
+            break;
+        }
+        index += 1;
+
+        if !frame.Comments.is_null() {
+            let comments = if let Ok(comments) = CStr::from_ptr(frame.Comments).to_str() {
+                comments
+            } else {
+                return hltas_cpp::ErrorDescription {
+                    Code: hltas_cpp::ErrorCode::FAILWRITE,
+                    LineNumber: 0,
+                };
+            };
+
+            for line in comments.lines() {
+                hltas.lines.push(Line::Comment(line.to_owned()));
+            }
+        }
+
+        if !frame.SaveName.is_null() {
+            let save = if let Ok(save) = CStr::from_ptr(frame.SaveName).to_str() {
+                save
+            } else {
+                return hltas_cpp::ErrorDescription {
+                    Code: hltas_cpp::ErrorCode::FAILWRITE,
+                    LineNumber: 0,
+                };
+            };
+
+            hltas.lines.push(Line::Save(save.to_owned()));
+            continue;
+        }
+
+        if frame.SeedPresent {
+            hltas.lines.push(Line::SharedSeed(frame.Seed));
+            continue;
+        }
+
+        if frame.BtnState != hltas_cpp::ButtonState::NOTHING {
+            let line = if frame.BtnState == hltas_cpp::ButtonState::SET {
+                Line::Buttons(Buttons::Set {
+                    air_left: frame.Buttons.AirLeft.into(),
+                    air_right: frame.Buttons.AirRight.into(),
+                    ground_left: frame.Buttons.GroundLeft.into(),
+                    ground_right: frame.Buttons.GroundRight.into(),
+                })
+            } else {
+                Line::Buttons(Buttons::Reset)
+            };
+
+            hltas.lines.push(line);
+            continue;
+        }
+
+        if frame.LgagstMinSpeedPresent {
+            hltas.lines.push(Line::LGAGSTMinSpeed(frame.LgagstMinSpeed));
+            continue;
+        }
+
+        if frame.ResetFrame {
+            hltas.lines.push(Line::Reset {
+                non_shared_seed: frame.ResetNonSharedRNGSeed,
+            });
+            continue;
+        }
+
+        if frame.StrafingAlgorithmPresent {
+            hltas.lines.push(Line::VectorialStrafing(
+                frame.Algorithm == hltas_cpp::StrafingAlgorithm::VECTORIAL,
+            ));
+            continue;
+        }
+
+        if frame.AlgorithmParametersPresent {
+            hltas
+                .lines
+                .push(Line::VectorialStrafingConstraints(frame.Parameters.into()));
+
+            continue;
+        }
+
+        if frame.ChangePresent {
+            hltas.lines.push(Line::Change(Change {
+                target: frame.Target.into(),
+                final_value: frame.ChangeFinalValue,
+                over: frame.ChangeOver,
+            }));
+
+            continue;
+        }
+
+        if frame.TargetYawOverrideCount != 0 {
+            let yaws = slice::from_raw_parts(
+                frame.TargetYawOverride,
+                frame.TargetYawOverrideCount.try_into().unwrap(),
+            );
+            hltas.lines.push(Line::TargetYawOverride(yaws.to_owned()));
+            continue;
+        }
+
+        let movement = if frame.Strafe {
+            use hltas_cpp::StrafeDir::*;
+            Some(AutoMovement::Strafe(StrafeSettings {
+                type_: frame.Type.into(),
+                dir: match frame.Dir {
+                    LEFT => StrafeDir::Left,
+                    RIGHT => StrafeDir::Right,
+                    BEST => StrafeDir::Best,
+                    YAW => StrafeDir::Yaw(frame.Yaw as f32),
+                    POINT => StrafeDir::Point {
+                        x: frame.X as f32,
+                        y: frame.Y as f32,
+                    },
+                    LINE => StrafeDir::Line {
+                        yaw: frame.Yaw as f32,
+                    },
+                },
+            }))
+        } else if frame.YawPresent {
+            Some(AutoMovement::SetYaw(frame.Yaw as f32))
+        } else {
+            None
+        };
+
+        let leave_ground_action = if frame.Lgagst {
+            let speed = if frame.LgagstFullMaxspeed {
+                LeaveGroundActionSpeed::OptimalWithFullMaxspeed
+            } else {
+                LeaveGroundActionSpeed::Optimal
+            };
+
+            if frame.Autojump {
+                Some(LeaveGroundAction {
+                    speed,
+                    times: frame.LgagstTimes.into(),
+                    type_: LeaveGroundActionType::Jump,
+                })
+            } else {
+                Some(LeaveGroundAction {
+                    speed,
+                    times: frame.LgagstTimes.into(),
+                    type_: LeaveGroundActionType::DuckTap {
+                        zero_ms: frame.Ducktap0ms,
+                    },
+                })
+            }
+        } else if frame.Autojump {
+            Some(LeaveGroundAction {
+                speed: LeaveGroundActionSpeed::Any,
+                times: frame.AutojumpTimes.into(),
+                type_: LeaveGroundActionType::Jump,
+            })
+        } else if frame.Ducktap {
+            Some(LeaveGroundAction {
+                speed: LeaveGroundActionSpeed::Any,
+                times: frame.DucktapTimes.into(),
+                type_: LeaveGroundActionType::DuckTap {
+                    zero_ms: frame.Ducktap0ms,
+                },
+            })
+        } else {
+            None
+        };
+
+        let jump_bug = if frame.Jumpbug {
+            Some(JumpBug {
+                times: frame.JumpbugTimes.into(),
+            })
+        } else {
+            None
+        };
+
+        let duck_before_collision = if frame.Dbc {
+            Some(DuckBeforeCollision {
+                times: frame.DbcTimes.into(),
+                including_ceilings: frame.DbcCeilings,
+            })
+        } else {
+            None
+        };
+
+        let duck_before_ground = if frame.Dbg {
+            Some(DuckBeforeGround {
+                times: frame.DbgTimes.into(),
+            })
+        } else {
+            None
+        };
+
+        let duck_when_jump = if frame.Dwj {
+            Some(DuckWhenJump {
+                times: frame.DwjTimes.into(),
+            })
+        } else {
+            None
+        };
+
+        let forward = frame.Forward;
+        let left = frame.Left;
+        let right = frame.Right;
+        let back = frame.Back;
+        let up = frame.Up;
+        let down = frame.Down;
+
+        let jump = frame.Jump;
+        let duck = frame.Duck;
+        let use_ = frame.Use;
+        let attack_1 = frame.Attack1;
+        let attack_2 = frame.Attack2;
+        let reload = frame.Reload;
+
+        let frame_time = if let Ok(frametime) = CStr::from_ptr(frame.Frametime).to_str() {
+            frametime
+        } else {
+            return hltas_cpp::ErrorDescription {
+                Code: hltas_cpp::ErrorCode::FAILWRITE,
+                LineNumber: 0,
+            };
+        };
+
+        let pitch = if frame.PitchPresent {
+            Some(frame.Pitch as f32)
+        } else {
+            None
+        };
+
+        let frame_count = if let Some(frame_count) = NonZeroU32::new(frame.Repeats) {
+            frame_count
+        } else {
+            return hltas_cpp::ErrorDescription {
+                Code: hltas_cpp::ErrorCode::FAILWRITE,
+                LineNumber: 0,
+            };
+        };
+
+        let console_command = if frame.Commands.is_null() {
+            None
+        } else if let Ok(commands) = CStr::from_ptr(frame.Commands).to_str() {
+            Some(commands)
+        } else {
+            return hltas_cpp::ErrorDescription {
+                Code: hltas_cpp::ErrorCode::FAILWRITE,
+                LineNumber: 0,
+            };
+        };
+
+        let frame_bulk = FrameBulk {
+            auto_actions: AutoActions {
+                movement,
+                leave_ground_action,
+                jump_bug,
+                duck_before_collision,
+                duck_before_ground,
+                duck_when_jump,
+            },
+            movement_keys: MovementKeys {
+                forward,
+                left,
+                right,
+                back,
+                up,
+                down,
+            },
+            action_keys: ActionKeys {
+                jump,
+                duck,
+                use_,
+                attack_1,
+                attack_2,
+                reload,
+            },
+            frame_time: frame_time.to_owned(),
+            pitch,
+            frame_count,
+            console_command: console_command.map(ToOwned::to_owned),
+        };
+
+        hltas.lines.push(Line::FrameBulk(frame_bulk));
+    }
+
+    if hltas.to_writer(writer).is_err() {
+        hltas_cpp::ErrorDescription {
+            Code: hltas_cpp::ErrorCode::FAILWRITE,
+            LineNumber: 0,
+        }
+    } else {
+        hltas_cpp::ErrorDescription {
+            Code: hltas_cpp::ErrorCode::OK,
+            LineNumber: 0,
+        }
+    }
+}
+
+/// Writes the HLTAS from `input` to `script`.
+///
+/// This is meant to be used internally from the C++ HLTAS library.
+///
+/// # Safety
+///
+/// `input` must be a valid `HLTAS::Input`, `script` must be a valid pointer to a `size`-long array.
+#[no_mangle]
+pub unsafe extern "C" fn hltas_rs_to_string(
+    input: *const c_void,
+    script: *mut c_char,
+    size: c_ulong,
+) -> hltas_cpp::ErrorDescription {
+    let size = match usize::try_from(size) {
+        Ok(x) => x,
+        Err(_) => {
+            return hltas_cpp::ErrorDescription {
+                Code: hltas_cpp::ErrorCode::FAILWRITE,
+                LineNumber: 0,
+            }
+        }
+    };
+
+    let mut buf = &mut *slice_from_raw_parts_mut(script.cast(), size);
+    let rv = hltas_rs_to_writer(input, &mut buf);
+    if rv.Code == hltas_cpp::ErrorCode::OK {
+        if buf.is_empty() {
+            // No space left for the NULL byte.
+            return hltas_cpp::ErrorDescription {
+                Code: hltas_cpp::ErrorCode::FAILWRITE,
+                LineNumber: 0,
+            };
+        }
+
+        // Write the terminating NULL byte.
+        buf[0] = 0;
+    }
+    rv
+}
+
 /// Writes the HLTAS from `input` to `filename`.
 ///
 /// This is meant to be used internally from the C++ HLTAS library.
@@ -753,404 +1197,7 @@ pub unsafe extern "C" fn hltas_rs_write(
 ) -> hltas_cpp::ErrorDescription {
     if let Ok(filename) = CStr::from_ptr(filename).to_str() {
         if let Ok(file) = File::create(filename) {
-            let demo = hltas_input_get_property(input, b"demo\0" as *const u8 as *const c_char);
-            let demo = if demo.is_null() {
-                None
-            } else if let Ok(demo) = CStr::from_ptr(demo).to_str() {
-                Some(demo)
-            } else {
-                return hltas_cpp::ErrorDescription {
-                    Code: hltas_cpp::ErrorCode::FAILWRITE,
-                    LineNumber: 0,
-                };
-            };
-
-            let save = hltas_input_get_property(input, b"save\0" as *const u8 as *const c_char);
-            let save = if save.is_null() {
-                None
-            } else if let Ok(save) = CStr::from_ptr(save).to_str() {
-                Some(save)
-            } else {
-                return hltas_cpp::ErrorDescription {
-                    Code: hltas_cpp::ErrorCode::FAILWRITE,
-                    LineNumber: 0,
-                };
-            };
-
-            let seed = hltas_input_get_property(input, b"seed\0" as *const u8 as *const c_char);
-            let seeds = if seed.is_null() {
-                None
-            } else if let Ok(seed) = CStr::from_ptr(seed).to_str() {
-                if let Ok((_, seeds)) = seeds(seed) {
-                    Some(seeds)
-                } else {
-                    return hltas_cpp::ErrorDescription {
-                        Code: hltas_cpp::ErrorCode::FAILWRITE,
-                        LineNumber: 0,
-                    };
-                }
-            } else {
-                return hltas_cpp::ErrorDescription {
-                    Code: hltas_cpp::ErrorCode::FAILWRITE,
-                    LineNumber: 0,
-                };
-            };
-
-            let frametime_0ms =
-                hltas_input_get_property(input, b"frametime0ms\0" as *const u8 as *const c_char);
-            let frametime_0ms = if frametime_0ms.is_null() {
-                None
-            } else if let Ok(frametime_0ms) = CStr::from_ptr(frametime_0ms).to_str() {
-                Some(frametime_0ms)
-            } else {
-                return hltas_cpp::ErrorDescription {
-                    Code: hltas_cpp::ErrorCode::FAILWRITE,
-                    LineNumber: 0,
-                };
-            };
-
-            let hlstrafe_version = hltas_input_get_property(
-                input,
-                b"hlstrafe_version\0" as *const u8 as *const c_char,
-            );
-            let hlstrafe_version = if hlstrafe_version.is_null() {
-                None
-            } else if let Ok(hlstrafe_version) = CStr::from_ptr(hlstrafe_version).to_str() {
-                if let Ok((_, hlstrafe_version)) = non_zero_u32(hlstrafe_version) {
-                    Some(hlstrafe_version)
-                } else {
-                    return hltas_cpp::ErrorDescription {
-                        Code: hltas_cpp::ErrorCode::FAILWRITE,
-                        LineNumber: 0,
-                    };
-                }
-            } else {
-                return hltas_cpp::ErrorDescription {
-                    Code: hltas_cpp::ErrorCode::FAILWRITE,
-                    LineNumber: 0,
-                };
-            };
-
-            let load_command =
-                hltas_input_get_property(input, b"load_command\0" as *const u8 as *const c_char);
-            let load_command = if load_command.is_null() {
-                None
-            } else if let Ok(load_command) = CStr::from_ptr(load_command).to_str() {
-                Some(load_command)
-            } else {
-                return hltas_cpp::ErrorDescription {
-                    Code: hltas_cpp::ErrorCode::FAILWRITE,
-                    LineNumber: 0,
-                };
-            };
-
-            let mut hltas = HLTAS {
-                properties: Properties {
-                    demo: demo.map(ToOwned::to_owned),
-                    save: save.map(ToOwned::to_owned),
-                    seeds,
-                    frametime_0ms: frametime_0ms.map(ToOwned::to_owned),
-                    hlstrafe_version,
-                    load_command: load_command.map(ToOwned::to_owned),
-                },
-                lines: Vec::new(),
-            };
-
-            let mut index = 0;
-            loop {
-                let mut frame = zeroed();
-                if hltas_input_get_frame(input, index, &mut frame) != 0 {
-                    break;
-                }
-                index += 1;
-
-                if !frame.Comments.is_null() {
-                    let comments = if let Ok(comments) = CStr::from_ptr(frame.Comments).to_str() {
-                        comments
-                    } else {
-                        return hltas_cpp::ErrorDescription {
-                            Code: hltas_cpp::ErrorCode::FAILWRITE,
-                            LineNumber: 0,
-                        };
-                    };
-
-                    for line in comments.lines() {
-                        hltas.lines.push(Line::Comment(line.to_owned()));
-                    }
-                }
-
-                if !frame.SaveName.is_null() {
-                    let save = if let Ok(save) = CStr::from_ptr(frame.SaveName).to_str() {
-                        save
-                    } else {
-                        return hltas_cpp::ErrorDescription {
-                            Code: hltas_cpp::ErrorCode::FAILWRITE,
-                            LineNumber: 0,
-                        };
-                    };
-
-                    hltas.lines.push(Line::Save(save.to_owned()));
-                    continue;
-                }
-
-                if frame.SeedPresent {
-                    hltas.lines.push(Line::SharedSeed(frame.Seed));
-                    continue;
-                }
-
-                if frame.BtnState != hltas_cpp::ButtonState::NOTHING {
-                    let line = if frame.BtnState == hltas_cpp::ButtonState::SET {
-                        Line::Buttons(Buttons::Set {
-                            air_left: frame.Buttons.AirLeft.into(),
-                            air_right: frame.Buttons.AirRight.into(),
-                            ground_left: frame.Buttons.GroundLeft.into(),
-                            ground_right: frame.Buttons.GroundRight.into(),
-                        })
-                    } else {
-                        Line::Buttons(Buttons::Reset)
-                    };
-
-                    hltas.lines.push(line);
-                    continue;
-                }
-
-                if frame.LgagstMinSpeedPresent {
-                    hltas.lines.push(Line::LGAGSTMinSpeed(frame.LgagstMinSpeed));
-                    continue;
-                }
-
-                if frame.ResetFrame {
-                    hltas.lines.push(Line::Reset {
-                        non_shared_seed: frame.ResetNonSharedRNGSeed,
-                    });
-                    continue;
-                }
-
-                if frame.StrafingAlgorithmPresent {
-                    hltas.lines.push(Line::VectorialStrafing(
-                        frame.Algorithm == hltas_cpp::StrafingAlgorithm::VECTORIAL,
-                    ));
-                    continue;
-                }
-
-                if frame.AlgorithmParametersPresent {
-                    hltas
-                        .lines
-                        .push(Line::VectorialStrafingConstraints(frame.Parameters.into()));
-
-                    continue;
-                }
-
-                if frame.ChangePresent {
-                    hltas.lines.push(Line::Change(Change {
-                        target: frame.Target.into(),
-                        final_value: frame.ChangeFinalValue,
-                        over: frame.ChangeOver,
-                    }));
-
-                    continue;
-                }
-
-                if frame.TargetYawOverrideCount != 0 {
-                    let yaws = slice::from_raw_parts(
-                        frame.TargetYawOverride,
-                        frame.TargetYawOverrideCount.try_into().unwrap(),
-                    );
-                    hltas.lines.push(Line::TargetYawOverride(yaws.to_owned()));
-                    continue;
-                }
-
-                let movement = if frame.Strafe {
-                    use hltas_cpp::StrafeDir::*;
-                    Some(AutoMovement::Strafe(StrafeSettings {
-                        type_: frame.Type.into(),
-                        dir: match frame.Dir {
-                            LEFT => StrafeDir::Left,
-                            RIGHT => StrafeDir::Right,
-                            BEST => StrafeDir::Best,
-                            YAW => StrafeDir::Yaw(frame.Yaw as f32),
-                            POINT => StrafeDir::Point {
-                                x: frame.X as f32,
-                                y: frame.Y as f32,
-                            },
-                            LINE => StrafeDir::Line {
-                                yaw: frame.Yaw as f32,
-                            },
-                        },
-                    }))
-                } else if frame.YawPresent {
-                    Some(AutoMovement::SetYaw(frame.Yaw as f32))
-                } else {
-                    None
-                };
-
-                let leave_ground_action = if frame.Lgagst {
-                    let speed = if frame.LgagstFullMaxspeed {
-                        LeaveGroundActionSpeed::OptimalWithFullMaxspeed
-                    } else {
-                        LeaveGroundActionSpeed::Optimal
-                    };
-
-                    if frame.Autojump {
-                        Some(LeaveGroundAction {
-                            speed,
-                            times: frame.LgagstTimes.into(),
-                            type_: LeaveGroundActionType::Jump,
-                        })
-                    } else {
-                        Some(LeaveGroundAction {
-                            speed,
-                            times: frame.LgagstTimes.into(),
-                            type_: LeaveGroundActionType::DuckTap {
-                                zero_ms: frame.Ducktap0ms,
-                            },
-                        })
-                    }
-                } else if frame.Autojump {
-                    Some(LeaveGroundAction {
-                        speed: LeaveGroundActionSpeed::Any,
-                        times: frame.AutojumpTimes.into(),
-                        type_: LeaveGroundActionType::Jump,
-                    })
-                } else if frame.Ducktap {
-                    Some(LeaveGroundAction {
-                        speed: LeaveGroundActionSpeed::Any,
-                        times: frame.DucktapTimes.into(),
-                        type_: LeaveGroundActionType::DuckTap {
-                            zero_ms: frame.Ducktap0ms,
-                        },
-                    })
-                } else {
-                    None
-                };
-
-                let jump_bug = if frame.Jumpbug {
-                    Some(JumpBug {
-                        times: frame.JumpbugTimes.into(),
-                    })
-                } else {
-                    None
-                };
-
-                let duck_before_collision = if frame.Dbc {
-                    Some(DuckBeforeCollision {
-                        times: frame.DbcTimes.into(),
-                        including_ceilings: frame.DbcCeilings,
-                    })
-                } else {
-                    None
-                };
-
-                let duck_before_ground = if frame.Dbg {
-                    Some(DuckBeforeGround {
-                        times: frame.DbgTimes.into(),
-                    })
-                } else {
-                    None
-                };
-
-                let duck_when_jump = if frame.Dwj {
-                    Some(DuckWhenJump {
-                        times: frame.DwjTimes.into(),
-                    })
-                } else {
-                    None
-                };
-
-                let forward = frame.Forward;
-                let left = frame.Left;
-                let right = frame.Right;
-                let back = frame.Back;
-                let up = frame.Up;
-                let down = frame.Down;
-
-                let jump = frame.Jump;
-                let duck = frame.Duck;
-                let use_ = frame.Use;
-                let attack_1 = frame.Attack1;
-                let attack_2 = frame.Attack2;
-                let reload = frame.Reload;
-
-                let frame_time = if let Ok(frametime) = CStr::from_ptr(frame.Frametime).to_str() {
-                    frametime
-                } else {
-                    return hltas_cpp::ErrorDescription {
-                        Code: hltas_cpp::ErrorCode::FAILWRITE,
-                        LineNumber: 0,
-                    };
-                };
-
-                let pitch = if frame.PitchPresent {
-                    Some(frame.Pitch as f32)
-                } else {
-                    None
-                };
-
-                let frame_count = if let Some(frame_count) = NonZeroU32::new(frame.Repeats) {
-                    frame_count
-                } else {
-                    return hltas_cpp::ErrorDescription {
-                        Code: hltas_cpp::ErrorCode::FAILWRITE,
-                        LineNumber: 0,
-                    };
-                };
-
-                let console_command = if frame.Commands.is_null() {
-                    None
-                } else if let Ok(commands) = CStr::from_ptr(frame.Commands).to_str() {
-                    Some(commands)
-                } else {
-                    return hltas_cpp::ErrorDescription {
-                        Code: hltas_cpp::ErrorCode::FAILWRITE,
-                        LineNumber: 0,
-                    };
-                };
-
-                let frame_bulk = FrameBulk {
-                    auto_actions: AutoActions {
-                        movement,
-                        leave_ground_action,
-                        jump_bug,
-                        duck_before_collision,
-                        duck_before_ground,
-                        duck_when_jump,
-                    },
-                    movement_keys: MovementKeys {
-                        forward,
-                        left,
-                        right,
-                        back,
-                        up,
-                        down,
-                    },
-                    action_keys: ActionKeys {
-                        jump,
-                        duck,
-                        use_,
-                        attack_1,
-                        attack_2,
-                        reload,
-                    },
-                    frame_time: frame_time.to_owned(),
-                    pitch,
-                    frame_count,
-                    console_command: console_command.map(ToOwned::to_owned),
-                };
-
-                hltas.lines.push(Line::FrameBulk(frame_bulk));
-            }
-
-            if hltas.to_writer(file).is_err() {
-                hltas_cpp::ErrorDescription {
-                    Code: hltas_cpp::ErrorCode::FAILWRITE,
-                    LineNumber: 0,
-                }
-            } else {
-                hltas_cpp::ErrorDescription {
-                    Code: hltas_cpp::ErrorCode::OK,
-                    LineNumber: 0,
-                }
-            }
+            hltas_rs_to_writer(input, file)
         } else {
             hltas_cpp::ErrorDescription {
                 Code: hltas_cpp::ErrorCode::FAILOPEN,
