@@ -4,6 +4,7 @@
 ### Added
 - `Properties::load_command`.
 - `Line::TargetYawOverride`.
+- cpp: `Input::ToString()`, `Input::FromString()`.
 
 ### Changed
 - Changed all reference components of the `HLTAS` type into owned types thus making it easy to construct a `HLTAS` programmatically and to store `HLTAS` instances.
