@@ -83,6 +83,8 @@ namespace HLTAS
 		if (c_frame.Dir == HLTAS::StrafeDir::POINT) {
 			X = c_frame.X;
 			Y = c_frame.Y;
+		} else if (c_frame.Dir == HLTAS::StrafeDir::LEFT_RIGHT || c_frame.Dir == HLTAS::StrafeDir::RIGHT_LEFT) {
+			Count = c_frame.Count;
 		} else {
 			Yaw = c_frame.Yaw;
 		}
@@ -236,6 +238,12 @@ namespace HLTAS
 		return Y;
 	}
 
+	unsigned Frame::GetCount() const
+	{
+		assert(HasCount());
+		return Count;
+	}
+
 	double Frame::GetPitch() const
 	{
 		assert(PitchPresent);
@@ -267,6 +275,13 @@ namespace HLTAS
 		assert(Strafe && Dir == StrafeDir::POINT);
 		YawPresent = true;
 		Y = value;
+	}
+
+	void Frame::SetCount(unsigned value)
+	{
+		assert(!Strafe || (Dir == StrafeDir::LEFT_RIGHT || Dir == StrafeDir::RIGHT_LEFT));
+		YawPresent = true;
+		Count = value;
 	}
 
 	void Frame::SetPitch(double value)
@@ -426,6 +441,7 @@ namespace HLTAS
 		       Yaw == rhs.Yaw &&
 		       X == rhs.X &&
 		       Y == rhs.Y &&
+			   Count == rhs.Count &&
 		       Pitch == rhs.Pitch &&
 		       Repeats == rhs.Repeats &&
 		       Commands == rhs.Commands &&
@@ -597,6 +613,8 @@ extern "C" int hltas_input_get_frame(const void* input, size_t index, hltas_fram
 	if (frame.Dir == HLTAS::StrafeDir::POINT) {
 		c_frame->X = frame.X;
 		c_frame->Y = frame.Y;
+	} else if (frame.Dir == HLTAS::StrafeDir::LEFT_RIGHT || frame.Dir == HLTAS::StrafeDir::RIGHT_LEFT) {
+		c_frame->Count = frame.Count;
 	} else {
 		c_frame->Yaw = frame.Yaw;
 	}

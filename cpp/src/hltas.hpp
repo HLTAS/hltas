@@ -62,7 +62,9 @@ namespace HLTAS
 		BEST,
 		YAW,
 		POINT,
-		LINE
+		LINE,
+		LEFT_RIGHT,
+		RIGHT_LEFT
 	};
 
 	enum class ButtonState : unsigned char {
@@ -302,6 +304,7 @@ namespace HLTAS
 			struct {
 				double X, Y;
 			};
+			unsigned Count;
 		};
 		double Pitch;
 
@@ -314,12 +317,15 @@ namespace HLTAS
 		inline bool HasXY() const { return YawPresent && Strafe && Dir == StrafeDir::POINT; }
 		double GetX() const;
 		double GetY() const;
+		inline bool HasCount() const { return YawPresent && Strafe && (Dir == StrafeDir::LEFT_RIGHT || Dir == StrafeDir::RIGHT_LEFT); }
+		unsigned GetCount() const;
 		double GetPitch() const;
 		inline unsigned GetRepeats() const { return Repeats; }
 		void SetYawPresent(bool value);
 		void SetYaw(double value);
 		void SetX(double value);
 		void SetY(double value);
+		void SetCount(unsigned value);
 		void SetPitch(double value);
 		void SetRepeats(unsigned value);
 
@@ -474,6 +480,7 @@ extern "C" {
 		double Yaw;
 		double X;
 		double Y;
+		unsigned Count;
 		double Pitch;
 		uint32_t Repeats;
 		const char* Commands;

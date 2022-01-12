@@ -203,6 +203,10 @@ pub enum StrafeDir {
         /// The line goes from the player position in the direction of this yaw angle.
         yaw: f32,
     },
+    /// Alternate turning left and right for this number of frames each.
+    LeftRight(NonZeroU32),
+    /// Alternate turning right and left for this number of frames each.
+    RightLeft(NonZeroU32),
 }
 
 /// Number of times this action must be executed.

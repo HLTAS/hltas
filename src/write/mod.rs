@@ -40,6 +40,8 @@ fn strafe_dir<W: Write>(dir: StrafeDir) -> impl SerializeFn<W> {
         Yaw(_) => string("3"),
         Point { .. } => string("4"),
         Line { .. } => string("5"),
+        LeftRight(_) => string("6"),
+        RightLeft(_) => string("7"),
     }
 }
 
@@ -156,6 +158,7 @@ fn yaw_field<W: Write>(movement: &Option<AutoMovement>) -> impl SerializeFn<W> +
             StrafeDir::Yaw(yaw) => display(yaw)(out),
             StrafeDir::Point { x, y } => tuple((display(x), string(" "), display(y)))(out),
             StrafeDir::Line { yaw } => display(yaw)(out),
+            StrafeDir::LeftRight(count) | StrafeDir::RightLeft(count) => display(count)(out),
             _ => string("-")(out),
         },
     }

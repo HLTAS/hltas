@@ -4,7 +4,7 @@ use nom::{
     branch::alt,
     bytes::complete::{is_not, tag},
     character::complete::{anychar, char, not_line_ending, space1},
-    combinator::{all_consuming, cut, map, map_res, not, opt, peek, verify},
+    combinator::{all_consuming, cut, map, map_res, not, opt, peek, recognize, verify},
     multi::separated_nonempty_list,
     sequence::{pair, preceded, separated_pair, tuple},
 };
@@ -48,6 +48,12 @@ fn strafe_dir(i: &str) -> IResult<StrafeDir> {
         map(char('3'), |_| StrafeDir::Yaw(0.)),
         map(char('4'), |_| StrafeDir::Point { x: 0., y: 0. }),
         map(char('5'), |_| StrafeDir::Line { yaw: 0. }),
+        map(char('6'), |_| {
+            StrafeDir::LeftRight(NonZeroU32::new(1).unwrap())
+        }),
+        map(char('7'), |_| {
+            StrafeDir::RightLeft(NonZeroU32::new(1).unwrap())
+        }),
     ))(i)
 }
 
@@ -341,6 +347,36 @@ fn yaw_field<'a>(
                     Some(AutoMovement::Strafe(StrafeSettings {
                         type_,
                         dir: StrafeDir::Point { x, y },
+                    })),
+                ))
+            }
+            StrafeDir::LeftRight(_) => {
+                context(
+                    Context::NoYaw,
+                    not(pair(not(recognize(non_zero_u32)), char('-'))),
+                )(i)?;
+
+                let (i, count) = non_zero_u32(i)?;
+                Ok((
+                    i,
+                    Some(AutoMovement::Strafe(StrafeSettings {
+                        type_,
+                        dir: StrafeDir::LeftRight(count),
+                    })),
+                ))
+            }
+            StrafeDir::RightLeft(_) => {
+                context(
+                    Context::NoYaw,
+                    not(pair(not(recognize(non_zero_u32)), char('-'))),
+                )(i)?;
+
+                let (i, count) = non_zero_u32(i)?;
+                Ok((
+                    i,
+                    Some(AutoMovement::Strafe(StrafeSettings {
+                        type_,
+                        dir: StrafeDir::RightLeft(count),
                     })),
                 ))
             }
@@ -757,6 +793,21 @@ mod tests {
         let err = yaw_field(Some(AutoMovement::Strafe(StrafeSettings {
             type_: StrafeType::MaxAccel,
             dir: StrafeDir::Yaw(0.),
+        })))(input)
+        .unwrap_err();
+        if let nom::Err::Error(err) = err {
+            assert_eq!(err.context, Some(Context::NoYaw));
+        } else {
+            unreachable!()
+        }
+    }
+
+    #[test]
+    fn no_left_right_count() {
+        let input = "-";
+        let err = yaw_field(Some(AutoMovement::Strafe(StrafeSettings {
+            type_: StrafeType::MaxAccel,
+            dir: StrafeDir::LeftRight(NonZeroU32::new(1).unwrap()),
         })))(input)
         .unwrap_err();
         if let nom::Err::Error(err) = err {

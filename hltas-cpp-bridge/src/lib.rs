@@ -438,6 +438,16 @@ pub unsafe fn hltas_frame_from_non_comment_line(
                             frame.YawPresent = true;
                             frame.Yaw = f64::from(yaw);
                         }
+                        StrafeDir::LeftRight(count) => {
+                            frame.Dir = hltas_cpp::StrafeDir::LEFT_RIGHT;
+                            frame.YawPresent = true;
+                            frame.Count = count.get();
+                        }
+                        StrafeDir::RightLeft(count) => {
+                            frame.Dir = hltas_cpp::StrafeDir::RIGHT_LEFT;
+                            frame.YawPresent = true;
+                            frame.Count = count.get();
+                        }
                     }
                 }
                 None => {}
@@ -966,6 +976,26 @@ unsafe fn hltas_rs_to_writer(
                     LINE => StrafeDir::Line {
                         yaw: frame.Yaw as f32,
                     },
+                    LEFT_RIGHT => {
+                        StrafeDir::LeftRight(if let Some(count) = NonZeroU32::new(frame.Count) {
+                            count
+                        } else {
+                            return hltas_cpp::ErrorDescription {
+                                Code: hltas_cpp::ErrorCode::FAILWRITE,
+                                LineNumber: 0,
+                            };
+                        })
+                    }
+                    RIGHT_LEFT => {
+                        StrafeDir::RightLeft(if let Some(count) = NonZeroU32::new(frame.Count) {
+                            count
+                        } else {
+                            return hltas_cpp::ErrorDescription {
+                                Code: hltas_cpp::ErrorCode::FAILWRITE,
+                                LineNumber: 0,
+                            };
+                        })
+                    }
                 },
             }))
         } else if frame.YawPresent {
