@@ -220,22 +220,19 @@ namespace HLTAS
 
 	double Frame::GetYaw() const
 	{
-		assert(YawPresent);
-		assert(!Strafe || (Dir != StrafeDir::LEFT && Dir != StrafeDir::RIGHT && Dir != StrafeDir::BEST && Dir != StrafeDir::POINT));
+		assert(HasYaw());
 		return Yaw;
 	}
 
 	double Frame::GetX() const
 	{
-		assert(YawPresent);
-		assert(Strafe && Dir == StrafeDir::POINT);
+		assert(HasXY());
 		return X;
 	}
 
 	double Frame::GetY() const
 	{
-		assert(YawPresent);
-		assert(Strafe && Dir == StrafeDir::POINT);
+		assert(HasXY());
 		return Y;
 	}
 
@@ -253,7 +250,7 @@ namespace HLTAS
 
 	void Frame::SetYaw(double value)
 	{
-		assert(!Strafe || (Dir != StrafeDir::LEFT && Dir != StrafeDir::RIGHT && Dir != StrafeDir::BEST && Dir != StrafeDir::POINT));
+		assert(!Strafe || (Dir == StrafeDir::YAW || Dir == StrafeDir::LINE));
 		YawPresent = true;
 		Yaw = value;
 	}

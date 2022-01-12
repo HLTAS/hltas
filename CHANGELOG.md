@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+### Added
+- cpp: `Frame::HasYaw()`, `Frame::HasXY()`.
 
 ## [0.5.0] - 31 Dec 2021
 ### Added

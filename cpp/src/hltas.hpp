@@ -309,7 +309,9 @@ namespace HLTAS
 
 	public:
 		inline bool GetYawPresent() const { return YawPresent; }
+		inline bool HasYaw() const { return YawPresent && (!Strafe || (Dir == StrafeDir::YAW || Dir == StrafeDir::LINE)); }
 		double GetYaw() const;
+		inline bool HasXY() const { return YawPresent && Strafe && Dir == StrafeDir::POINT; }
 		double GetX() const;
 		double GetY() const;
 		double GetPitch() const;
