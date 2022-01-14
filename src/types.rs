@@ -3,11 +3,12 @@
 use std::{io::Write, num::NonZeroU32};
 
 use cookie_factory::GenError;
+use serde::{Deserialize, Serialize};
 
 use crate::{read, write};
 
 /// A HLTAS script.
-#[derive(Debug, Clone, PartialEq, Default)]
+#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
 pub struct HLTAS {
     /// Properties before the frames section.
     pub properties: Properties,
@@ -16,7 +17,7 @@ pub struct HLTAS {
 }
 
 /// Recognized HLTAS properties.
-#[derive(Debug, Clone, Eq, PartialEq, Default)]
+#[derive(Debug, Clone, Eq, PartialEq, Default, Serialize, Deserialize)]
 pub struct Properties {
     /// Name of the demo to record.
     pub demo: Option<String>,
@@ -41,7 +42,7 @@ pub struct Properties {
 }
 
 /// Shared and non-shared RNG seeds.
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Seeds {
     /// The shared RNG seed, used by the weapon spread.
     pub shared: u32,
@@ -50,7 +51,7 @@ pub struct Seeds {
 }
 
 /// A line in the frames section.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum Line {
     /// A frame bulk.
     FrameBulk(FrameBulk),
@@ -80,7 +81,7 @@ pub enum Line {
 }
 
 /// A buttons line.
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Serialize, Deserialize)]
 pub enum Buttons {
     /// Reset the strafing buttons.
     Reset,
@@ -98,7 +99,7 @@ pub enum Buttons {
 }
 
 /// Buttons which can be used for strafing.
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Serialize, Deserialize)]
 pub enum Button {
     /// `+forward`
     Forward,
@@ -119,7 +120,7 @@ pub enum Button {
 }
 
 /// Represents a number of similar frames.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct FrameBulk {
     /// Automatic actions such as strafing, auto-jump, etc.
     pub auto_actions: AutoActions,
@@ -138,7 +139,7 @@ pub struct FrameBulk {
 }
 
 /// Automatic actions such as strafing, auto-jump, etc.
-#[derive(Debug, Clone, Copy, PartialEq, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Default, Serialize, Deserialize)]
 pub struct AutoActions {
     /// Yaw angle adjustment and strafing.
     pub movement: Option<AutoMovement>,
@@ -155,7 +156,7 @@ pub struct AutoActions {
 }
 
 /// Automatic yaw angle adjustment and strafing.
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub enum AutoMovement {
     /// Set the yaw angle to this value.
     SetYaw(f32),
@@ -164,7 +165,7 @@ pub enum AutoMovement {
 }
 
 /// Automatic strafing settings.
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub struct StrafeSettings {
     /// Strafing type.
     pub type_: StrafeType,
@@ -173,7 +174,7 @@ pub struct StrafeSettings {
 }
 
 /// Type of automatic strafing.
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Serialize, Deserialize)]
 pub enum StrafeType {
     /// Gain as much speed as possible.
     MaxAccel,
@@ -186,7 +187,7 @@ pub enum StrafeType {
 }
 
 /// Direction of automatic strafing.
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub enum StrafeDir {
     /// Turn left.
     Left,
@@ -210,7 +211,7 @@ pub enum StrafeDir {
 }
 
 /// Number of times this action must be executed.
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Serialize, Deserialize)]
 pub enum Times {
     /// Any number of times over the duration of this frame bulk.
     UnlimitedWithinFrameBulk,
@@ -221,7 +222,7 @@ pub enum Times {
 }
 
 /// Leave the ground automatically.
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Serialize, Deserialize)]
 pub struct LeaveGroundAction {
     /// Speed at which to leave the ground.
     pub speed: LeaveGroundActionSpeed,
@@ -232,7 +233,7 @@ pub struct LeaveGroundAction {
 }
 
 /// Speed at which to leave the ground.
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Serialize, Deserialize)]
 pub enum LeaveGroundActionSpeed {
     /// Any speed.
     Any,
@@ -244,7 +245,7 @@ pub enum LeaveGroundActionSpeed {
 }
 
 /// How to leave the ground.
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Serialize, Deserialize)]
 pub enum LeaveGroundActionType {
     /// By jumping.
     Jump,
@@ -256,14 +257,14 @@ pub enum LeaveGroundActionType {
 }
 
 /// Automatic jumpbug properties.
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Serialize, Deserialize)]
 pub struct JumpBug {
     /// Number of times to do the action. `0` means unlimited.
     pub times: Times,
 }
 
 /// Duck-before-collision properties.
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Serialize, Deserialize)]
 pub struct DuckBeforeCollision {
     /// Number of times to do the action. `0` means unlimited.
     pub times: Times,
@@ -271,21 +272,21 @@ pub struct DuckBeforeCollision {
 }
 
 /// Duck-before-ground properties.
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Serialize, Deserialize)]
 pub struct DuckBeforeGround {
     /// Number of times to do the action. `0` means unlimited.
     pub times: Times,
 }
 
 /// Duck-when-jump properties.
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Serialize, Deserialize)]
 pub struct DuckWhenJump {
     /// Number of times to do the action. `0` means unlimited.
     pub times: Times,
 }
 
 /// Manually specified movement keys.
-#[derive(Debug, Clone, Copy, Eq, PartialEq, Default)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Default, Serialize, Deserialize)]
 pub struct MovementKeys {
     /// `+forward`
     pub forward: bool,
@@ -302,7 +303,7 @@ pub struct MovementKeys {
 }
 
 /// Manually specified action keys.
-#[derive(Debug, Clone, Copy, Eq, PartialEq, Default)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Default, Serialize, Deserialize)]
 pub struct ActionKeys {
     /// `+jump`
     pub jump: bool,
@@ -319,7 +320,7 @@ pub struct ActionKeys {
 }
 
 /// Constraints for the vectorial strafing algorithm.
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub enum VectorialStrafingConstraints {
     /// Constrains the player yaw relative the velocity yaw.
     VelocityYaw {
@@ -363,7 +364,7 @@ pub enum VectorialStrafingConstraints {
 }
 
 /// Description of the value to change.
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub struct Change {
     /// The value to change.
     pub target: ChangeTarget,
@@ -374,7 +375,7 @@ pub struct Change {
 }
 
 /// Values that can be affected by `Change`.
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Serialize, Deserialize)]
 pub enum ChangeTarget {
     /// The player's yaw angle.
     Yaw,

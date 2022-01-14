@@ -3,6 +3,7 @@
 ## [Unreleased]
 ### Added
 - `StrafeDir::LeftRight`, `StrafeDir::RightLeft`.
+- `serde`'s `Serialize` and `Deserialize` for all types.
 - cpp: `Frame::HasYaw()`, `Frame::HasXY()`.
 
 ## [0.5.0] - 31 Dec 2021

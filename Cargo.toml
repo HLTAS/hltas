@@ -23,6 +23,10 @@ members = [
 [dependencies]
 nom = "5.0.1"
 cookie-factory = "0.3.0"
+serde = { version = "1.0.133", features = ["derive"] }
+
+[features]
+default = []
 
 [[bin]]
 name = "parse"
