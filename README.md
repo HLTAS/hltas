@@ -40,6 +40,20 @@ match HLTAS::from_str(&contents) {
 }
 ```
 
+## Features
+
+- `serde1`: implements [serde]'s [`Serialize`] and [`Deserialize`] traits for all types.
+
+- `proptest1`: implements [proptest]'s [`Arbitrary`] trait for all types. Only "valid" contents
+  are generated, as in, writing to string and parsing back will work and give you the same
+  result.
+
+[serde]: https://crates.io/crates/serde
+[`Serialize`]: https://docs.serde.rs/serde/trait.Serialize.html
+[`Deserialize`]: https://docs.serde.rs/serde/trait.Deserialize.html
+[proptest]: https://crates.io/crates/proptest
+[`Arbitrary`]: https://docs.rs/proptest/1.0.0/proptest/arbitrary/trait.Arbitrary.html
+
 ## C++ Wrapper
 
 Also included is a C++ wrapper, exporting the same C++ interface as the previous C++ version of HLTAS.
