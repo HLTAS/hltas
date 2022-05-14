@@ -3,7 +3,7 @@
 ## [Unreleased]
 ### Added
 - `StrafeDir::LeftRight`, `StrafeDir::RightLeft`.
-- `serde`'s `Serialize` and `Deserialize` for all types.
+- `serde`'s `Serialize` and `Deserialize` for all types under the `serde1` feature.
 - `proptest`'s `Arbitrary` for all types under the `proptest1` feature.
 - cpp: `Frame::HasYaw()`, `Frame::HasXY()`.
 

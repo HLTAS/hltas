@@ -7,12 +7,14 @@ use cookie_factory::GenError;
 use proptest::prelude::*;
 #[cfg(feature = "proptest1")]
 use proptest_derive::Arbitrary;
+#[cfg(feature = "serde1")]
 use serde::{Deserialize, Serialize};
 
 use crate::{read, write};
 
 /// A HLTAS script.
-#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Default)]
+#[cfg_attr(feature = "serde1", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "proptest1", derive(Arbitrary))]
 pub struct HLTAS {
     /// Properties before the frames section.
@@ -22,7 +24,8 @@ pub struct HLTAS {
 }
 
 /// Recognized HLTAS properties.
-#[derive(Debug, Clone, Eq, PartialEq, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Default)]
+#[cfg_attr(feature = "serde1", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "proptest1", derive(Arbitrary))]
 pub struct Properties {
     /// Name of the demo to record.
@@ -68,7 +71,8 @@ pub struct Properties {
 }
 
 /// Shared and non-shared RNG seeds.
-#[derive(Debug, Clone, Copy, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[cfg_attr(feature = "serde1", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "proptest1", derive(Arbitrary))]
 pub struct Seeds {
     /// The shared RNG seed, used by the weapon spread.
@@ -78,7 +82,8 @@ pub struct Seeds {
 }
 
 /// A line in the frames section.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq)]
+#[cfg_attr(feature = "serde1", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "proptest1", derive(Arbitrary))]
 pub enum Line {
     /// A frame bulk.
@@ -115,7 +120,8 @@ pub enum Line {
 }
 
 /// A buttons line.
-#[derive(Debug, Clone, Copy, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[cfg_attr(feature = "serde1", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "proptest1", derive(Arbitrary))]
 pub enum Buttons {
     /// Reset the strafing buttons.
@@ -134,7 +140,8 @@ pub enum Buttons {
 }
 
 /// Buttons which can be used for strafing.
-#[derive(Debug, Clone, Copy, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[cfg_attr(feature = "serde1", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "proptest1", derive(Arbitrary))]
 pub enum Button {
     /// `+forward`
@@ -156,7 +163,8 @@ pub enum Button {
 }
 
 /// Represents a number of similar frames.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq)]
+#[cfg_attr(feature = "serde1", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "proptest1", derive(Arbitrary))]
 pub struct FrameBulk {
     /// Automatic actions such as strafing, auto-jump, etc.
@@ -178,7 +186,8 @@ pub struct FrameBulk {
 }
 
 /// Automatic actions such as strafing, auto-jump, etc.
-#[derive(Debug, Clone, Copy, PartialEq, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Default)]
+#[cfg_attr(feature = "serde1", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "proptest1", derive(Arbitrary))]
 pub struct AutoActions {
     /// Yaw angle adjustment and strafing.
@@ -196,7 +205,8 @@ pub struct AutoActions {
 }
 
 /// Automatic yaw angle adjustment and strafing.
-#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq)]
+#[cfg_attr(feature = "serde1", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "proptest1", derive(Arbitrary))]
 pub enum AutoMovement {
     /// Set the yaw angle to this value.
@@ -206,7 +216,8 @@ pub enum AutoMovement {
 }
 
 /// Automatic strafing settings.
-#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq)]
+#[cfg_attr(feature = "serde1", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "proptest1", derive(Arbitrary))]
 pub struct StrafeSettings {
     /// Strafing type.
@@ -216,7 +227,8 @@ pub struct StrafeSettings {
 }
 
 /// Type of automatic strafing.
-#[derive(Debug, Clone, Copy, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[cfg_attr(feature = "serde1", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "proptest1", derive(Arbitrary))]
 pub enum StrafeType {
     /// Gain as much speed as possible.
@@ -230,7 +242,8 @@ pub enum StrafeType {
 }
 
 /// Direction of automatic strafing.
-#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq)]
+#[cfg_attr(feature = "serde1", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "proptest1", derive(Arbitrary))]
 pub enum StrafeDir {
     /// Turn left.
@@ -261,7 +274,8 @@ pub enum StrafeDir {
 }
 
 /// Number of times this action must be executed.
-#[derive(Debug, Clone, Copy, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[cfg_attr(feature = "serde1", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "proptest1", derive(Arbitrary))]
 pub enum Times {
     /// Any number of times over the duration of this frame bulk.
@@ -276,7 +290,8 @@ pub enum Times {
 }
 
 /// Leave the ground automatically.
-#[derive(Debug, Clone, Copy, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[cfg_attr(feature = "serde1", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "proptest1", derive(Arbitrary))]
 pub struct LeaveGroundAction {
     /// Speed at which to leave the ground.
@@ -288,7 +303,8 @@ pub struct LeaveGroundAction {
 }
 
 /// Speed at which to leave the ground.
-#[derive(Debug, Clone, Copy, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[cfg_attr(feature = "serde1", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "proptest1", derive(Arbitrary))]
 pub enum LeaveGroundActionSpeed {
     /// Any speed.
@@ -301,7 +317,8 @@ pub enum LeaveGroundActionSpeed {
 }
 
 /// How to leave the ground.
-#[derive(Debug, Clone, Copy, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[cfg_attr(feature = "serde1", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "proptest1", derive(Arbitrary))]
 pub enum LeaveGroundActionType {
     /// By jumping.
@@ -314,7 +331,8 @@ pub enum LeaveGroundActionType {
 }
 
 /// Automatic jumpbug properties.
-#[derive(Debug, Clone, Copy, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[cfg_attr(feature = "serde1", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "proptest1", derive(Arbitrary))]
 pub struct JumpBug {
     /// Number of times to do the action. `0` means unlimited.
@@ -322,7 +340,8 @@ pub struct JumpBug {
 }
 
 /// Duck-before-collision properties.
-#[derive(Debug, Clone, Copy, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[cfg_attr(feature = "serde1", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "proptest1", derive(Arbitrary))]
 pub struct DuckBeforeCollision {
     /// Number of times to do the action. `0` means unlimited.
@@ -331,7 +350,8 @@ pub struct DuckBeforeCollision {
 }
 
 /// Duck-before-ground properties.
-#[derive(Debug, Clone, Copy, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[cfg_attr(feature = "serde1", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "proptest1", derive(Arbitrary))]
 pub struct DuckBeforeGround {
     /// Number of times to do the action. `0` means unlimited.
@@ -339,7 +359,8 @@ pub struct DuckBeforeGround {
 }
 
 /// Duck-when-jump properties.
-#[derive(Debug, Clone, Copy, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[cfg_attr(feature = "serde1", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "proptest1", derive(Arbitrary))]
 pub struct DuckWhenJump {
     /// Number of times to do the action. `0` means unlimited.
@@ -347,7 +368,8 @@ pub struct DuckWhenJump {
 }
 
 /// Manually specified movement keys.
-#[derive(Debug, Clone, Copy, Eq, PartialEq, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Default)]
+#[cfg_attr(feature = "serde1", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "proptest1", derive(Arbitrary))]
 pub struct MovementKeys {
     /// `+forward`
@@ -365,7 +387,8 @@ pub struct MovementKeys {
 }
 
 /// Manually specified action keys.
-#[derive(Debug, Clone, Copy, Eq, PartialEq, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Default)]
+#[cfg_attr(feature = "serde1", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "proptest1", derive(Arbitrary))]
 pub struct ActionKeys {
     /// `+jump`
@@ -383,7 +406,8 @@ pub struct ActionKeys {
 }
 
 /// Constraints for the vectorial strafing algorithm.
-#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq)]
+#[cfg_attr(feature = "serde1", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "proptest1", derive(Arbitrary))]
 pub enum VectorialStrafingConstraints {
     /// Constrains the player yaw relative the velocity yaw.
@@ -428,7 +452,8 @@ pub enum VectorialStrafingConstraints {
 }
 
 /// Description of the value to change.
-#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq)]
+#[cfg_attr(feature = "serde1", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "proptest1", derive(Arbitrary))]
 pub struct Change {
     /// The value to change.
@@ -440,7 +465,8 @@ pub struct Change {
 }
 
 /// Values that can be affected by `Change`.
-#[derive(Debug, Clone, Copy, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[cfg_attr(feature = "serde1", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "proptest1", derive(Arbitrary))]
 pub enum ChangeTarget {
     /// The player's yaw angle.
