@@ -36,7 +36,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
 
     - name: Install g++-multilib
       if: matrix.os == 'ubuntu-20.04'
@@ -45,26 +45,25 @@ jobs:
         sudo apt-get install g++-multilib
 
     - name: Install Rust
-      uses: hecrj/setup-rust-action@v1
+      uses: actions-rs/toolchain@v1
       with:
-        rust-version: ${{ matrix.rust }}
-        targets: ${{ matrix.target }}
+        profile: minimal
+        override: true
+        toolchain: ${{ matrix.rust }}
+        target: ${{ matrix.target }}
+
+    - name: Install cargo-hack
+      uses: taiki-e/install-action@cargo-hack
 
     - name: Test the Rust crate
-      run: |
-        cargo build
-        cargo test
+      run: cargo hack --feature-powerset test
 
     - name: Test the Rust-C++ bridge
-      run: |
-        cd hltas-cpp-bridge
-        cargo test
+      run: cargo test --package hltas-cpp-bridge
 
     - name: Test the Rust-C++ bridge on ${{ matrix.target }}
       if: matrix.target != ''
-      run: |
-        cd hltas-cpp-bridge
-        cargo test --target=${{ matrix.target }}
+      run: cargo test --package hltas-cpp-bridge --target=${{ matrix.target }}
 
     - name: Generate the C++ build system
       run: |
@@ -85,27 +84,39 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
 
     - name: Install Rust
-      uses: hecrj/setup-rust-action@v1
+      uses: actions-rs/toolchain@v1
       with:
+        profile: minimal
+        override: true
+        toolchain: stable
         components: clippy
 
-    - name: Run Clippy
-      run: cargo clippy
+    - name: Run clippy
+      uses: actions-rs/clippy-check@v1
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        args: --all --all-features
 
   rustfmt:
     name: Rustfmt
     runs-on: ubuntu-20.04
 
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
 
     - name: Install Rust
-      uses: hecrj/setup-rust-action@v1
+      uses: actions-rs/toolchain@v1
       with:
+        profile: minimal
+        override: true
+        toolchain: nightly
         components: rustfmt
 
     - name: Run rustfmt
-      run: cargo fmt -- --check
+      uses: actions-rs/cargo@v1
+      with:
+        command: fmt
+        args: --all -- --check
