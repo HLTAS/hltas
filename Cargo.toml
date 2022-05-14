@@ -24,9 +24,12 @@ members = [
 nom = "5.0.1"
 cookie-factory = "0.3.0"
 serde = { version = "1.0.133", features = ["derive"] }
+proptest-derive = { version = "0.3.0", optional = true }
+proptest = { version = "1.0.0", optional = true }
 
 [features]
 default = []
+proptest1 = ["proptest", "proptest-derive"]
 
 [[bin]]
 name = "parse"

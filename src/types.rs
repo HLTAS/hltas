@@ -3,12 +3,17 @@
 use std::{io::Write, num::NonZeroU32};
 
 use cookie_factory::GenError;
+#[cfg(feature = "proptest1")]
+use proptest::prelude::*;
+#[cfg(feature = "proptest1")]
+use proptest_derive::Arbitrary;
 use serde::{Deserialize, Serialize};
 
 use crate::{read, write};
 
 /// A HLTAS script.
 #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
+#[cfg_attr(feature = "proptest1", derive(Arbitrary))]
 pub struct HLTAS {
     /// Properties before the frames section.
     pub properties: Properties,
@@ -18,12 +23,25 @@ pub struct HLTAS {
 
 /// Recognized HLTAS properties.
 #[derive(Debug, Clone, Eq, PartialEq, Default, Serialize, Deserialize)]
+#[cfg_attr(feature = "proptest1", derive(Arbitrary))]
 pub struct Properties {
     /// Name of the demo to record.
+    #[cfg_attr(
+        feature = "proptest1",
+        proptest(strategy = "prop::option::of(arbitrary_property_value())")
+    )]
     pub demo: Option<String>,
     /// Name of the save file to use for saving after the script has finished.
+    #[cfg_attr(
+        feature = "proptest1",
+        proptest(strategy = "prop::option::of(arbitrary_property_value())")
+    )]
     pub save: Option<String>,
     /// Frametime for 0 ms ducktaps.
+    #[cfg_attr(
+        feature = "proptest1",
+        proptest(strategy = "prop::option::of(arbitrary_frame_time())")
+    )]
     pub frametime_0ms: Option<String>,
     /// RNG seeds.
     pub seeds: Option<Seeds>,
@@ -31,6 +49,10 @@ pub struct Properties {
     ///
     /// This controls some inner workings of HLStrafe and is used to update the prediction code
     /// without causing old scripts to desync.
+    #[cfg_attr(
+        feature = "proptest1",
+        proptest(strategy = "any::<u32>().prop_map(NonZeroU32::new)")
+    )]
     pub hlstrafe_version: Option<NonZeroU32>,
     /// The command that loads the map or save before running the TAS.
     ///
@@ -38,11 +60,16 @@ pub struct Properties {
     /// you can set this property to `map bkz_goldbhop`. Then you will be able to run the TAS by
     /// simply executing `bxt_tas_loadscript tas.hltas`, and the load command will be run
     /// automatically.
+    #[cfg_attr(
+        feature = "proptest1",
+        proptest(strategy = "prop::option::of(arbitrary_property_value())")
+    )]
     pub load_command: Option<String>,
 }
 
 /// Shared and non-shared RNG seeds.
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "proptest1", derive(Arbitrary))]
 pub struct Seeds {
     /// The shared RNG seed, used by the weapon spread.
     pub shared: u32,
@@ -52,11 +79,12 @@ pub struct Seeds {
 
 /// A line in the frames section.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "proptest1", derive(Arbitrary))]
 pub enum Line {
     /// A frame bulk.
     FrameBulk(FrameBulk),
     /// A save-load.
-    Save(String),
+    Save(#[cfg_attr(feature = "proptest1", proptest(regex = "\\S+"))] String),
     /// A line that sets the shared seed to use next load.
     SharedSeed(u32),
     /// Sets or resets the strafing buttons.
@@ -77,11 +105,18 @@ pub enum Line {
     /// Starts smoothly changing a value.
     Change(Change),
     /// Overrides yaw and target yaw for the subsequent frames.
-    TargetYawOverride(Vec<f32>),
+    TargetYawOverride(
+        #[cfg_attr(
+            feature = "proptest1",
+            proptest(strategy = "prop::collection::vec(any::<f32>(), 1..100)")
+        )]
+        Vec<f32>,
+    ),
 }
 
 /// A buttons line.
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "proptest1", derive(Arbitrary))]
 pub enum Buttons {
     /// Reset the strafing buttons.
     Reset,
@@ -100,6 +135,7 @@ pub enum Buttons {
 
 /// Buttons which can be used for strafing.
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "proptest1", derive(Arbitrary))]
 pub enum Button {
     /// `+forward`
     Forward,
@@ -121,6 +157,7 @@ pub enum Button {
 
 /// Represents a number of similar frames.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "proptest1", derive(Arbitrary))]
 pub struct FrameBulk {
     /// Automatic actions such as strafing, auto-jump, etc.
     pub auto_actions: AutoActions,
@@ -129,10 +166,12 @@ pub struct FrameBulk {
     /// Manually specified action keys.
     pub action_keys: ActionKeys,
     /// Frame time of each of this frame bulk's frames.
+    #[cfg_attr(feature = "proptest1", proptest(strategy = "arbitrary_frame_time()"))]
     pub frame_time: String,
     /// Pitch angle to set.
     pub pitch: Option<f32>,
     /// Number of frames in this frame bulk.
+    #[cfg_attr(feature = "proptest1", proptest(strategy = "arbitrary_non_zero_u32()"))]
     pub frame_count: NonZeroU32,
     /// The console command to run every frame of this frame bulk.
     pub console_command: Option<String>,
@@ -140,6 +179,7 @@ pub struct FrameBulk {
 
 /// Automatic actions such as strafing, auto-jump, etc.
 #[derive(Debug, Clone, Copy, PartialEq, Default, Serialize, Deserialize)]
+#[cfg_attr(feature = "proptest1", derive(Arbitrary))]
 pub struct AutoActions {
     /// Yaw angle adjustment and strafing.
     pub movement: Option<AutoMovement>,
@@ -157,6 +197,7 @@ pub struct AutoActions {
 
 /// Automatic yaw angle adjustment and strafing.
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "proptest1", derive(Arbitrary))]
 pub enum AutoMovement {
     /// Set the yaw angle to this value.
     SetYaw(f32),
@@ -166,6 +207,7 @@ pub enum AutoMovement {
 
 /// Automatic strafing settings.
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "proptest1", derive(Arbitrary))]
 pub struct StrafeSettings {
     /// Strafing type.
     pub type_: StrafeType,
@@ -175,6 +217,7 @@ pub struct StrafeSettings {
 
 /// Type of automatic strafing.
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "proptest1", derive(Arbitrary))]
 pub enum StrafeType {
     /// Gain as much speed as possible.
     MaxAccel,
@@ -188,6 +231,7 @@ pub enum StrafeType {
 
 /// Direction of automatic strafing.
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "proptest1", derive(Arbitrary))]
 pub enum StrafeDir {
     /// Turn left.
     Left,
@@ -205,24 +249,35 @@ pub enum StrafeDir {
         yaw: f32,
     },
     /// Alternate turning left and right for this number of frames each.
-    LeftRight(NonZeroU32),
+    LeftRight(
+        #[cfg_attr(feature = "proptest1", proptest(strategy = "arbitrary_non_zero_u32()"))]
+        NonZeroU32,
+    ),
     /// Alternate turning right and left for this number of frames each.
-    RightLeft(NonZeroU32),
+    RightLeft(
+        #[cfg_attr(feature = "proptest1", proptest(strategy = "arbitrary_non_zero_u32()"))]
+        NonZeroU32,
+    ),
 }
 
 /// Number of times this action must be executed.
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "proptest1", derive(Arbitrary))]
 pub enum Times {
     /// Any number of times over the duration of this frame bulk.
     UnlimitedWithinFrameBulk,
     /// This exact number of times, possibly past this frame bulk.
     ///
     /// The action is overridden by the next frame bulk with the same action.
-    Limited(NonZeroU32),
+    Limited(
+        #[cfg_attr(feature = "proptest1", proptest(strategy = "arbitrary_non_zero_u32()"))]
+        NonZeroU32,
+    ),
 }
 
 /// Leave the ground automatically.
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "proptest1", derive(Arbitrary))]
 pub struct LeaveGroundAction {
     /// Speed at which to leave the ground.
     pub speed: LeaveGroundActionSpeed,
@@ -234,6 +289,7 @@ pub struct LeaveGroundAction {
 
 /// Speed at which to leave the ground.
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "proptest1", derive(Arbitrary))]
 pub enum LeaveGroundActionSpeed {
     /// Any speed.
     Any,
@@ -246,6 +302,7 @@ pub enum LeaveGroundActionSpeed {
 
 /// How to leave the ground.
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "proptest1", derive(Arbitrary))]
 pub enum LeaveGroundActionType {
     /// By jumping.
     Jump,
@@ -258,6 +315,7 @@ pub enum LeaveGroundActionType {
 
 /// Automatic jumpbug properties.
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "proptest1", derive(Arbitrary))]
 pub struct JumpBug {
     /// Number of times to do the action. `0` means unlimited.
     pub times: Times,
@@ -265,6 +323,7 @@ pub struct JumpBug {
 
 /// Duck-before-collision properties.
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "proptest1", derive(Arbitrary))]
 pub struct DuckBeforeCollision {
     /// Number of times to do the action. `0` means unlimited.
     pub times: Times,
@@ -273,6 +332,7 @@ pub struct DuckBeforeCollision {
 
 /// Duck-before-ground properties.
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "proptest1", derive(Arbitrary))]
 pub struct DuckBeforeGround {
     /// Number of times to do the action. `0` means unlimited.
     pub times: Times,
@@ -280,6 +340,7 @@ pub struct DuckBeforeGround {
 
 /// Duck-when-jump properties.
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "proptest1", derive(Arbitrary))]
 pub struct DuckWhenJump {
     /// Number of times to do the action. `0` means unlimited.
     pub times: Times,
@@ -287,6 +348,7 @@ pub struct DuckWhenJump {
 
 /// Manually specified movement keys.
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Default, Serialize, Deserialize)]
+#[cfg_attr(feature = "proptest1", derive(Arbitrary))]
 pub struct MovementKeys {
     /// `+forward`
     pub forward: bool,
@@ -304,6 +366,7 @@ pub struct MovementKeys {
 
 /// Manually specified action keys.
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Default, Serialize, Deserialize)]
+#[cfg_attr(feature = "proptest1", derive(Arbitrary))]
 pub struct ActionKeys {
     /// `+jump`
     pub jump: bool,
@@ -321,6 +384,7 @@ pub struct ActionKeys {
 
 /// Constraints for the vectorial strafing algorithm.
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "proptest1", derive(Arbitrary))]
 pub enum VectorialStrafingConstraints {
     /// Constrains the player yaw relative the velocity yaw.
     VelocityYaw {
@@ -365,6 +429,7 @@ pub enum VectorialStrafingConstraints {
 
 /// Description of the value to change.
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "proptest1", derive(Arbitrary))]
 pub struct Change {
     /// The value to change.
     pub target: ChangeTarget,
@@ -376,6 +441,7 @@ pub struct Change {
 
 /// Values that can be affected by `Change`.
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "proptest1", derive(Arbitrary))]
 pub enum ChangeTarget {
     /// The player's yaw angle.
     Yaw,
@@ -383,6 +449,24 @@ pub enum ChangeTarget {
     Pitch,
     /// The target yaw angle in the vectorial strafing constraints.
     VectorialStrafingYaw,
+}
+
+/// Generates arbitrary [`NonZeroU32`]s.
+#[cfg(feature = "proptest1")]
+fn arbitrary_non_zero_u32() -> impl Strategy<Value = NonZeroU32> {
+    (1..=u32::MAX).prop_map(|x| NonZeroU32::new(x).unwrap())
+}
+
+/// Generates arbitrary valid frame times.
+#[cfg(feature = "proptest1")]
+fn arbitrary_frame_time() -> impl Strategy<Value = String> {
+    any::<f64>().prop_map(|x| x.to_string())
+}
+
+/// Generates arbitrary valid property values (starting or ending with non-whitespace).
+#[cfg(feature = "proptest1")]
+fn arbitrary_property_value() -> impl Strategy<Value = String> {
+    any_with::<String>("\\S|\\S\\PC*\\S".into())
 }
 
 impl HLTAS {
@@ -693,5 +777,16 @@ mod tests {
         error_no_plus_minus_before_tolerance,
         "no-plus-minus-before-tolerance",
         NoPlusMinusBeforeTolerance
+    }
+
+    #[cfg(feature = "proptest1")]
+    proptest! {
+        #[test]
+        fn write_parse(hltas: HLTAS) {
+            let mut buffer = Vec::new();
+            hltas.to_writer(&mut buffer).unwrap();
+            let hltas_2 = HLTAS::from_str(from_utf8(&buffer).unwrap()).unwrap();
+            prop_assert_eq!(hltas, hltas_2);
+        }
     }
 }

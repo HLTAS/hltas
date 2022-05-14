@@ -35,6 +35,15 @@
 //! # Ok(())
 //! # }
 //! ```
+//!
+//! # Features
+//!
+//! - `proptest1`: implements [proptest]'s [`Arbitrary`] trait for all types. Only "valid" contents
+//!   are generated, as in, writing to string and parsing back will work and give you the same
+//!   result.
+//!
+//! [proptest]: https://crates.io/crates/proptest
+//! [`Arbitrary`]: https://docs.rs/proptest/1.0.0/proptest/arbitrary/trait.Arbitrary.html
 
 #![doc(html_root_url = "https://docs.rs/hltas/0.5.0")]
 #![deny(unsafe_code)]
