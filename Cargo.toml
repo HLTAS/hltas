@@ -5,7 +5,7 @@ authors = [
     "Ivan Molodetskikh <yalterz@gmail.com>",
     "Chong Jiang Wei <randolphchong@gmail.com>",
 ]
-edition = "2018"
+edition = "2021"
 description = "Reading and writing Half-Life TAS scripts (`.hltas`)."
 license = "MIT/Apache-2.0"
 
