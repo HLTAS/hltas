@@ -37,7 +37,7 @@
 //! ```
 //!
 //! # Features
-//! 
+//!
 //! - `serde1`: implements [serde]'s [`Serialize`] and [`Deserialize`] traits for all types.
 //!
 //! - `proptest1`: implements [proptest]'s [`Arbitrary`] trait for all types. Only "valid" contents
