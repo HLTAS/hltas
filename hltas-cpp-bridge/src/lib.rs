@@ -50,7 +50,7 @@ use hltas_cpp::{
 
 // Windows cargo tests don't link without these stubs.
 #[cfg(test)]
-pub unsafe extern "C" fn hltas_input_set_property(
+pub extern "C" fn hltas_input_set_property(
     _input: *mut c_void,
     _property: *const c_char,
     _value: *const c_char,
@@ -58,21 +58,21 @@ pub unsafe extern "C" fn hltas_input_set_property(
     unreachable!()
 }
 #[cfg(test)]
-pub unsafe extern "C" fn hltas_input_get_property(
+pub extern "C" fn hltas_input_get_property(
     _input: *const c_void,
     _property: *const c_char,
 ) -> *const c_char {
     unreachable!()
 }
 #[cfg(test)]
-pub unsafe extern "C" fn hltas_input_push_frame(
+pub extern "C" fn hltas_input_push_frame(
     _input: *mut c_void,
     _frame: *const hltas_cpp::hltas_frame,
 ) {
     unreachable!()
 }
 #[cfg(test)]
-pub unsafe extern "C" fn hltas_input_get_frame(
+pub extern "C" fn hltas_input_get_frame(
     _input: *const c_void,
     _index: usize,
     _frame: *mut hltas_cpp::hltas_frame,
@@ -80,10 +80,7 @@ pub unsafe extern "C" fn hltas_input_get_frame(
     unreachable!()
 }
 #[cfg(test)]
-pub unsafe extern "C" fn hltas_input_set_error_message(
-    _input: *mut c_void,
-    _message: *const c_char,
-) {
+pub extern "C" fn hltas_input_set_error_message(_input: *mut c_void, _message: *const c_char) {
     unreachable!()
 }
 
@@ -335,6 +332,7 @@ impl Default for hltas_cpp::Button {
     }
 }
 
+#[allow(clippy::derivable_impls)]
 impl Default for hltas_cpp::StrafeButtons {
     #[inline]
     fn default() -> Self {
