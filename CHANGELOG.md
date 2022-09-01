@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+
+## [0.6.0] - 31 Aug 2022
 ### Added
 - `StrafeDir::LeftRight`, `StrafeDir::RightLeft`.
 - `serde`'s `Serialize` and `Deserialize` for all types under the `serde1` feature.
@@ -32,7 +34,8 @@
 - `Properties::hlstrafe_version`.
 - `Line::VectorialStrafing` and `Line::VectorialStrafingConstraints`.
 
-[Unreleased]: https://github.com/HLTAS/hltas/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/HLTAS/hltas/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/HLTAS/hltas/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/HLTAS/hltas/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/HLTAS/hltas/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/HLTAS/hltas/compare/v0.2.0...v0.3.0
