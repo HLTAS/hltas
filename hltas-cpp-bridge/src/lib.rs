@@ -318,7 +318,7 @@ impl Debug for hltas_cpp::AlgorithmParameters {
                 ConstraintsType::VELOCITY_AVG => &self.Parameters.VelocityAvg,
                 ConstraintsType::VELOCITY_LOCK => &self.Parameters.VelocityLock,
                 ConstraintsType::YAW => &self.Parameters.Yaw,
-                ConstraintsType::YAW_RANGE => &self.Parameters.YawRange,    
+                ConstraintsType::YAW_RANGE => &self.Parameters.YawRange,
             }
         };
         builder.field("Parameters", field);
