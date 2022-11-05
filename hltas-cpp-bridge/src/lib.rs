@@ -266,6 +266,7 @@ impl From<ChangeTarget> for hltas_cpp::ChangeTarget {
             Yaw => Self::YAW,
             Pitch => Self::PITCH,
             VectorialStrafingYaw => Self::TARGET_YAW,
+            VectorialStrafingYawOffset => Self::TARGET_YAW_OFFSET,
         }
     }
 }
@@ -278,6 +279,7 @@ impl From<hltas_cpp::ChangeTarget> for ChangeTarget {
             YAW => Self::Yaw,
             PITCH => Self::Pitch,
             TARGET_YAW => Self::VectorialStrafingYaw,
+            TARGET_YAW_OFFSET => Self::VectorialStrafingYawOffset,
         }
     }
 }
@@ -316,7 +318,7 @@ impl Debug for hltas_cpp::AlgorithmParameters {
                 ConstraintsType::VELOCITY_AVG => &self.Parameters.VelocityAvg,
                 ConstraintsType::VELOCITY_LOCK => &self.Parameters.VelocityLock,
                 ConstraintsType::YAW => &self.Parameters.Yaw,
-                ConstraintsType::YAW_RANGE => &self.Parameters.YawRange,
+                ConstraintsType::YAW_RANGE => &self.Parameters.YawRange,    
             }
         };
         builder.field("Parameters", field);

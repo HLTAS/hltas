@@ -475,6 +475,8 @@ pub enum ChangeTarget {
     Pitch,
     /// The target yaw angle in the vectorial strafing constraints.
     VectorialStrafingYaw,
+    /// The target yaw angle offset in the vectorial strafing constraints
+    VectorialStrafingYawOffset,
 }
 
 /// Generates arbitrary [`NonZeroU32`]s.

@@ -157,7 +157,8 @@ namespace HLTAS
 	enum class ChangeTarget : unsigned char {
 		YAW = 0,
 		PITCH,
-		TARGET_YAW
+		TARGET_YAW,
+		TARGET_YAW_OFFSET,
 	};
 
 	struct Frame {
