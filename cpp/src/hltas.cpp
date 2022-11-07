@@ -220,6 +220,16 @@ namespace HLTAS
 		DwjTimes = value;
 	}
 
+	double Frame::GetFramerate() const
+	{
+		assert(Frametime);
+		double frametime = std::stod(Frametime.c_str(), nullptr);
+		if (frametime == 0.010000001)
+			return 100;
+		else
+			return 1 / frametime;
+	}
+
 	double Frame::GetYaw() const
 	{
 		assert(HasYaw());
@@ -254,6 +264,16 @@ namespace HLTAS
 	{
 		assert(!value || !Strafe || (Dir != StrafeDir::LEFT && Dir != StrafeDir::RIGHT && Dir != StrafeDir::BEST));
 		YawPresent = value;
+	}
+
+	void Frame::SetFramerate(float value)
+	{
+		assert(Frametime && value > 0);
+		
+		if (value == 100.)
+			Frametime = "0.010000001";
+		else 
+			Frametime = std::to_string(1 / value);
 	}
 
 	void Frame::SetYaw(double value)

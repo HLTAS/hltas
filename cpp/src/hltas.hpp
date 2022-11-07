@@ -311,6 +311,7 @@ namespace HLTAS
 		unsigned Repeats;
 
 	public:
+		double GetFramerate() const;
 		inline bool GetYawPresent() const { return YawPresent; }
 		inline bool HasYaw() const { return YawPresent && (!Strafe || (Dir == StrafeDir::YAW || Dir == StrafeDir::LINE)); }
 		double GetYaw() const;
@@ -321,6 +322,7 @@ namespace HLTAS
 		unsigned GetCount() const;
 		double GetPitch() const;
 		inline unsigned GetRepeats() const { return Repeats; }
+		void SetFramerate(float value);
 		void SetYawPresent(bool value);
 		void SetYaw(double value);
 		void SetX(double value);
