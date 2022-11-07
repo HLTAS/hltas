@@ -311,7 +311,7 @@ namespace HLTAS
 		unsigned Repeats;
 
 	public:
-		double GetFramerate() const;
+		float GetFramerate() const;
 		inline bool GetYawPresent() const { return YawPresent; }
 		inline bool HasYaw() const { return YawPresent && (!Strafe || (Dir == StrafeDir::YAW || Dir == StrafeDir::LINE)); }
 		double GetYaw() const;

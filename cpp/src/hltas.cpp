@@ -220,14 +220,14 @@ namespace HLTAS
 		DwjTimes = value;
 	}
 
-	double Frame::GetFramerate() const
+	float Frame::GetFramerate() const
 	{
 		assert(Frametime);
 		double frametime = std::stod(Frametime.c_str(), nullptr);
 		if (frametime == 0.010000001)
-			return 100;
+			return 100.f;
 		else
-			return 1 / frametime;
+			return static_cast<float>(1 / frametime);
 	}
 
 	double Frame::GetYaw() const
