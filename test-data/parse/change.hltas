@@ -9,6 +9,7 @@ frames
 change target_yaw to 50 over 0.25 s
 change yaw to 0 over 1 s
 change pitch to -90 over 2 s
+change target_yaw_offset to 90 over 0.2 s
 s03-------|------|------|0.001|170|0|400
 ----------|------|------|0.001|-|-|2951
 

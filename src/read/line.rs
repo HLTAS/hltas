@@ -601,6 +601,9 @@ fn line_change(i: &str) -> IResult<Change> {
     let (value, target) = cut(alt((
         map(tag("yaw"), |_| ChangeTarget::Yaw),
         map(tag("pitch"), |_| ChangeTarget::Pitch),
+        map(tag("target_yaw_offset"), |_| {
+            ChangeTarget::VectorialStrafingYawOffset
+        }),
         map(tag("target_yaw"), |_| ChangeTarget::VectorialStrafingYaw),
     )))(value)?;
 

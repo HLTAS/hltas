@@ -273,6 +273,7 @@ fn line_change<W: Write>(change: Change) -> impl SerializeFn<W> {
             ChangeTarget::Yaw => "yaw",
             ChangeTarget::Pitch => "pitch",
             ChangeTarget::VectorialStrafingYaw => "target_yaw",
+            ChangeTarget::VectorialStrafingYawOffset => "target_yaw_offset",
         })(out)?;
 
         let out = string(" to ")(out)?;

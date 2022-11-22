@@ -266,6 +266,7 @@ impl From<ChangeTarget> for hltas_cpp::ChangeTarget {
             Yaw => Self::YAW,
             Pitch => Self::PITCH,
             VectorialStrafingYaw => Self::TARGET_YAW,
+            VectorialStrafingYawOffset => Self::TARGET_YAW_OFFSET,
         }
     }
 }
@@ -278,6 +279,7 @@ impl From<hltas_cpp::ChangeTarget> for ChangeTarget {
             YAW => Self::Yaw,
             PITCH => Self::Pitch,
             TARGET_YAW => Self::VectorialStrafingYaw,
+            TARGET_YAW_OFFSET => Self::VectorialStrafingYawOffset,
         }
     }
 }

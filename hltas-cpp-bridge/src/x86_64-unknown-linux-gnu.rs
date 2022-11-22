@@ -558,6 +558,7 @@ pub enum ChangeTarget {
     YAW = 0,
     PITCH = 1,
     TARGET_YAW = 2,
+    TARGET_YAW_OFFSET = 3,
 }
 #[repr(C)]
 #[derive(Copy, Clone)]
