@@ -952,10 +952,7 @@ unsafe fn hltas_rs_to_writer(
         }
 
         if frame.TargetYawOverrideCount != 0 {
-            let yaws = slice::from_raw_parts(
-                frame.TargetYawOverride,
-                frame.TargetYawOverrideCount,
-            );
+            let yaws = slice::from_raw_parts(frame.TargetYawOverride, frame.TargetYawOverrideCount);
             hltas.lines.push(Line::TargetYawOverride(yaws.to_owned()));
             continue;
         }
