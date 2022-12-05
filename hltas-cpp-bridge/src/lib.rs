@@ -1,5 +1,5 @@
 use std::{
-    convert::{TryFrom, TryInto},
+    convert::TryFrom,
     ffi::{CStr, CString},
     fmt::{self, Debug},
     fs::{read_to_string, File},
