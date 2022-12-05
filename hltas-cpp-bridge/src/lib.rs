@@ -1,5 +1,5 @@
 use std::{
-    convert::{TryFrom, TryInto},
+    convert::TryFrom,
     ffi::{CStr, CString},
     fmt::{self, Debug},
     fs::{read_to_string, File},
@@ -593,7 +593,7 @@ pub unsafe fn hltas_frame_from_non_comment_line(
         Line::TargetYawOverride(yaws) => {
             let yaws: Box<[f32]> = yaws.to_owned().into();
             frame.TargetYawOverride = yaws.as_ptr();
-            frame.TargetYawOverrideCount = yaws.len().try_into().unwrap();
+            frame.TargetYawOverrideCount = yaws.len();
             allocated.yaws = Some(yaws);
         }
     }
@@ -952,10 +952,7 @@ unsafe fn hltas_rs_to_writer(
         }
 
         if frame.TargetYawOverrideCount != 0 {
-            let yaws = slice::from_raw_parts(
-                frame.TargetYawOverride,
-                frame.TargetYawOverrideCount.try_into().unwrap(),
-            );
+            let yaws = slice::from_raw_parts(frame.TargetYawOverride, frame.TargetYawOverrideCount);
             hltas.lines.push(Line::TargetYawOverride(yaws.to_owned()));
             continue;
         }

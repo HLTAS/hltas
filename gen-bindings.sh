@@ -8,9 +8,9 @@ run_bindgen() {
 	shift
 	bindgen cpp/src/hltas.hpp \
 		-o hltas-cpp-bridge/src/"$TARGET".rs \
-		--whitelist-function 'hltas_.*' \
-		--whitelist-type 'HLTAS::ErrorDescription' \
-		--rustified-enum 'HLTAS::StrafeType|StrafeDir|ButtonState|Button|ErrorCode|StrafingAlgorithm|ConstraintsType|ChangeTarget' \
+		--allowlist-function 'hltas_.*' \
+		--allowlist-type 'HLTAS::ErrorDescription' \
+		--rustified-enum 'HLTAS::(StrafeType|StrafeDir|ButtonState|Button|ErrorCode|StrafingAlgorithm|ConstraintsType|ChangeTarget)' \
 		--disable-name-namespacing \
 		-- -std=c++14 --target="$TARGET" "$@"
 }
