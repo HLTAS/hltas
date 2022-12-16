@@ -211,6 +211,7 @@ pub enum ConstraintsType {
     VELOCITY_LOCK = 2,
     YAW = 3,
     YAW_RANGE = 4,
+    LOOK_AT = 5,
 }
 #[repr(C)]
 #[derive(Copy, Clone)]
@@ -226,6 +227,7 @@ pub union AlgorithmParameters__bindgen_ty_1 {
     pub VelocityLock: AlgorithmParameters__bindgen_ty_1__bindgen_ty_3,
     pub Yaw: AlgorithmParameters__bindgen_ty_1__bindgen_ty_4,
     pub YawRange: AlgorithmParameters__bindgen_ty_1__bindgen_ty_5,
+    pub LookAt: AlgorithmParameters__bindgen_ty_1__bindgen_ty_6,
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -434,6 +436,76 @@ fn bindgen_test_layout_AlgorithmParameters__bindgen_ty_1__bindgen_ty_5() {
         )
     );
 }
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct AlgorithmParameters__bindgen_ty_1__bindgen_ty_6 {
+    pub Entity: ::std::os::raw::c_int,
+    pub X: f64,
+    pub Y: f64,
+    pub Z: f64,
+}
+#[test]
+fn bindgen_test_layout_AlgorithmParameters__bindgen_ty_1__bindgen_ty_6() {
+    const UNINIT: ::std::mem::MaybeUninit<AlgorithmParameters__bindgen_ty_1__bindgen_ty_6> =
+        ::std::mem::MaybeUninit::uninit();
+    let ptr = UNINIT.as_ptr();
+    assert_eq!(
+        ::std::mem::size_of::<AlgorithmParameters__bindgen_ty_1__bindgen_ty_6>(),
+        32usize,
+        concat!(
+            "Size of: ",
+            stringify!(AlgorithmParameters__bindgen_ty_1__bindgen_ty_6)
+        )
+    );
+    assert_eq!(
+        ::std::mem::align_of::<AlgorithmParameters__bindgen_ty_1__bindgen_ty_6>(),
+        8usize,
+        concat!(
+            "Alignment of ",
+            stringify!(AlgorithmParameters__bindgen_ty_1__bindgen_ty_6)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).Entity) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(AlgorithmParameters__bindgen_ty_1__bindgen_ty_6),
+            "::",
+            stringify!(Entity)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).X) as usize - ptr as usize },
+        8usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(AlgorithmParameters__bindgen_ty_1__bindgen_ty_6),
+            "::",
+            stringify!(X)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).Y) as usize - ptr as usize },
+        16usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(AlgorithmParameters__bindgen_ty_1__bindgen_ty_6),
+            "::",
+            stringify!(Y)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).Z) as usize - ptr as usize },
+        24usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(AlgorithmParameters__bindgen_ty_1__bindgen_ty_6),
+            "::",
+            stringify!(Z)
+        )
+    );
+}
 #[test]
 fn bindgen_test_layout_AlgorithmParameters__bindgen_ty_1() {
     const UNINIT: ::std::mem::MaybeUninit<AlgorithmParameters__bindgen_ty_1> =
@@ -441,7 +513,7 @@ fn bindgen_test_layout_AlgorithmParameters__bindgen_ty_1() {
     let ptr = UNINIT.as_ptr();
     assert_eq!(
         ::std::mem::size_of::<AlgorithmParameters__bindgen_ty_1>(),
-        16usize,
+        32usize,
         concat!("Size of: ", stringify!(AlgorithmParameters__bindgen_ty_1))
     );
     assert_eq!(
@@ -502,6 +574,16 @@ fn bindgen_test_layout_AlgorithmParameters__bindgen_ty_1() {
             stringify!(YawRange)
         )
     );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).LookAt) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(AlgorithmParameters__bindgen_ty_1),
+            "::",
+            stringify!(LookAt)
+        )
+    );
 }
 #[test]
 fn bindgen_test_layout_AlgorithmParameters() {
@@ -509,7 +591,7 @@ fn bindgen_test_layout_AlgorithmParameters() {
     let ptr = UNINIT.as_ptr();
     assert_eq!(
         ::std::mem::size_of::<AlgorithmParameters>(),
-        24usize,
+        40usize,
         concat!("Size of: ", stringify!(AlgorithmParameters))
     );
     assert_eq!(
@@ -618,7 +700,7 @@ fn bindgen_test_layout_hltas_frame() {
     let ptr = UNINIT.as_ptr();
     assert_eq!(
         ::std::mem::size_of::<hltas_frame>(),
-        256usize,
+        272usize,
         concat!("Size of: ", stringify!(hltas_frame))
     );
     assert_eq!(
@@ -1188,7 +1270,7 @@ fn bindgen_test_layout_hltas_frame() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).ChangePresent) as usize - ptr as usize },
-        224usize,
+        240usize,
         concat!(
             "Offset of field: ",
             stringify!(hltas_frame),
@@ -1198,7 +1280,7 @@ fn bindgen_test_layout_hltas_frame() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).Target) as usize - ptr as usize },
-        225usize,
+        241usize,
         concat!(
             "Offset of field: ",
             stringify!(hltas_frame),
@@ -1208,7 +1290,7 @@ fn bindgen_test_layout_hltas_frame() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).ChangeFinalValue) as usize - ptr as usize },
-        228usize,
+        244usize,
         concat!(
             "Offset of field: ",
             stringify!(hltas_frame),
@@ -1218,7 +1300,7 @@ fn bindgen_test_layout_hltas_frame() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).ChangeOver) as usize - ptr as usize },
-        232usize,
+        248usize,
         concat!(
             "Offset of field: ",
             stringify!(hltas_frame),
@@ -1228,7 +1310,7 @@ fn bindgen_test_layout_hltas_frame() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).TargetYawOverride) as usize - ptr as usize },
-        240usize,
+        256usize,
         concat!(
             "Offset of field: ",
             stringify!(hltas_frame),
@@ -1238,7 +1320,7 @@ fn bindgen_test_layout_hltas_frame() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).TargetYawOverrideCount) as usize - ptr as usize },
-        248usize,
+        264usize,
         concat!(
             "Offset of field: ",
             stringify!(hltas_frame),

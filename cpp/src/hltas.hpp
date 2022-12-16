@@ -107,7 +107,8 @@ namespace HLTAS
 		VELOCITY_AVG,
 		VELOCITY_LOCK,
 		YAW,
-		YAW_RANGE
+		YAW_RANGE,
+		LOOK_AT
 	};
 
 	struct AlgorithmParameters {
@@ -145,6 +146,15 @@ namespace HLTAS
 				double LowestYaw;
 				double HighestYaw;
 			} YawRange;
+
+			// Type == LOOK_AT
+			struct {
+				// Origin values of point or offset from origin of entity.
+				int Entity;
+				double X;
+				double Y;
+				double Z;
+			} LookAt;
 		} Parameters;
 
 		// Unconstrained by default.

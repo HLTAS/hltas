@@ -14,3 +14,5 @@ target_yaw velocity
 target_yaw velocity_avg
 target_yaw 90
 target_yaw velocity_lock
+target_yaw look_at entity 32 +32 -33 +0.5
+target_yaw look_at 1 2 3

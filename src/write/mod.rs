@@ -262,6 +262,9 @@ fn line_vectorial_strafing_constraints<W: Write>(
             "target_yaw",
             tuple((string("from "), display(from), string(" to "), display(to))),
         )(out),
+        VectorialStrafingConstraints::LookAt { entity, x, y, z } => {
+            property("target_yaw", pair(string("look_at"), string("dummy text\n")))(out)
+        }
     }
 }
 
