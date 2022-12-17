@@ -239,6 +239,16 @@ fn gen_tolerance<W: Write>(tolerance: f32) -> impl SerializeFn<W> {
     }
 }
 
+fn gen_entity_index<W: Write>(entity: i32) -> impl SerializeFn<W> {
+    move |out: WriteContext<W>| {
+        if entity == -1 {
+            Ok(out)
+        } else {
+            pair(string(" entity "), display(entity))(out)
+        }
+    }
+}
+
 fn line_vectorial_strafing_constraints<W: Write>(
     constraints: VectorialStrafingConstraints,
 ) -> impl SerializeFn<W> {
@@ -262,33 +272,19 @@ fn line_vectorial_strafing_constraints<W: Write>(
             "target_yaw",
             tuple((string("from "), display(from), string(" to "), display(to))),
         )(out),
-        VectorialStrafingConstraints::LookAt { entity, x, y, z } => {
-            if entity == -1 {
-                property(
-                    "target_yaw",
-                    tuple((
-                        string("look_at entity "),
-                        display(x),
-                        string(" "),
-                        display(y),
-                        string(" "),
-                        display(z),
-                    )),
-                )(out)
-            } else {
-                property(
-                    "target_yaw",
-                    tuple((
-                        string("look_at "),
-                        display(x),
-                        string(" "),
-                        display(y),
-                        string(" "),
-                        display(z),
-                    )),
-                )(out)
-            }
-        }
+        VectorialStrafingConstraints::LookAt { entity, x, y, z } => property(
+            "target_yaw",
+            tuple((
+                string("look_at"),
+                gen_entity_index(entity),
+                string(" "),
+                display(x),
+                string(" "),
+                display(y),
+                string(" "),
+                display(z),
+            )),
+        )(out),
     }
 }
 
