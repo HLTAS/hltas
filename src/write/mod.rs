@@ -263,7 +263,31 @@ fn line_vectorial_strafing_constraints<W: Write>(
             tuple((string("from "), display(from), string(" to "), display(to))),
         )(out),
         VectorialStrafingConstraints::LookAt { entity, x, y, z } => {
-            property("target_yaw", pair(string("look_at"), string("dummy text\n")))(out)
+            if entity == -1 {
+                property(
+                    "target_yaw",
+                    tuple((
+                        string("look_at entity "),
+                        display(x),
+                        string(" "),
+                        display(y),
+                        string(" "),
+                        display(z),
+                    )),
+                )(out)
+            } else {
+                property(
+                    "target_yaw",
+                    tuple((
+                        string("look_at "),
+                        display(x),
+                        string(" "),
+                        display(y),
+                        string(" "),
+                        display(z),
+                    )),
+                )(out)
+            }
         }
     }
 }
