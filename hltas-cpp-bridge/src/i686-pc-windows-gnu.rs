@@ -439,7 +439,7 @@ fn bindgen_test_layout_AlgorithmParameters__bindgen_ty_1__bindgen_ty_5() {
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct AlgorithmParameters__bindgen_ty_1__bindgen_ty_6 {
-    pub Entity: ::std::os::raw::c_int,
+    pub Entity: ::std::os::raw::c_uint,
     pub X: f64,
     pub Y: f64,
     pub Z: f64,

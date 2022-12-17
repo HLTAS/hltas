@@ -150,7 +150,7 @@ namespace HLTAS
 			// Type == LOOK_AT
 			struct {
 				// Origin values of point or offset from origin of entity.
-				int Entity;
+				unsigned int Entity;
 				double X;
 				double Y;
 				double Z;

@@ -30,7 +30,7 @@ fn recognize_float(i: &str) -> IResult<&'_ str> {
     uncut(nom::number::complete::recognize_float)(i)
 }
 
-fn recognize_i32(i: &str) -> IResult<&'_ str> {
+fn recognize_u32(i: &str) -> IResult<&'_ str> {
     uncut(nom::character::complete::digit1)(i)
 }
 
@@ -299,10 +299,8 @@ fn float(i: &str) -> IResult<f32> {
     verify(map_res(recognize_float, f32::from_str), |x| x.is_finite())(i)
 }
 
-fn i32(i: &str) -> IResult<i32> {
-    verify(map_res(recognize_i32, str::parse), |x: &i32| {
-        x.is_positive()
-    })(i)
+fn u32(i: &str) -> IResult<u32> {
+    map_res(recognize_u32, str::parse)(i)
 }
 /// Returns a parser for the yaw field given a `AutoMovement`.
 ///
@@ -588,14 +586,14 @@ fn line_target_yaw(i: &str) -> IResult<VectorialStrafingConstraints> {
             preceded(
                 tag("look_at"),
                 tuple((
-                    opt(preceded(tag(" "), preceded(tag("entity "), cut(i32)))),
+                    opt(preceded(tag(" "), preceded(tag("entity "), cut(u32)))),
                     opt(preceded(tag(" "), cut(float))),
                     opt(preceded(tag(" "), cut(float))),
                     opt(preceded(tag(" "), cut(float))),
                 )),
             ),
             |(entity, x, y, z)| VectorialStrafingConstraints::LookAt {
-                entity: entity.unwrap_or(-1),
+                entity: entity.unwrap_or(0),
                 x: x.unwrap_or(0.),
                 y: y.unwrap_or(0.),
                 z: z.unwrap_or(0.),

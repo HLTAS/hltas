@@ -239,9 +239,9 @@ fn gen_tolerance<W: Write>(tolerance: f32) -> impl SerializeFn<W> {
     }
 }
 
-fn gen_entity_index<W: Write>(entity: i32) -> impl SerializeFn<W> {
+fn gen_entity_index<W: Write>(entity: u32) -> impl SerializeFn<W> {
     move |out: WriteContext<W>| {
-        if entity == -1 {
+        if entity == 0 {
             Ok(out)
         } else {
             pair(string(" entity "), display(entity))(out)

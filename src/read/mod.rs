@@ -234,7 +234,7 @@ impl Error<'_> {
 /// If the error already has context stored, does nothing.
 fn context<'a, T>(
     context: Context,
-    f: impl Fn(&'a str) -> IResult<T>,
+    f: impl Fn(&'a str) -> IResult<'a, T>,
 ) -> impl Fn(&'a str) -> IResult<T> {
     move |i: &str| {
         f(i).map_err(move |error| match error {
