@@ -453,9 +453,11 @@ pub enum VectorialStrafingConstraints {
     LookAt {
         /// If set, the coordinates will be added to the origin of an entity with this index.
         entity: Option<NonZeroU32>,
-        /// Specified origin or offset from entity origin.
+        /// X coordinate.
         x: f32,
+        /// Y coordinate.
         y: f32,
+        /// Z coordinate.
         z: f32,
     },
 }
