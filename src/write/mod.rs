@@ -1,4 +1,4 @@
-use std::{fmt::Display, io::Write};
+use std::{fmt::Display, io::Write, num::NonZeroU32};
 
 use cookie_factory::{
     combinator::string,
@@ -239,12 +239,11 @@ fn gen_tolerance<W: Write>(tolerance: f32) -> impl SerializeFn<W> {
     }
 }
 
-fn gen_entity_index<W: Write>(entity: u32) -> impl SerializeFn<W> {
+fn gen_entity_index<W: Write>(entity: Option<NonZeroU32>) -> impl SerializeFn<W> {
     move |out: WriteContext<W>| {
-        if entity == 0 {
-            Ok(out)
-        } else {
-            pair(string(" entity "), display(entity))(out)
+        match entity {
+            Some(number) => pair(string(" entity "), display(number.get()))(out),
+            None => Ok(out),
         }
     }
 }

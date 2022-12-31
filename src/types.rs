@@ -452,6 +452,10 @@ pub enum VectorialStrafingConstraints {
     /// Constrains the player yaw to look at the given point.
     LookAt {
         /// If set, the coordinates will be added to the origin of an entity with this index.
+        #[cfg_attr(
+            feature = "proptest1",
+            proptest(strategy = "any::<u32>().prop_map(NonZeroU32::new)")
+        )]
         entity: Option<NonZeroU32>,
         /// X coordinate.
         x: f32,

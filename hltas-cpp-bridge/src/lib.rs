@@ -231,7 +231,10 @@ impl From<VectorialStrafingConstraints> for hltas_cpp::AlgorithmParameters {
                 Type: ConstraintsType::LOOK_AT,
                 Parameters: AlgorithmParameters__bindgen_ty_1 {
                     LookAt: AlgorithmParameters__bindgen_ty_1__bindgen_ty_6 {
-                        Entity: entity,
+                        Entity: match entity {
+                            Some(number) => number.get(),
+                            None => 0,
+                        },
                         X: x as f64,
                         Y: y as f64,
                         Z: z as f64,
@@ -266,7 +269,7 @@ impl From<hltas_cpp::AlgorithmParameters> for VectorialStrafingConstraints {
                     to: x.Parameters.YawRange.HighestYaw as f32,
                 },
                 ConstraintsType::LOOK_AT => Self::LookAt {
-                    entity: x.Parameters.LookAt.Entity,
+                    entity: NonZeroU32::new(x.Parameters.LookAt.Entity),
                     x: x.Parameters.LookAt.X as f32,
                     y: x.Parameters.LookAt.Y as f32,
                     z: x.Parameters.LookAt.Z as f32,

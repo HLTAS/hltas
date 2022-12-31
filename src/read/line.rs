@@ -30,10 +30,6 @@ fn recognize_float(i: &str) -> IResult<&'_ str> {
     uncut(nom::number::complete::recognize_float)(i)
 }
 
-fn recognize_u32(i: &str) -> IResult<&'_ str> {
-    uncut(nom::character::complete::digit1)(i)
-}
-
 fn strafe_type(i: &str) -> IResult<StrafeType> {
     alt((
         map(char('0'), |_| StrafeType::MaxAccel),
@@ -297,10 +293,6 @@ fn action_keys(i: &str) -> IResult<ActionKeys> {
 
 fn float(i: &str) -> IResult<f32> {
     verify(map_res(recognize_float, f32::from_str), |x| x.is_finite())(i)
-}
-
-fn u32(i: &str) -> IResult<u32> {
-    map_res(recognize_u32, str::parse)(i)
 }
 /// Returns a parser for the yaw field given a `AutoMovement`.
 ///
@@ -585,19 +577,45 @@ fn line_target_yaw(i: &str) -> IResult<VectorialStrafingConstraints> {
         map(
             preceded(
                 tag("look_at"),
-                tuple((
-                    opt(preceded(tag(" "), preceded(tag("entity "), cut(u32)))),
-                    opt(preceded(tag(" "), cut(float))),
-                    opt(preceded(tag(" "), cut(float))),
-                    opt(preceded(tag(" "), cut(float))),
-                )),
+                preceded(
+                    tag(" "),
+                    alt((
+                        map(
+                            preceded(
+                                tag("entity"),
+                                preceded(
+                                    tag(" "),
+                                    tuple((
+                                        cut(non_zero_u32),
+                                        opt(tuple((
+                                            preceded(tag(" "), cut(float)),
+                                            preceded(tag(" "), cut(float)),
+                                            preceded(tag(" "), cut(float)),
+                                        ))),
+                                    )),
+                                ),
+                            ),
+                            |(entity, origin)| {
+                                (Some(entity), {
+                                    match origin {
+                                        Some(numbers) => (numbers.0, numbers.1, numbers.2),
+                                        None => (0 as f32, 0 as f32, 0 as f32),
+                                    }
+                                })
+                            },
+                        ),
+                        map(
+                            tuple((
+                                cut(float),
+                                preceded(tag(" "), cut(float)),
+                                preceded(tag(" "), cut(float)),
+                            )),
+                            |(x, y, z)| (None, (x, y, z)),
+                        ),
+                    )),
+                ),
             ),
-            |(entity, x, y, z)| VectorialStrafingConstraints::LookAt {
-                entity: entity.unwrap_or(0),
-                x: x.unwrap_or(0.),
-                y: y.unwrap_or(0.),
-                z: z.unwrap_or(0.),
-            },
+            |(entity, (x, y, z))| VectorialStrafingConstraints::LookAt { entity, x, y, z },
         ),
         map(
             pair(float, opt(preceded(tag(" "), cut(parse_tolerance)))),
