@@ -240,11 +240,9 @@ fn gen_tolerance<W: Write>(tolerance: f32) -> impl SerializeFn<W> {
 }
 
 fn gen_entity_index<W: Write>(entity: Option<NonZeroU32>) -> impl SerializeFn<W> {
-    move |out: WriteContext<W>| {
-        match entity {
-            Some(number) => pair(string(" entity "), display(number.get()))(out),
-            None => Ok(out),
-        }
+    move |out: WriteContext<W>| match entity {
+        Some(number) => pair(string(" entity "), display(number.get()))(out),
+        None => Ok(out),
     }
 }
 
