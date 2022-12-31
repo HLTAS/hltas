@@ -451,7 +451,7 @@ pub enum VectorialStrafingConstraints {
     },
     /// Constrains the player yaw to look at the given point.
     LookAt {
-        /// Option to trace an entity's origin from entity index.
+        /// If set, the coordinates will be added to the origin of an entity with this index.
         entity: u32,
         /// Specified origin or offset from entity origin.
         x: f32,
