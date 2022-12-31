@@ -449,7 +449,7 @@ pub enum VectorialStrafingConstraints {
         /// The highest yaw angle of the range in degrees.
         to: f32,
     },
-    /// Constrains the player yaw to given point.
+    /// Constrains the player yaw to look at the given point.
     LookAt {
         /// Option to trace an entity's origin from entity index.
         entity: u32,
