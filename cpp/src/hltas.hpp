@@ -149,7 +149,7 @@ namespace HLTAS
 
 			// Type == LOOK_AT
 			struct {
-				// Origin values of point or offset from origin of entity.
+				// Point coordinates. If Entity is > 0, then coordinates are added to the origin of the entity with this index.
 				unsigned int Entity;
 				double X;
 				double Y;
