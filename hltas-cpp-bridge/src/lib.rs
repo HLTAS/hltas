@@ -179,7 +179,8 @@ impl From<VectorialStrafingConstraints> for hltas_cpp::AlgorithmParameters {
             AlgorithmParameters__bindgen_ty_1__bindgen_ty_2,
             AlgorithmParameters__bindgen_ty_1__bindgen_ty_3,
             AlgorithmParameters__bindgen_ty_1__bindgen_ty_4,
-            AlgorithmParameters__bindgen_ty_1__bindgen_ty_5, ConstraintsType,
+            AlgorithmParameters__bindgen_ty_1__bindgen_ty_5,
+            AlgorithmParameters__bindgen_ty_1__bindgen_ty_6, ConstraintsType,
         };
 
         use VectorialStrafingConstraints::*;
@@ -226,6 +227,20 @@ impl From<VectorialStrafingConstraints> for hltas_cpp::AlgorithmParameters {
                     },
                 },
             },
+            LookAt { entity, x, y, z } => Self {
+                Type: ConstraintsType::LOOK_AT,
+                Parameters: AlgorithmParameters__bindgen_ty_1 {
+                    LookAt: AlgorithmParameters__bindgen_ty_1__bindgen_ty_6 {
+                        Entity: match entity {
+                            Some(number) => number.get(),
+                            None => 0,
+                        },
+                        X: x as f64,
+                        Y: y as f64,
+                        Z: z as f64,
+                    },
+                },
+            },
         }
     }
 }
@@ -252,6 +267,12 @@ impl From<hltas_cpp::AlgorithmParameters> for VectorialStrafingConstraints {
                 ConstraintsType::YAW_RANGE => Self::YawRange {
                     from: x.Parameters.YawRange.LowestYaw as f32,
                     to: x.Parameters.YawRange.HighestYaw as f32,
+                },
+                ConstraintsType::LOOK_AT => Self::LookAt {
+                    entity: NonZeroU32::new(x.Parameters.LookAt.Entity),
+                    x: x.Parameters.LookAt.X as f32,
+                    y: x.Parameters.LookAt.Y as f32,
+                    z: x.Parameters.LookAt.Z as f32,
                 },
             }
         }
@@ -319,6 +340,7 @@ impl Debug for hltas_cpp::AlgorithmParameters {
                 ConstraintsType::VELOCITY_LOCK => &self.Parameters.VelocityLock,
                 ConstraintsType::YAW => &self.Parameters.Yaw,
                 ConstraintsType::YAW_RANGE => &self.Parameters.YawRange,
+                ConstraintsType::LOOK_AT => &self.Parameters.LookAt,
             }
         };
         builder.field("Parameters", field);

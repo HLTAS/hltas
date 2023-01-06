@@ -531,6 +531,30 @@ fn parse_tolerance(i: &str) -> IResult<f32> {
     )(i)
 }
 
+fn parse_look_at_entity_index(i: &str) -> IResult<NonZeroU32> {
+    preceded(tag("entity "), cut(non_zero_u32))(i)
+}
+
+fn parse_xyz(i: &str) -> IResult<(f32, f32, f32)> {
+    tuple((float, preceded(tag(" "), float), preceded(tag(" "), float)))(i)
+}
+
+fn parse_look_at(i: &str) -> IResult<(Option<NonZeroU32>, (f32, f32, f32))> {
+    preceded(
+        tag(" "),
+        alt((
+            map(
+                tuple((
+                    parse_look_at_entity_index,
+                    opt(preceded(tag(" "), cut(parse_xyz))),
+                )),
+                |(entity, origin)| (Some(entity), origin.unwrap_or((0., 0., 0.))),
+            ),
+            map(parse_xyz, |(x, y, z)| (None, (x, y, z))),
+        )),
+    )(i)
+}
+
 fn line_target_yaw(i: &str) -> IResult<VectorialStrafingConstraints> {
     let (i, (name, value)) = property(i)?;
     all_consuming(tag("target_yaw"))(name)?;
@@ -574,6 +598,10 @@ fn line_target_yaw(i: &str) -> IResult<VectorialStrafingConstraints> {
             |tolerance| VectorialStrafingConstraints::VelocityYaw {
                 tolerance: tolerance.unwrap_or(0.),
             },
+        ),
+        map(
+            preceded(tag("look_at"), cut(parse_look_at)),
+            |(entity, (x, y, z))| VectorialStrafingConstraints::LookAt { entity, x, y, z },
         ),
         map(
             pair(float, opt(preceded(tag(" "), cut(parse_tolerance)))),

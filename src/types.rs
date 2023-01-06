@@ -449,6 +449,21 @@ pub enum VectorialStrafingConstraints {
         /// The highest yaw angle of the range in degrees.
         to: f32,
     },
+    /// Constrains the player yaw to look at the given point.
+    LookAt {
+        /// If set, the coordinates will be added to the origin of an entity with this index.
+        #[cfg_attr(
+            feature = "proptest1",
+            proptest(strategy = "any::<u32>().prop_map(NonZeroU32::new)")
+        )]
+        entity: Option<NonZeroU32>,
+        /// X coordinate.
+        x: f32,
+        /// Y coordinate.
+        y: f32,
+        /// Z coordinate.
+        z: f32,
+    },
 }
 
 /// Description of the value to change.

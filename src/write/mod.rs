@@ -1,4 +1,4 @@
-use std::{fmt::Display, io::Write};
+use std::{fmt::Display, io::Write, num::NonZeroU32};
 
 use cookie_factory::{
     combinator::string,
@@ -239,6 +239,13 @@ fn gen_tolerance<W: Write>(tolerance: f32) -> impl SerializeFn<W> {
     }
 }
 
+fn gen_entity_index<W: Write>(entity: Option<NonZeroU32>) -> impl SerializeFn<W> {
+    move |out: WriteContext<W>| match entity {
+        Some(number) => pair(string(" entity "), display(number.get()))(out),
+        None => Ok(out),
+    }
+}
+
 fn line_vectorial_strafing_constraints<W: Write>(
     constraints: VectorialStrafingConstraints,
 ) -> impl SerializeFn<W> {
@@ -261,6 +268,19 @@ fn line_vectorial_strafing_constraints<W: Write>(
         VectorialStrafingConstraints::YawRange { from, to } => property(
             "target_yaw",
             tuple((string("from "), display(from), string(" to "), display(to))),
+        )(out),
+        VectorialStrafingConstraints::LookAt { entity, x, y, z } => property(
+            "target_yaw",
+            tuple((
+                string("look_at"),
+                gen_entity_index(entity),
+                string(" "),
+                display(x),
+                string(" "),
+                display(y),
+                string(" "),
+                display(z),
+            )),
         )(out),
     }
 }
