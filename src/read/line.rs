@@ -294,6 +294,7 @@ fn action_keys(i: &str) -> IResult<ActionKeys> {
 fn float(i: &str) -> IResult<f32> {
     verify(map_res(recognize_float, f32::from_str), |x| x.is_finite())(i)
 }
+
 /// Returns a parser for the yaw field given a `AutoMovement`.
 ///
 /// The yaw field contents depend on the strafing:
@@ -530,6 +531,37 @@ fn parse_tolerance(i: &str) -> IResult<f32> {
     )(i)
 }
 
+fn parse_look_at_entity_index(i: &str) -> IResult<NonZeroU32> {
+    preceded(tag("entity"), preceded(tag(" "), non_zero_u32))(i)
+}
+
+fn parse_xyz(i: &str) -> IResult<(f32, f32, f32)> {
+    tuple((float, preceded(tag(" "), float), preceded(tag(" "), float)))(i)
+}
+
+fn parse_look_at(i: &str) -> IResult<(Option<NonZeroU32>, (f32, f32, f32))> {
+    preceded(
+        tag(" "),
+        alt((
+            map(
+                tuple((
+                    parse_look_at_entity_index,
+                    opt(preceded(tag(" "), cut(parse_xyz))),
+                )),
+                |(entity, origin)| {
+                    (Some(entity), {
+                        match origin {
+                            Some(numbers) => (numbers.0, numbers.1, numbers.2),
+                            None => (0 as f32, 0 as f32, 0 as f32),
+                        }
+                    })
+                },
+            ),
+            map(parse_xyz, |(x, y, z)| (None, (x, y, z))),
+        )),
+    )(i)
+}
+
 fn line_target_yaw(i: &str) -> IResult<VectorialStrafingConstraints> {
     let (i, (name, value)) = property(i)?;
     all_consuming(tag("target_yaw"))(name)?;
@@ -575,46 +607,7 @@ fn line_target_yaw(i: &str) -> IResult<VectorialStrafingConstraints> {
             },
         ),
         map(
-            preceded(
-                tag("look_at"),
-                preceded(
-                    tag(" "),
-                    alt((
-                        map(
-                            preceded(
-                                tag("entity"),
-                                preceded(
-                                    tag(" "),
-                                    tuple((
-                                        cut(non_zero_u32),
-                                        opt(tuple((
-                                            preceded(tag(" "), cut(float)),
-                                            preceded(tag(" "), cut(float)),
-                                            preceded(tag(" "), cut(float)),
-                                        ))),
-                                    )),
-                                ),
-                            ),
-                            |(entity, origin)| {
-                                (Some(entity), {
-                                    match origin {
-                                        Some(numbers) => (numbers.0, numbers.1, numbers.2),
-                                        None => (0 as f32, 0 as f32, 0 as f32),
-                                    }
-                                })
-                            },
-                        ),
-                        map(
-                            tuple((
-                                cut(float),
-                                preceded(tag(" "), cut(float)),
-                                preceded(tag(" "), cut(float)),
-                            )),
-                            |(x, y, z)| (None, (x, y, z)),
-                        ),
-                    )),
-                ),
-            ),
+            preceded(tag("look_at"), cut(parse_look_at)),
             |(entity, (x, y, z))| VectorialStrafingConstraints::LookAt { entity, x, y, z },
         ),
         map(
