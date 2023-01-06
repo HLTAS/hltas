@@ -532,7 +532,7 @@ fn parse_tolerance(i: &str) -> IResult<f32> {
 }
 
 fn parse_look_at_entity_index(i: &str) -> IResult<NonZeroU32> {
-    preceded(tag("entity"), preceded(tag(" "), non_zero_u32))(i)
+    preceded(tag("entity "), cut(non_zero_u32))(i)
 }
 
 fn parse_xyz(i: &str) -> IResult<(f32, f32, f32)> {
