@@ -548,14 +548,7 @@ fn parse_look_at(i: &str) -> IResult<(Option<NonZeroU32>, (f32, f32, f32))> {
                     parse_look_at_entity_index,
                     opt(preceded(tag(" "), cut(parse_xyz))),
                 )),
-                |(entity, origin)| {
-                    (Some(entity), {
-                        match origin {
-                            Some(numbers) => (numbers.0, numbers.1, numbers.2),
-                            None => (0 as f32, 0 as f32, 0 as f32),
-                        }
-                    })
-                },
+                |(entity, origin)| (Some(entity), origin.unwrap_or((0., 0., 0.))),
             ),
             map(parse_xyz, |(x, y, z)| (None, (x, y, z))),
         )),
