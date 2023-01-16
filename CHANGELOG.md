@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [0.7.0] - 16 Jan 2023
+### Added
+- `ChangeTarget::VectorialStrafingYawOffset`.
+- `VectorialStrafingConstraints::LookAt`.
+
 ## [0.6.0] - 31 Aug 2022
 ### Added
 - `StrafeDir::LeftRight`, `StrafeDir::RightLeft`.
@@ -34,7 +39,8 @@
 - `Properties::hlstrafe_version`.
 - `Line::VectorialStrafing` and `Line::VectorialStrafingConstraints`.
 
-[Unreleased]: https://github.com/HLTAS/hltas/compare/v0.6.0...HEAD
+[Unreleased]: https://github.com/HLTAS/hltas/compare/v0.7.0...HEAD
+[0.7.0]: https://github.com/HLTAS/hltas/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/HLTAS/hltas/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/HLTAS/hltas/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/HLTAS/hltas/compare/v0.3.0...v0.4.0
