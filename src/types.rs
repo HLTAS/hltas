@@ -566,6 +566,54 @@ impl HLTAS {
     }
 }
 
+impl Line {
+    /// Returns the `&FrameBulk` that the `&Line` contains.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # extern crate hltas;
+    /// use hltas::types::{FrameBulk, Line};
+    ///
+    /// let frame_bulk = FrameBulk::with_frame_time("0.001".to_owned());
+    /// let frame_bulk_line = Line::FrameBulk(frame_bulk.clone());
+    /// assert_eq!(frame_bulk_line.frame_bulk(), Some(&frame_bulk));
+    ///
+    /// let other_line = Line::SharedSeed(1);
+    /// assert_eq!(other_line.frame_bulk(), None);
+    /// ```
+    #[inline]
+    pub fn frame_bulk(&self) -> Option<&FrameBulk> {
+        match self {
+            Self::FrameBulk(value) => Some(value),
+            _ => None,
+        }
+    }
+
+    /// Returns the `&mut FrameBulk` that the `&mut Line` contains.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # extern crate hltas;
+    /// use hltas::types::{FrameBulk, Line};
+    ///
+    /// let mut frame_bulk = FrameBulk::with_frame_time("0.001".to_owned());
+    /// let mut frame_bulk_line = Line::FrameBulk(frame_bulk.clone());
+    /// assert_eq!(frame_bulk_line.frame_bulk_mut(), Some(&mut frame_bulk));
+    ///
+    /// let mut other_line = Line::SharedSeed(1);
+    /// assert_eq!(other_line.frame_bulk_mut(), None);
+    /// ```
+    #[inline]
+    pub fn frame_bulk_mut(&mut self) -> Option<&mut FrameBulk> {
+        match self {
+            Self::FrameBulk(value) => Some(value),
+            _ => None,
+        }
+    }
+}
+
 impl FrameBulk {
     /// Returns a `FrameBulk` with the given frame time and frame count of 1 and otherwise empty.
     ///
