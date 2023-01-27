@@ -1,6 +1,6 @@
 //! Types representing various parts of `.hltas` scripts.
 
-use std::{io::Write, num::NonZeroU32};
+use std::{io::Write, iter, num::NonZeroU32, slice};
 
 use cookie_factory::GenError;
 #[cfg(feature = "proptest1")]
@@ -563,6 +563,50 @@ impl HLTAS {
     /// ```
     pub fn to_writer<W: Write>(&self, writer: W) -> Result<(), GenError> {
         write::hltas(writer, self)
+    }
+
+    /// Returns an iterator over frame bulks of the script.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # extern crate hltas;
+    /// use hltas::HLTAS;
+    ///
+    /// fn check_frame_bulks(hltas: &HLTAS) {
+    ///     for frame_bulk in hltas.frame_bulks() {
+    ///         // ...
+    ///     }
+    /// }
+    /// ```
+    #[allow(clippy::type_complexity)]
+    #[inline]
+    pub fn frame_bulks(
+        &self,
+    ) -> iter::FilterMap<slice::Iter<Line>, fn(&Line) -> Option<&FrameBulk>> {
+        self.lines.iter().filter_map(Line::frame_bulk)
+    }
+
+    /// Returns an iterator over mutable frame bulks of the script.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # extern crate hltas;
+    /// use hltas::HLTAS;
+    ///
+    /// fn modify_frame_bulks(hltas: &mut HLTAS) {
+    ///     for frame_bulk in hltas.frame_bulks_mut() {
+    ///         // ...
+    ///     }
+    /// }
+    /// ```
+    #[allow(clippy::type_complexity)]
+    #[inline]
+    pub fn frame_bulks_mut(
+        &mut self,
+    ) -> iter::FilterMap<slice::IterMut<Line>, fn(&mut Line) -> Option<&mut FrameBulk>> {
+        self.lines.iter_mut().filter_map(Line::frame_bulk_mut)
     }
 }
 
