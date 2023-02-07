@@ -539,6 +539,13 @@ fn parse_xyz(i: &str) -> IResult<(f32, f32, f32)> {
     tuple((float, preceded(tag(" "), float), preceded(tag(" "), float)))(i)
 }
 
+fn parse_action(i: &str) -> IResult<LookAtAction> {
+    alt((
+        map(tag("attack2"), |_| LookAtAction::Attack2),
+        map(tag("attack"), |_| LookAtAction::Attack),
+    ))(i)
+}
+
 fn parse_look_at(i: &str) -> IResult<(Option<NonZeroU32>, (f32, f32, f32))> {
     preceded(
         tag(" "),
@@ -600,8 +607,20 @@ fn line_target_yaw(i: &str) -> IResult<VectorialStrafingConstraints> {
             },
         ),
         map(
-            preceded(tag("look_at"), cut(parse_look_at)),
-            |(entity, (x, y, z))| VectorialStrafingConstraints::LookAt { entity, x, y, z },
+            preceded(
+                tag("look_at"),
+                cut(tuple((
+                    parse_look_at,
+                    opt(preceded(tag(" "), cut(parse_action))),
+                ))),
+            ),
+            |((entity, (x, y, z)), action)| VectorialStrafingConstraints::LookAt {
+                entity,
+                x,
+                y,
+                z,
+                action,
+            },
         ),
         map(
             pair(float, opt(preceded(tag(" "), cut(parse_tolerance)))),

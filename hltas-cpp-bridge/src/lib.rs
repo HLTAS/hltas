@@ -227,7 +227,13 @@ impl From<VectorialStrafingConstraints> for hltas_cpp::AlgorithmParameters {
                     },
                 },
             },
-            LookAt { entity, x, y, z } => Self {
+            LookAt {
+                entity,
+                x,
+                y,
+                z,
+                action,
+            } => Self {
                 Type: ConstraintsType::LOOK_AT,
                 Parameters: AlgorithmParameters__bindgen_ty_1 {
                     LookAt: AlgorithmParameters__bindgen_ty_1__bindgen_ty_6 {
@@ -238,6 +244,13 @@ impl From<VectorialStrafingConstraints> for hltas_cpp::AlgorithmParameters {
                         X: x as f64,
                         Y: y as f64,
                         Z: z as f64,
+                        Action: match action {
+                            Some(action) => match action {
+                                LookAtAction::Attack => 1,
+                                LookAtAction::Attack2 => 2,
+                            },
+                            None => 0,
+                        },
                     },
                 },
             },
@@ -273,6 +286,13 @@ impl From<hltas_cpp::AlgorithmParameters> for VectorialStrafingConstraints {
                     x: x.Parameters.LookAt.X as f32,
                     y: x.Parameters.LookAt.Y as f32,
                     z: x.Parameters.LookAt.Z as f32,
+                    action: {
+                        match x.Parameters.LookAt.Action {
+                            1 => Some(LookAtAction::Attack),
+                            2 => Some(LookAtAction::Attack2),
+                            _ => None,
+                        }
+                    },
                 },
             }
         }

@@ -405,6 +405,17 @@ pub struct ActionKeys {
     pub reload: bool,
 }
 
+/// Actions for target_yaw look_at.
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[cfg_attr(feature = "serde1", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "proptest1", derive(Arbitrary))]
+pub enum LookAtAction {
+    /// +attack.
+    Attack,
+    /// +attack2.
+    Attack2,
+}
+
 /// Constraints for the vectorial strafing algorithm.
 #[derive(Debug, Clone, Copy, PartialEq)]
 #[cfg_attr(feature = "serde1", derive(Serialize, Deserialize))]
@@ -463,6 +474,8 @@ pub enum VectorialStrafingConstraints {
         y: f32,
         /// Z coordinate.
         z: f32,
+        /// Attack button
+        action: Option<LookAtAction>,
     },
 }
 

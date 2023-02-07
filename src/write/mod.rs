@@ -246,6 +246,21 @@ fn gen_entity_index<W: Write>(entity: Option<NonZeroU32>) -> impl SerializeFn<W>
     }
 }
 
+fn gen_lookat_action<W: Write>(action: Option<LookAtAction>) -> impl SerializeFn<W> {
+    move |out: WriteContext<W>| match action {
+        Some(action) => pair(
+            string(" "),
+            display({
+                match action {
+                    LookAtAction::Attack => "attack",
+                    LookAtAction::Attack2 => "attack2",
+                }
+            }),
+        )(out),
+        None => Ok(out),
+    }
+}
+
 fn line_vectorial_strafing_constraints<W: Write>(
     constraints: VectorialStrafingConstraints,
 ) -> impl SerializeFn<W> {
@@ -269,7 +284,13 @@ fn line_vectorial_strafing_constraints<W: Write>(
             "target_yaw",
             tuple((string("from "), display(from), string(" to "), display(to))),
         )(out),
-        VectorialStrafingConstraints::LookAt { entity, x, y, z } => property(
+        VectorialStrafingConstraints::LookAt {
+            entity,
+            x,
+            y,
+            z,
+            action,
+        } => property(
             "target_yaw",
             tuple((
                 string("look_at"),
@@ -280,6 +301,7 @@ fn line_vectorial_strafing_constraints<W: Write>(
                 display(y),
                 string(" "),
                 display(z),
+                gen_lookat_action(action),
             )),
         )(out),
     }
