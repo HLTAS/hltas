@@ -246,10 +246,10 @@ impl From<VectorialStrafingConstraints> for hltas_cpp::AlgorithmParameters {
                         Z: z as f64,
                         Action: match action {
                             Some(action) => match action {
-                                LookAtAction::Attack => 1,
-                                LookAtAction::Attack2 => 2,
+                                LookAtAction::Attack => hltas_cpp::LookAtAction::ATTACK,
+                                LookAtAction::Attack2 => hltas_cpp::LookAtAction::ATTACK2,
                             },
-                            None => 0,
+                            None => hltas_cpp::LookAtAction::NONE,
                         },
                     },
                 },
@@ -288,9 +288,9 @@ impl From<hltas_cpp::AlgorithmParameters> for VectorialStrafingConstraints {
                     z: x.Parameters.LookAt.Z as f32,
                     action: {
                         match x.Parameters.LookAt.Action {
-                            1 => Some(LookAtAction::Attack),
-                            2 => Some(LookAtAction::Attack2),
-                            _ => None,
+                            hltas_cpp::LookAtAction::ATTACK => Some(LookAtAction::Attack),
+                            hltas_cpp::LookAtAction::ATTACK2 => Some(LookAtAction::Attack2),
+                            hltas_cpp::LookAtAction::NONE => None,
                         }
                     },
                 },

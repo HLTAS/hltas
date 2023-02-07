@@ -111,6 +111,12 @@ namespace HLTAS
 		LOOK_AT
 	};
 
+	enum class LookAtAction {
+		NONE = 0,
+		ATTACK = 1,
+		ATTACK2
+	};
+
 	struct AlgorithmParameters {
 		ConstraintsType Type;
 
@@ -154,6 +160,7 @@ namespace HLTAS
 				double X;
 				double Y;
 				double Z;
+				LookAtAction Action;
 			} LookAt;
 		} Parameters;
 

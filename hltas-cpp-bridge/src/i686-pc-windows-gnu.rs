@@ -213,6 +213,13 @@ pub enum ConstraintsType {
     YAW_RANGE = 4,
     LOOK_AT = 5,
 }
+#[repr(i32)]
+#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
+pub enum LookAtAction {
+    NONE = 0,
+    ATTACK = 1,
+    ATTACK2 = 2,
+}
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct AlgorithmParameters {
@@ -443,7 +450,7 @@ pub struct AlgorithmParameters__bindgen_ty_1__bindgen_ty_6 {
     pub X: f64,
     pub Y: f64,
     pub Z: f64,
-    pub Action: ::std::os::raw::c_uint,
+    pub Action: LookAtAction,
 }
 #[test]
 fn bindgen_test_layout_AlgorithmParameters__bindgen_ty_1__bindgen_ty_6() {
