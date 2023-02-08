@@ -290,6 +290,16 @@ namespace HLTAS
 		Pitch = value;
 	}
 
+	void Frame::SetAttack(bool value)
+	{
+		Attack1 = value;
+	}
+
+	void Frame::SetAttack2(bool value)
+	{
+		Attack2 = value;
+	}
+
 	void Frame::SetRepeats(unsigned value)
 	{
 		assert(value > 0);
@@ -541,6 +551,25 @@ namespace HLTAS
 	Frame& Input::GetFrame(std::size_t n)
 	{
 		return Frames[n];
+	}
+
+	bool Input::SplitFrame(std::size_t bulk_idx, std::size_t repeat_idx)
+	{
+		auto bulk = GetFrame(bulk_idx);
+		auto len = bulk.GetRepeats();
+
+		if (repeat_idx >= len-1 || repeat_idx == 0)
+			return false;
+
+		auto after = bulk;
+		bulk.SetRepeats(repeat_idx);
+		after.SetRepeats(len - repeat_idx);
+
+		RemoveFrame(bulk_idx);
+		InsertFrame(bulk_idx, after);
+		InsertFrame(bulk_idx, bulk);
+
+		return true;
 	}
 }
 

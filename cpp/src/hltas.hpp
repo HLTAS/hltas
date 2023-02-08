@@ -345,6 +345,8 @@ namespace HLTAS
 		void SetY(double value);
 		void SetCount(unsigned value);
 		void SetPitch(double value);
+		void SetAttack(bool value);
+		void SetAttack2(bool value);
 		void SetRepeats(unsigned value);
 
 		std::string Commands;
@@ -449,6 +451,7 @@ namespace HLTAS
 		void RemoveFrame(std::size_t n);
 		void ClearFrames();
 		Frame& GetFrame(std::size_t n);
+		bool SplitFrame(std::size_t bulk_idx, std::size_t repeat_idx);
 
 	protected:
 		int Version;
