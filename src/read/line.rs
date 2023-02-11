@@ -6,7 +6,7 @@ use nom::{
     character::complete::{anychar, char, not_line_ending, space1},
     combinator::{all_consuming, cut, map, map_res, not, opt, peek, recognize, verify},
     multi::separated_nonempty_list,
-    sequence::{pair, preceded, separated_pair, tuple},
+    sequence::{pair, preceded, separated_pair, terminated, tuple},
 };
 
 use crate::{
@@ -271,12 +271,40 @@ fn movement_keys(i: &str) -> IResult<MovementKeys> {
     ))
 }
 
+fn parse_times_attack1(i: &str) -> IResult<Times> {
+    let (i, times) = opt(terminated(non_zero_u32, tag("o")))(i)?;
+    Ok((
+        i,
+        times
+            .map(Times::Limited)
+            .unwrap_or(Times::UnlimitedWithinFrameBulk),
+    ))
+}
+
+fn attack_1(i: &str) -> IResult<Option<Attack1>> {
+    alt((
+        map(char('-'), |_| None),
+        map(preceded(char('1'), parse_times_attack1), |times| {
+            Some(Attack1 { times })
+        }),
+    ))(i)
+}
+
+fn attack_2(i: &str) -> IResult<Option<Attack2>> {
+    alt((
+        map(char('-'), |_| None),
+        map(preceded(char('2'), parse_times), |times| {
+            Some(Attack2 { times })
+        }),
+    ))(i)
+}
+
 fn action_keys(i: &str) -> IResult<ActionKeys> {
     let (i, jump) = key('j')(i)?;
     let (i, duck) = key('d')(i)?;
     let (i, use_) = key('u')(i)?;
-    let (i, attack_1) = key('1')(i)?;
-    let (i, attack_2) = key('2')(i)?;
+    let (i, attack_1) = attack_1(i)?;
+    let (i, attack_2) = attack_2(i)?;
     let (i, reload) = key('r')(i)?;
     Ok((
         i,
@@ -539,6 +567,13 @@ fn parse_xyz(i: &str) -> IResult<(f32, f32, f32)> {
     tuple((float, preceded(tag(" "), float), preceded(tag(" "), float)))(i)
 }
 
+fn parse_action(i: &str) -> IResult<LookAtAction> {
+    alt((
+        map(tag("attack2"), |_| LookAtAction::Attack2),
+        map(tag("attack"), |_| LookAtAction::Attack),
+    ))(i)
+}
+
 fn parse_look_at(i: &str) -> IResult<(Option<NonZeroU32>, (f32, f32, f32))> {
     preceded(
         tag(" "),
@@ -600,8 +635,20 @@ fn line_target_yaw(i: &str) -> IResult<VectorialStrafingConstraints> {
             },
         ),
         map(
-            preceded(tag("look_at"), cut(parse_look_at)),
-            |(entity, (x, y, z))| VectorialStrafingConstraints::LookAt { entity, x, y, z },
+            preceded(
+                tag("look_at"),
+                cut(tuple((
+                    parse_look_at,
+                    opt(preceded(tag(" "), cut(parse_action))),
+                ))),
+            ),
+            |((entity, (x, y, z)), action)| VectorialStrafingConstraints::LookAt {
+                entity,
+                x,
+                y,
+                z,
+                action,
+            },
         ),
         map(
             pair(float, opt(preceded(tag(" "), cut(parse_tolerance)))),

@@ -139,13 +139,29 @@ fn movement_keys<W: Write>(mk: MovementKeys) -> impl SerializeFn<W> {
     ))
 }
 
+fn gen_times_attack1<W: Write>(times: Times) -> impl SerializeFn<W> {
+    move |out: WriteContext<W>| {
+        if let Times::Limited(times) = times {
+            pair(display(times), string("o"))(out)
+        } else {
+            Ok(out)
+        }
+    }
+}
+
 fn action_keys<W: Write>(ak: ActionKeys) -> impl SerializeFn<W> {
     tuple((
         key("j", ak.jump),
         key("d", ak.duck),
         key("u", ak.use_),
-        key("1", ak.attack_1),
-        key("2", ak.attack_2),
+        move |out: WriteContext<W>| match ak.attack_1 {
+            None => string("-")(out),
+            Some(attack_1) => pair(string("1"), gen_times_attack1(attack_1.times))(out),
+        },
+        move |out: WriteContext<W>| match ak.attack_2 {
+            None => string("-")(out),
+            Some(attack_2) => pair(string("2"), gen_times(attack_2.times))(out),
+        },
         key("r", ak.reload),
     ))
 }
@@ -246,6 +262,21 @@ fn gen_entity_index<W: Write>(entity: Option<NonZeroU32>) -> impl SerializeFn<W>
     }
 }
 
+fn gen_lookat_action<W: Write>(action: Option<LookAtAction>) -> impl SerializeFn<W> {
+    move |out: WriteContext<W>| match action {
+        Some(action) => pair(
+            string(" "),
+            display({
+                match action {
+                    LookAtAction::Attack => "attack",
+                    LookAtAction::Attack2 => "attack2",
+                }
+            }),
+        )(out),
+        None => Ok(out),
+    }
+}
+
 fn line_vectorial_strafing_constraints<W: Write>(
     constraints: VectorialStrafingConstraints,
 ) -> impl SerializeFn<W> {
@@ -269,7 +300,13 @@ fn line_vectorial_strafing_constraints<W: Write>(
             "target_yaw",
             tuple((string("from "), display(from), string(" to "), display(to))),
         )(out),
-        VectorialStrafingConstraints::LookAt { entity, x, y, z } => property(
+        VectorialStrafingConstraints::LookAt {
+            entity,
+            x,
+            y,
+            z,
+            action,
+        } => property(
             "target_yaw",
             tuple((
                 string("look_at"),
@@ -280,6 +317,7 @@ fn line_vectorial_strafing_constraints<W: Write>(
                 display(y),
                 string(" "),
                 display(z),
+                gen_lookat_action(action),
             )),
         )(out),
     }

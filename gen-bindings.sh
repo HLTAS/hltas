@@ -10,7 +10,7 @@ run_bindgen() {
 		-o hltas-cpp-bridge/src/"$TARGET".rs \
 		--allowlist-function 'hltas_.*' \
 		--allowlist-type 'HLTAS::ErrorDescription' \
-		--rustified-enum 'HLTAS::(StrafeType|StrafeDir|ButtonState|Button|ErrorCode|StrafingAlgorithm|ConstraintsType|ChangeTarget)' \
+		--rustified-enum 'HLTAS::(StrafeType|StrafeDir|ButtonState|Button|ErrorCode|StrafingAlgorithm|ConstraintsType|ChangeTarget|LookAtAction)' \
 		--disable-name-namespacing \
 		-- -std=c++14 --target="$TARGET" "$@"
 }
