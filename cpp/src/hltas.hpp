@@ -214,7 +214,9 @@ namespace HLTAS
 			Duck(false),
 			Use(false),
 			Attack1(false),
+			Attack1Times(0),
 			Attack2(false),
+			Attack2Times(0),
 			Reload(false),
 			PitchPresent(false),
 			YawPresent(false),
@@ -284,6 +286,10 @@ namespace HLTAS
 		inline unsigned GetDbcTimes() const { return DbcTimes; }
 		inline unsigned GetDbgTimes() const { return DbgTimes; }
 		inline unsigned GetDwjTimes() const { return DwjTimes; }
+		inline bool GetAttack1() const { return Attack1; }
+		inline bool GetAttack2() const { return Attack2; }
+		inline unsigned GetAttack1Times() const { return Attack1Times; }
+		inline unsigned GetAttack2Times() const { return Attack2Times; }
 		void SetType(StrafeType value);
 		void SetDir(StrafeDir value);
 		void SetLgagstFullMaxspeed(bool value);
@@ -296,6 +302,8 @@ namespace HLTAS
 		void SetDbcTimes(unsigned value);
 		void SetDbgTimes(unsigned value);
 		void SetDwjTimes(unsigned value);
+		void SetAttack1Times(unsigned value);
+		void SetAttack2Times(unsigned value);
 
 		bool Forward;
 		bool Left;
@@ -308,7 +316,9 @@ namespace HLTAS
 		bool Duck;
 		bool Use;
 		bool Attack1;
+		unsigned Attack1Times;
 		bool Attack2;
+		unsigned Attack2Times;
 		bool Reload;
 
 		std::string Frametime;
@@ -345,8 +355,6 @@ namespace HLTAS
 		void SetY(double value);
 		void SetCount(unsigned value);
 		void SetPitch(double value);
-		void SetAttack(bool value);
-		void SetAttack2(bool value);
 		void SetRepeats(unsigned value);
 
 		std::string Commands;
@@ -493,7 +501,9 @@ extern "C" {
 		bool Duck;
 		bool Use;
 		bool Attack1;
+		uint32_t Attack1Times;
 		bool Attack2;
+		uint32_t Attack2Times;
 		bool Reload;
 		const char* Frametime;
 		bool PitchPresent;

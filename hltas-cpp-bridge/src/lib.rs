@@ -561,8 +561,14 @@ pub unsafe fn hltas_frame_from_non_comment_line(
             frame.Jump = frame_bulk.action_keys.jump;
             frame.Duck = frame_bulk.action_keys.duck;
             frame.Use = frame_bulk.action_keys.use_;
-            frame.Attack1 = frame_bulk.action_keys.attack_1;
-            frame.Attack2 = frame_bulk.action_keys.attack_2;
+            if let Some(Attack1 { times }) = frame_bulk.action_keys.attack_1 {
+                frame.Attack1 = true;
+                frame.Attack1Times = times.into();
+            }
+            if let Some(Attack2 { times }) = frame_bulk.action_keys.attack_2 {
+                frame.Attack2 = true;
+                frame.Attack2Times = times.into();
+            }
             frame.Reload = frame_bulk.action_keys.reload;
 
             let frame_time = CString::new(frame_bulk.frame_time.to_string()).unwrap();
@@ -1126,8 +1132,20 @@ unsafe fn hltas_rs_to_writer(
         let jump = frame.Jump;
         let duck = frame.Duck;
         let use_ = frame.Use;
-        let attack_1 = frame.Attack1;
-        let attack_2 = frame.Attack2;
+        let attack_1 = if frame.Attack1 {
+            Some(Attack1 {
+                times: frame.Attack1Times.into(),
+            })
+        } else {
+            None
+        };
+        let attack_2 = if frame.Attack2 {
+            Some(Attack2 {
+                times: frame.Attack2Times.into(),
+            })
+        } else {
+            None
+        };
         let reload = frame.Reload;
 
         let frame_time = if let Ok(frametime) = CStr::from_ptr(frame.Frametime).to_str() {

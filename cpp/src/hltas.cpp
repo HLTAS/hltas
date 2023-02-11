@@ -74,7 +74,9 @@ namespace HLTAS
 		Duck = c_frame.Duck;
 		Use = c_frame.Use;
 		Attack1 = c_frame.Attack1;
+		Attack1Times = c_frame.Attack1Times;
 		Attack2 = c_frame.Attack2;
+		Attack2Times = c_frame.Attack2Times;
 		Reload = c_frame.Reload;
 		if (c_frame.Frametime)
 			Frametime = c_frame.Frametime;
@@ -146,6 +148,10 @@ namespace HLTAS
 			Dbg = false;
 		if (Dwj && DwjTimes)
 			Dwj = false;
+		if (Attack1 && Attack1Times)
+			Attack1 = false;
+		if (Attack2 && Attack2Times)
+			Attack2 = false;
 	}
 
 	void Frame::SetType(StrafeType value)
@@ -220,6 +226,18 @@ namespace HLTAS
 		DwjTimes = value;
 	}
 
+	void Frame::SetAttack1Times(unsigned value)
+	{
+		Attack1 = true;
+		Attack1Times = value;
+	}
+
+	void Frame::SetAttack2Times(unsigned value)
+	{
+		Attack2 = true;
+		Attack2Times = value;
+	}
+
 	double Frame::GetYaw() const
 	{
 		assert(HasYaw());
@@ -288,16 +306,6 @@ namespace HLTAS
 	{
 		PitchPresent = true;
 		Pitch = value;
-	}
-
-	void Frame::SetAttack(bool value)
-	{
-		Attack1 = value;
-	}
-
-	void Frame::SetAttack2(bool value)
-	{
-		Attack2 = value;
 	}
 
 	void Frame::SetRepeats(unsigned value)
@@ -444,6 +452,8 @@ namespace HLTAS
 		       Use == rhs.Use &&
 		       Attack1 == rhs.Attack1 &&
 		       Attack2 == rhs.Attack2 &&
+			   	Attack1Times == rhs.Attack1Times &&
+			   Attack2Times == rhs.Attack2Times &&
 		       Reload == rhs.Reload &&
 		       Frametime == rhs.Frametime &&
 		       PitchPresent == rhs.PitchPresent &&
@@ -635,6 +645,8 @@ extern "C" int hltas_input_get_frame(const void* input, size_t index, hltas_fram
 	c_frame->Use = frame.Use;
 	c_frame->Attack1 = frame.Attack1;
 	c_frame->Attack2 = frame.Attack2;
+	c_frame->Attack1Times = frame.Attack1Times;
+	c_frame->Attack2Times = frame.Attack2Times;
 	c_frame->Reload = frame.Reload;
 	c_frame->Frametime = frame.Frametime.data();
 	c_frame->PitchPresent = frame.PitchPresent;

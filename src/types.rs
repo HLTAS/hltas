@@ -386,6 +386,22 @@ pub struct MovementKeys {
     pub down: bool,
 }
 
+/// Attack1 properties
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[cfg_attr(feature = "serde1", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "proptest1", derive(Arbitrary))]
+pub struct Attack1 {
+    pub times: Times,
+}
+
+/// Attack2 properties
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[cfg_attr(feature = "serde1", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "proptest1", derive(Arbitrary))]
+pub struct Attack2 {
+    pub times: Times,
+}
+
 /// Manually specified action keys.
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Default)]
 #[cfg_attr(feature = "serde1", derive(Serialize, Deserialize))]
@@ -398,9 +414,9 @@ pub struct ActionKeys {
     /// `+use`
     pub use_: bool,
     /// `+attack1`
-    pub attack_1: bool,
+    pub attack_1: Option<Attack1>,
     /// `+attack2`
-    pub attack_2: bool,
+    pub attack_2: Option<Attack2>,
     /// `+reload`
     pub reload: bool,
 }

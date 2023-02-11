@@ -6,7 +6,7 @@ use nom::{
     character::complete::{anychar, char, not_line_ending, space1},
     combinator::{all_consuming, cut, map, map_res, not, opt, peek, recognize, verify},
     multi::separated_nonempty_list,
-    sequence::{pair, preceded, separated_pair, tuple},
+    sequence::{pair, preceded, separated_pair, terminated, tuple},
 };
 
 use crate::{
@@ -271,12 +271,40 @@ fn movement_keys(i: &str) -> IResult<MovementKeys> {
     ))
 }
 
+fn parse_times_attack1(i: &str) -> IResult<Times> {
+    let (i, times) = opt(terminated(non_zero_u32, tag("o")))(i)?;
+    Ok((
+        i,
+        times
+            .map(Times::Limited)
+            .unwrap_or(Times::UnlimitedWithinFrameBulk),
+    ))
+}
+
+fn attack_1(i: &str) -> IResult<Option<Attack1>> {
+    alt((
+        map(char('-'), |_| None),
+        map(preceded(char('1'), parse_times_attack1), |times| {
+            Some(Attack1 { times })
+        }),
+    ))(i)
+}
+
+fn attack_2(i: &str) -> IResult<Option<Attack2>> {
+    alt((
+        map(char('-'), |_| None),
+        map(preceded(char('2'), parse_times), |times| {
+            Some(Attack2 { times })
+        }),
+    ))(i)
+}
+
 fn action_keys(i: &str) -> IResult<ActionKeys> {
     let (i, jump) = key('j')(i)?;
     let (i, duck) = key('d')(i)?;
     let (i, use_) = key('u')(i)?;
-    let (i, attack_1) = key('1')(i)?;
-    let (i, attack_2) = key('2')(i)?;
+    let (i, attack_1) = attack_1(i)?;
+    let (i, attack_2) = attack_2(i)?;
     let (i, reload) = key('r')(i)?;
     Ok((
         i,
