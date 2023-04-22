@@ -401,7 +401,19 @@ fn frame_count(i: &str) -> IResult<NonZeroU32> {
     ))(i)
 }
 
-fn line_frame_bulk(i: &str) -> IResult<FrameBulk> {
+/// Parses a `FrameBulk`.
+///
+/// # Examples
+///
+/// ```
+/// # extern crate hltas;
+/// use hltas::types::FrameBulk;
+///
+/// let contents = "------b---|------|------|0.001|-|-|5";
+/// let frame_bulk = hltas::read::frame_bulk(contents).unwrap().1;
+/// assert_eq!(frame_bulk.frame_time, "0.001");
+/// ```
+pub fn frame_bulk(i: &str) -> IResult<FrameBulk> {
     // Mutable because the movement parameter will be filled in later.
     let (i, mut auto_actions) = auto_actions(i)?;
     // Backwards compatibility: HLTAS didn't check the first field length, so extra characters were
@@ -658,9 +670,20 @@ fn line_target_yaw_override(i: &str) -> IResult<Vec<f32>> {
     Ok((i, yaws))
 }
 
-pub(crate) fn line(i: &str) -> IResult<Line> {
+/// Parses a `Line`.
+///
+/// # Examples
+///
+/// ```
+/// # extern crate hltas;
+/// use hltas::types::Line;
+///
+/// let line = hltas::read::line("reset 1234").unwrap().1;
+/// assert_eq!(line, Line::Reset { non_shared_seed: 1234 });
+/// ```
+pub fn line(i: &str) -> IResult<Line> {
     alt((
-        map(line_frame_bulk, Line::FrameBulk),
+        map(frame_bulk, Line::FrameBulk),
         map(line_save, |name| Line::Save(name.to_owned())),
         map(line_seed, Line::SharedSeed),
         map(line_buttons, Line::Buttons),

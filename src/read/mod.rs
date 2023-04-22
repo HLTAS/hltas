@@ -20,7 +20,7 @@ use nom::{
 use crate::types::HLTAS;
 
 mod line;
-use line::line;
+pub use line::{frame_bulk, line};
 
 pub(crate) mod properties;
 use properties::properties;
@@ -280,7 +280,32 @@ fn whitespace(i: &str) -> IResult<()> {
 }
 
 /// Parses an entire HLTAS script, ensuring nothing is left in the input.
-pub(crate) fn hltas(i: &str) -> IResult<HLTAS> {
+///
+/// This is a lower-level function. You might be looking for [`HLTAS::from_str`] instead.
+///
+/// # Examples
+///
+/// ```
+/// # extern crate hltas;
+///
+/// let contents = "\
+/// version 1
+/// demo test
+/// frames
+/// ------b---|------|------|0.001|-|-|5";
+///
+/// assert!(hltas::read::hltas(contents).is_ok());
+///
+/// let contents = "\
+/// version 1
+/// demo test
+/// frames
+/// ------b---|------|------|0.001|-|-|5
+/// something extra in the end";
+///
+/// assert!(hltas::read::hltas(contents).is_err());
+/// ```
+pub fn hltas(i: &str) -> IResult<HLTAS> {
     let (i, _) = context(Context::ErrorReadingVersion, version)(i)?;
     let (i, properties) = properties(i)?;
     let (i, _) = preceded(many1(line_ending), tag("frames"))(i)?;
