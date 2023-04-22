@@ -562,7 +562,7 @@ impl HLTAS {
     /// }
     /// ```
     pub fn to_writer<W: Write>(&self, writer: W) -> Result<(), GenError> {
-        write::hltas(writer, self)
+        write::gen_hltas(writer, self)
     }
 
     /// Returns an iterator over frame bulks of the script.

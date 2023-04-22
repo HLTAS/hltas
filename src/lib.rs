@@ -57,4 +57,4 @@ pub mod types;
 pub use types::HLTAS;
 
 pub mod read;
-mod write;
+pub mod write;

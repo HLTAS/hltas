@@ -1,3 +1,5 @@
+//! Writing `.hltas` files.
+
 use std::{fmt::Display, io::Write, num::NonZeroU32};
 
 use cookie_factory::{
@@ -51,6 +53,27 @@ fn strafe<W: Write>(settings: StrafeSettings) -> impl SerializeFn<W> {
         strafe_type(settings.type_),
         strafe_dir(settings.dir),
     ))
+}
+
+/// Prints `StrafeSettings` into writer.
+///
+/// # Examples
+///
+/// ```
+/// # extern crate hltas;
+/// use hltas::types::{StrafeDir, StrafeSettings, StrafeType};
+///
+/// let settings = StrafeSettings {
+///     type_: StrafeType::MaxAngle,
+///     dir: StrafeDir::Left,
+/// };
+/// let mut buf = Vec::new();
+/// hltas::write::gen_strafe(&mut buf, settings).unwrap();
+/// assert_eq!(buf, b"s10");
+/// ```
+pub fn gen_strafe<W: Write>(w: W, value: StrafeSettings) -> Result<(), GenError> {
+    let _ = gen_simple(strafe(value), w)?;
+    Ok(())
 }
 
 fn gen_times<W: Write>(times: Times) -> impl SerializeFn<W> {
@@ -202,6 +225,27 @@ fn line_frame_bulk<W: Write>(frame_bulk: &FrameBulk) -> impl SerializeFn<W> + '_
     }
 }
 
+/// Prints `FrameBulk` into writer.
+///
+/// # Examples
+///
+/// ```
+/// # extern crate hltas;
+/// use hltas::types::FrameBulk;
+///
+/// let mut frame_bulk = FrameBulk::with_frame_time("0.001".to_owned());
+/// frame_bulk.movement_keys.left = true;
+/// frame_bulk.action_keys.jump = true;
+///
+/// let mut buf = Vec::new();
+/// hltas::write::gen_frame_bulk(&mut buf, &frame_bulk).unwrap();
+/// assert_eq!(buf, b"----------|-l----|j-----|0.001|-|-|1");
+/// ```
+pub fn gen_frame_bulk<W: Write>(w: W, value: &FrameBulk) -> Result<(), GenError> {
+    let _ = gen_simple(line_frame_bulk(value), w)?;
+    Ok(())
+}
+
 fn button<W: Write>(button: Button) -> impl SerializeFn<W> {
     use Button::*;
     match button {
@@ -337,7 +381,44 @@ fn line<W: Write>(line: &Line) -> impl SerializeFn<W> + '_ {
     }
 }
 
-pub(crate) fn hltas<W: Write>(w: W, hltas: &HLTAS) -> Result<(), GenError> {
+/// Prints `Line` into writer.
+///
+/// # Examples
+///
+/// ```
+/// # extern crate hltas;
+/// use hltas::types::Line;
+///
+/// let line = Line::Reset { non_shared_seed: 1234 };
+/// let mut buf = Vec::new();
+/// hltas::write::gen_line(&mut buf, &line).unwrap();
+/// assert_eq!(buf, b"reset 1234");
+/// ```
+pub fn gen_line<W: Write>(w: W, value: &Line) -> Result<(), GenError> {
+    let _ = gen_simple(line(value), w)?;
+    Ok(())
+}
+
+/// Prints `HLTAS` into writer.
+///
+/// # Examples
+///
+/// ```
+/// # extern crate hltas;
+/// use hltas::HLTAS;
+///
+/// let contents = "version 1
+/// demo test
+/// frames
+/// ------b---|------|------|0.001|-|-|5
+/// ";
+///
+/// let hltas = HLTAS::from_str(contents).unwrap();
+/// let mut buf = Vec::new();
+/// hltas::write::gen_hltas(&mut buf, &hltas).unwrap();
+/// assert_eq!(buf, contents.as_bytes());
+/// ```
+pub fn gen_hltas<W: Write>(w: W, hltas: &HLTAS) -> Result<(), GenError> {
     let mut w = gen_simple(string("version 1\n"), w)?;
 
     if let Some(demo) = hltas.properties.demo.as_deref() {
