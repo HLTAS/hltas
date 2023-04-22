@@ -11,7 +11,7 @@ use nom::{
     bytes::complete::tag,
     character::complete::{digit0, line_ending, multispace0, one_of, space1},
     combinator::{all_consuming, map_res, recognize, verify},
-    error::ParseError,
+    error::{FromExternalError, ParseError},
     multi::{many1, many_till},
     sequence::{pair, preceded},
     Offset,
@@ -210,6 +210,12 @@ impl<'a> ParseError<&'a str> for Error<'a> {
     }
 }
 
+impl<'a, E> FromExternalError<&'a str, E> for Error<'a> {
+    fn from_external_error(input: &'a str, kind: nom::error::ErrorKind, _e: E) -> Self {
+        Self::from_error_kind(input, kind)
+    }
+}
+
 impl Error<'_> {
     /// Returns the line number on which the error has occurred.
     pub fn line(&self) -> usize {
@@ -234,8 +240,8 @@ impl Error<'_> {
 /// If the error already has context stored, does nothing.
 fn context<'a, T>(
     context: Context,
-    f: impl Fn(&'a str) -> IResult<'a, T>,
-) -> impl Fn(&'a str) -> IResult<T> {
+    mut f: impl FnMut(&'a str) -> IResult<'a, T>,
+) -> impl FnMut(&'a str) -> IResult<T> {
     move |i: &str| {
         f(i).map_err(move |error| match error {
             nom::Err::Incomplete(needed) => nom::Err::Incomplete(needed),

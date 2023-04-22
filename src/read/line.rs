@@ -5,7 +5,7 @@ use nom::{
     bytes::complete::{is_not, tag},
     character::complete::{anychar, char, not_line_ending, space1},
     combinator::{all_consuming, cut, map, map_res, not, opt, peek, recognize, verify},
-    multi::separated_nonempty_list,
+    multi::separated_list1,
     sequence::{pair, preceded, separated_pair, tuple},
 };
 
@@ -247,7 +247,7 @@ fn auto_actions(i: &str) -> IResult<AutoActions> {
     ))
 }
 
-fn key<'a>(symbol: char) -> impl Fn(&'a str) -> IResult<bool> {
+fn key<'a>(symbol: char) -> impl FnMut(&'a str) -> IResult<bool> {
     alt((map(char(symbol), |_| true), map(char('-'), |_| false)))
 }
 
@@ -666,7 +666,7 @@ fn line_change(i: &str) -> IResult<Change> {
 fn line_target_yaw_override(i: &str) -> IResult<Vec<f32>> {
     let (i, (name, value)) = property(i)?;
     tag("target_yaw_override")(name)?;
-    let (_, yaws) = cut(separated_nonempty_list(space1, float))(value)?;
+    let (_, yaws) = cut(separated_list1(space1, float))(value)?;
     Ok((i, yaws))
 }
 
