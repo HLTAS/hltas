@@ -1,6 +1,19 @@
 # Changelog
 
 ## [Unreleased]
+### Added
+- Functions for convenient access to frame bulks:
+  - `Line::frame_bulk()`, `Line::frame_bulk_mut()`
+  - `HLTAS::frame_bulks()`, `HLTAS::frame_bulks_mut()`
+- Raw reading functions to parse parts of the HLTAS format:
+  - `hltas::read::line()`
+  - `hltas::read::frame_bulk()`
+  - `hltas::read::hltas()`
+- Writing functions to output parts of the HLTAS format:
+  - `hltas::write::gen_line()`
+  - `hltas::write::gen_frame_bulk()`
+  - `hltas::write::gen_strafe()`
+  - `hltas::write::gen_hltas()`
 
 ## [0.7.0] - 16 Jan 2023
 ### Added
