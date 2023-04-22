@@ -45,6 +45,14 @@ fn strafe_dir<W: Write>(dir: StrafeDir) -> impl SerializeFn<W> {
     }
 }
 
+fn strafe<W: Write>(settings: StrafeSettings) -> impl SerializeFn<W> {
+    tuple((
+        string("s"),
+        strafe_type(settings.type_),
+        strafe_dir(settings.dir),
+    ))
+}
+
 fn gen_times<W: Write>(times: Times) -> impl SerializeFn<W> {
     move |out: WriteContext<W>| {
         if let Times::Limited(times) = times {
@@ -59,9 +67,7 @@ fn auto_actions<W: Write>(aa: &AutoActions) -> impl SerializeFn<W> + '_ {
     move |out: WriteContext<W>| {
         let out = match aa.movement {
             None | Some(AutoMovement::SetYaw(_)) => string("---")(out)?,
-            Some(AutoMovement::Strafe(StrafeSettings { type_, dir })) => {
-                tuple((string("s"), strafe_type(type_), strafe_dir(dir)))(out)?
-            }
+            Some(AutoMovement::Strafe(settings)) => strafe(settings)(out)?,
         };
 
         let out = match aa.leave_ground_action {
