@@ -11,7 +11,7 @@ use cookie_factory::{
 use crate::types::*;
 
 fn property<S: AsRef<str>, W: Write>(name: S, value: impl SerializeFn<W>) -> impl SerializeFn<W> {
-    tuple((string(name), string(" "), value, string("\n")))
+    tuple((string(name), string(" "), value))
 }
 
 fn display<T: Display, W: Write>(data: T) -> impl SerializeFn<W> {
@@ -193,9 +193,9 @@ fn line_frame_bulk<W: Write>(frame_bulk: &FrameBulk) -> impl SerializeFn<W> + '_
         let out = display(frame_bulk.frame_count)(out)?;
 
         let out = if let Some(console_command) = frame_bulk.console_command.as_deref() {
-            tuple((string("|"), string(console_command), string("\n")))(out)?
+            pair(string("|"), string(console_command))(out)?
         } else {
-            string("\n")(out)?
+            out
         };
 
         Ok(out)
@@ -218,7 +218,7 @@ fn button<W: Write>(button: Button) -> impl SerializeFn<W> {
 
 fn line_buttons<W: Write>(buttons: Buttons) -> impl SerializeFn<W> {
     move |out: WriteContext<W>| match buttons {
-        Buttons::Reset => string("buttons\n")(out),
+        Buttons::Reset => string("buttons")(out),
         Buttons::Set {
             air_left,
             air_right,
@@ -226,11 +226,10 @@ fn line_buttons<W: Write>(buttons: Buttons) -> impl SerializeFn<W> {
             ground_right,
         } => {
             let sp_button = |&b| pair(string(" "), button(b));
-            tuple((
+            pair(
                 string("buttons"),
                 many_ref(&[air_left, air_right, ground_left, ground_right], sp_button),
-                string("\n"),
-            ))(out)
+            )(out)
         }
     }
 }
@@ -306,7 +305,7 @@ fn line_change<W: Write>(change: Change) -> impl SerializeFn<W> {
         let out = display(change.final_value)(out)?;
         let out = string(" over ")(out)?;
         let out = display(change.over)(out)?;
-        let out = string(" s\n")(out)?;
+        let out = string(" s")(out)?;
 
         Ok(out)
     }
@@ -322,7 +321,7 @@ fn line<W: Write>(line: &Line) -> impl SerializeFn<W> + '_ {
             property("lgagstminspeed", display(lgagst_min_speed))(out)
         }
         Line::Reset { non_shared_seed } => property("reset", display(non_shared_seed))(out),
-        Line::Comment(comment) => tuple((string("//"), string(comment), string("\n")))(out),
+        Line::Comment(comment) => tuple((string("//"), string(comment)))(out),
         Line::VectorialStrafing(enabled) => property(
             "strafing",
             string(if *enabled { "vectorial" } else { "yaw" }),
@@ -334,7 +333,6 @@ fn line<W: Write>(line: &Line) -> impl SerializeFn<W> + '_ {
         Line::TargetYawOverride(yaws) => tuple((
             string("target_yaw_override"),
             many_ref(yaws, |yaw| pair(string(" "), display(yaw))),
-            string("\n"),
         ))(out),
     }
 }
@@ -343,28 +341,46 @@ pub(crate) fn hltas<W: Write>(w: W, hltas: &HLTAS) -> Result<(), GenError> {
     let mut w = gen_simple(string("version 1\n"), w)?;
 
     if let Some(demo) = hltas.properties.demo.as_deref() {
-        w = gen_simple(property("demo", string(demo)), w)?;
+        w = gen_simple(pair(property("demo", string(demo)), string("\n")), w)?;
     }
     if let Some(save) = hltas.properties.save.as_deref() {
-        w = gen_simple(property("save", string(save)), w)?;
+        w = gen_simple(pair(property("save", string(save)), string("\n")), w)?;
     }
     if let Some(Seeds { shared, non_shared }) = hltas.properties.seeds {
         let seeds = tuple((display(shared), string(" "), display(non_shared)));
-        w = gen_simple(property("seed", seeds), w)?;
+        w = gen_simple(pair(property("seed", seeds), string("\n")), w)?;
     }
     if let Some(frametime_0ms) = hltas.properties.frametime_0ms.as_deref() {
-        w = gen_simple(property("frametime0ms", string(frametime_0ms)), w)?;
+        w = gen_simple(
+            pair(
+                property("frametime0ms", string(frametime_0ms)),
+                string("\n"),
+            ),
+            w,
+        )?;
     }
     if let Some(hlstrafe_version) = hltas.properties.hlstrafe_version {
-        w = gen_simple(property("hlstrafe_version", display(hlstrafe_version)), w)?;
+        w = gen_simple(
+            pair(
+                property("hlstrafe_version", display(hlstrafe_version)),
+                string("\n"),
+            ),
+            w,
+        )?;
     }
     if let Some(load_command) = hltas.properties.load_command.as_deref() {
-        w = gen_simple(property("load_command", string(load_command)), w)?;
+        w = gen_simple(
+            pair(property("load_command", string(load_command)), string("\n")),
+            w,
+        )?;
     }
 
     let w = gen_simple(string("frames\n"), w)?;
 
-    let _ = gen_simple(many_ref(&hltas.lines, line), w)?;
+    fn line_nl<W: Write>(l: &Line) -> impl SerializeFn<W> + '_ {
+        move |out: WriteContext<W>| pair(line(l), string("\n"))(out)
+    }
+    let _ = gen_simple(many_ref(&hltas.lines, line_nl), w)?;
 
     Ok(())
 }
