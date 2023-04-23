@@ -22,7 +22,5 @@
 +  pic : true,
 +)
 +
-+nom_dep = declare_dependency(link_with : nom,
-+  dependencies : [memchr_dep, minimal_lexical_dep],
-+)
++nom_dep = declare_dependency(link_with : nom)
 +meson.override_dependency('nom-rs', nom_dep)

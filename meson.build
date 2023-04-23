@@ -14,9 +14,7 @@ hltas = static_library('hltas', 'src/lib.rs',
   pic : true,
 )
 
-hltas_dep = declare_dependency(link_with : hltas,
-  dependencies : [nom_dep, cookie_factory_dep],
-)
+hltas_dep = declare_dependency(link_with : hltas)
 meson.override_dependency('hltas-rs', hltas_dep)
 
 rust.test('hltas-tests', hltas,
