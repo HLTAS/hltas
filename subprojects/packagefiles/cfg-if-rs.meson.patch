@@ -1,0 +1,17 @@
+--- /dev/null
++++ cfg-if-1.0.0/meson.build
+@@ -0,0 +1,14 @@
++project('cfg-if-rs', 'rust',
++  version : '1.0.0',
++  meson_version : '>= 1.1.0',
++  default_options : ['rust_std=2018'],
++)
++
++cfg_if = static_library('cfg_if', 'src/lib.rs',
++  rust_crate_type : 'rlib',
++  pic : true,
++)
++
++cfg_if_dep = declare_dependency(link_with : cfg_if)
++meson.override_dependency('cfg-if-rs', cfg_if_dep)
++

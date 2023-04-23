@@ -1,0 +1,21 @@
+--- /dev/null
++++ minimal-lexical-0.2.1/meson.build
+@@ -0,0 +1,18 @@
++project('minimal-lexical-rs', 'rust',
++  version : '0.2.1',
++  meson_version : '>= 1.1.0',
++  default_options : ['rust_std=2018'],
++)
++
++features = []
++features += ['--cfg', 'feature="default"']
++features += ['--cfg', 'feature="std"']
++
++minimal_lexical = static_library('minimal_lexical', 'src/lib.rs',
++  rust_args : features,
++  rust_crate_type : 'rlib',
++  pic : true,
++)
++
++minimal_lexical_dep = declare_dependency(link_with : minimal_lexical)
++meson.override_dependency('minimal-lexical-rs', minimal_lexical_dep)

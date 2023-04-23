@@ -1,0 +1,9 @@
+[wrap-file]
+directory = memchr-2.5.0
+source_url = https://crates.io/api/v1/crates/memchr/2.5.0/download
+source_filename = memchr-2.5.0.tar.gz
+source_hash = 2dffe52ecf27772e601905b7522cb4ef790d2cc203488bbd0e2fe85fcb74566d
+diff_files = memchr-rs.meson.patch
+
+[provide]
+memchr-rs = memchr_dep

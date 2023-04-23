@@ -1,0 +1,28 @@
+--- /dev/null
++++ nom-7.1.3/meson.build
+@@ -0,0 +1,23 @@
++project('nom-rs', 'rust',
++  version : '7.1.3',
++  meson_version : '>= 1.1.0',
++  default_options : ['rust_std=2018'],
++)
++
++features = []
++features += ['--cfg', 'feature="default"']
++features += ['--cfg', 'feature="std"']
++features += ['--cfg', 'feature="alloc"']
++
++memchr_dep = dependency('memchr-rs', version : ['>= 2.3', '< 3'])
++minimal_lexical_dep = dependency('minimal-lexical-rs', version : ['>= 0.2.0', '< 0.3'])
++
++nom = static_library('nom', 'src/lib.rs',
++  rust_args : features,
++  rust_crate_type : 'rlib',
++  dependencies : [memchr_dep, minimal_lexical_dep],
++  pic : true,
++)
++
++nom_dep = declare_dependency(link_with : nom,
++  dependencies : [memchr_dep, minimal_lexical_dep],
++)
++meson.override_dependency('nom-rs', nom_dep)

@@ -1,0 +1,28 @@
+--- /dev/null
++++ memchr-2.5.0/meson.build
+@@ -0,0 +1,25 @@
++project('memchr-rs', 'rust',
++  version : '2.5.0',
++  meson_version : '>= 1.1.0',
++  default_options : ['rust_std=2018'],
++)
++
++features = []
++features += ['--cfg', 'feature="default"']
++features += ['--cfg', 'feature="std"']
++if host_machine.cpu_family() == 'x86_64'
++  features += ['--cfg', 'memchr_runtime_simd']
++  features += ['--cfg', 'memchr_runtime_sse2']
++  features += ['--cfg', 'memchr_runtime_sse42']
++  features += ['--cfg', 'memchr_runtime_avx']
++endif
++
++memchr = static_library('memchr', 'src/lib.rs',
++  rust_args : features,
++  rust_crate_type : 'rlib',
++  pic : true,
++)
++
++memchr_dep = declare_dependency(link_with : memchr)
++meson.override_dependency('memchr-rs', memchr_dep)
++
