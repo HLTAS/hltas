@@ -381,7 +381,7 @@ fn line<W: Write>(line: &Line) -> impl SerializeFn<W> + '_ {
     }
 }
 
-/// Prints `Line` into writer.
+/// Prints [`Line`] into writer.
 ///
 /// # Examples
 ///
