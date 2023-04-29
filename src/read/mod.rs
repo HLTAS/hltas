@@ -10,14 +10,14 @@ use nom::{
     self,
     bytes::complete::tag,
     character::complete::{digit0, line_ending, multispace0, one_of, space1},
-    combinator::{all_consuming, map_res, recognize, verify},
+    combinator::{all_consuming, map_res, opt, recognize, verify},
     error::{FromExternalError, ParseError},
-    multi::{many1, many_till},
-    sequence::{pair, preceded},
+    multi::{many1, separated_list0},
+    sequence::{delimited, pair, preceded},
     Offset,
 };
 
-use crate::types::HLTAS;
+use crate::types::{Line, HLTAS};
 
 mod line;
 pub use line::{frame_bulk, line};
@@ -285,6 +285,32 @@ fn whitespace(i: &str) -> IResult<()> {
     Ok((i, ()))
 }
 
+/// Parses [`Line`]s, ensuring nother is left in the input.
+///
+/// # Examples
+///
+/// ```
+/// # extern crate hltas;
+///
+/// let lines = "\
+/// ------b---|------|------|0.001|-|-|5
+/// ------b---|------|------|0.001|-|-|10
+/// ";
+///
+/// assert!(hltas::read::all_consuming_lines(lines).is_ok());
+///
+/// let lines = "\
+/// ------b---|------|------|0.001|-|-|5
+/// ------b---|------|------|0.001|-|-|10
+/// something extra in the end";
+///
+/// assert!(hltas::read::all_consuming_lines(lines).is_err());
+/// ```
+pub fn all_consuming_lines(i: &str) -> IResult<Vec<Line>> {
+    let many_lines = separated_list0(whitespace, line);
+    all_consuming(delimited(opt(multispace0), many_lines, opt(multispace0)))(i)
+}
+
 /// Parses an entire HLTAS script, ensuring nothing is left in the input.
 ///
 /// This is a lower-level function. You might be looking for [`HLTAS::from_str`] instead.
@@ -315,9 +341,9 @@ pub fn hltas(i: &str) -> IResult<HLTAS> {
     let (i, _) = context(Context::ErrorReadingVersion, version)(i)?;
     let (i, properties) = properties(i)?;
     let (i, _) = preceded(many1(line_ending), tag("frames"))(i)?;
-    let (i, (lines, _)) = context(
+    let (i, lines) = context(
         Context::ErrorParsingLine,
-        many_till(preceded(whitespace, line), all_consuming(multispace0)),
+        preceded(whitespace, all_consuming_lines),
     )(i)?;
 
     Ok((i, HLTAS { properties, lines }))
@@ -347,5 +373,17 @@ mod tests {
         } else {
             unreachable!()
         }
+    }
+
+    #[test]
+    fn no_newline_after_frames() {
+        let input = "version 1\nframesbuttons";
+        assert!(hltas(input).is_err());
+    }
+
+    #[test]
+    fn no_newline_after_frames_only_space() {
+        let input = "version 1\nframes buttons";
+        assert!(hltas(input).is_err());
     }
 }
