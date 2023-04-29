@@ -399,6 +399,36 @@ pub fn gen_line<W: Write>(w: W, value: &Line) -> Result<(), GenError> {
     Ok(())
 }
 
+fn line_nl<W: Write>(l: &Line) -> impl SerializeFn<W> + '_ {
+    move |out: WriteContext<W>| pair(line(l), string("\n"))(out)
+}
+
+/// Prints newline-terminated [`Line`]s into writer.
+///
+/// # Examples
+///
+/// ```
+/// # extern crate hltas;
+/// use hltas::types::Line;
+///
+/// let lines = [
+///     Line::Comment(" Hello World".to_string()),
+///     Line::Reset { non_shared_seed: 1234 },
+/// ];
+/// let mut buf = Vec::new();
+/// hltas::write::gen_lines(&mut buf, &lines).unwrap();
+/// assert_eq!(buf, b"// Hello World\nreset 1234\n");
+/// ```
+pub fn gen_lines<'a, W, It, I>(w: W, lines: I) -> Result<(), GenError>
+where
+    W: Write,
+    It: Iterator<Item = &'a Line> + Clone,
+    I: IntoIterator<Item = &'a Line, IntoIter = It>,
+{
+    let _ = gen_simple(many_ref(lines, line_nl), w)?;
+    Ok(())
+}
+
 /// Prints `HLTAS` into writer.
 ///
 /// # Examples
@@ -458,10 +488,7 @@ pub fn gen_hltas<W: Write>(w: W, hltas: &HLTAS) -> Result<(), GenError> {
 
     let w = gen_simple(string("frames\n"), w)?;
 
-    fn line_nl<W: Write>(l: &Line) -> impl SerializeFn<W> + '_ {
-        move |out: WriteContext<W>| pair(line(l), string("\n"))(out)
-    }
-    let _ = gen_simple(many_ref(&hltas.lines, line_nl), w)?;
+    gen_lines(w, &hltas.lines)?;
 
     Ok(())
 }
