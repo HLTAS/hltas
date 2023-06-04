@@ -31,7 +31,7 @@ jobs:
             target: i686-pc-windows-msvc
 
           - label: macOS
-            os: macOS-10.15
+            os: macOS-12
 
     name: ${{ matrix.rust }} - ${{ matrix.label }}
     runs-on: ${{ matrix.os }}
