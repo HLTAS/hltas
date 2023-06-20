@@ -255,9 +255,9 @@ pub enum StrafeType {
 #[cfg_attr(feature = "proptest1", derive(Arbitrary))]
 pub enum StrafeDir {
     /// Turn left.
-    Left,
+    Left(Option<f32>),
     /// Turn right.
-    Right,
+    Right(Option<f32>),
     /// Let the strafing type decide. Most useful with maximum decceleration.
     Best,
     /// Strafe towards this yaw angle.

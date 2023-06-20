@@ -42,8 +42,8 @@ fn strafe_type(i: &str) -> IResult<StrafeType> {
 fn strafe_dir(i: &str) -> IResult<StrafeDir> {
     // The actual values for Yaw, Point and Line are filled in later, while parsing the yaw field.
     alt((
-        map(char('0'), |_| StrafeDir::Left),
-        map(char('1'), |_| StrafeDir::Right),
+        map(char('0'), |_| StrafeDir::Left(None)),
+        map(char('1'), |_| StrafeDir::Right(None)),
         map(char('2'), |_| StrafeDir::Best),
         map(char('3'), |_| StrafeDir::Yaw(0.)),
         map(char('4'), |_| StrafeDir::Point { x: 0., y: 0. }),
@@ -377,6 +377,48 @@ fn yaw_field<'a>(
                     Some(AutoMovement::Strafe(StrafeSettings {
                         type_,
                         dir: StrafeDir::RightLeft(count),
+                    })),
+                ))
+            }
+            StrafeDir::Left(_) => {
+                if let Ok((_, _)) = peek(float)(i) {
+                    let (i, yawspeed) = float(i)?;
+                    return Ok((
+                        i,
+                        Some(AutoMovement::Strafe(StrafeSettings {
+                            type_,
+                            dir: StrafeDir::Left(Some(yawspeed)),
+                        })),
+                    ));
+                }
+
+                let (i, _) = char('-')(i)?;
+                Ok((
+                    i,
+                    Some(AutoMovement::Strafe(StrafeSettings {
+                        type_,
+                        dir: StrafeDir::Left(None),
+                    })),
+                ))
+            }
+            StrafeDir::Right(_) => {
+                if let Ok((_, _)) = peek(float)(i) {
+                    let (i, yawspeed) = float(i)?;
+                    return Ok((
+                        i,
+                        Some(AutoMovement::Strafe(StrafeSettings {
+                            type_,
+                            dir: StrafeDir::Right(Some(yawspeed)),
+                        })),
+                    ));
+                }
+
+                let (i, _) = char('-')(i)?;
+                Ok((
+                    i,
+                    Some(AutoMovement::Strafe(StrafeSettings {
+                        type_,
+                        dir: StrafeDir::Right(None),
                     })),
                 ))
             }

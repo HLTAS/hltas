@@ -435,11 +435,19 @@ pub unsafe fn hltas_frame_from_non_comment_line(
                     frame.Strafe = true;
                     frame.Type = type_.into();
                     match dir {
-                        StrafeDir::Left => {
+                        StrafeDir::Left(yawspeed) => {
                             frame.Dir = hltas_cpp::StrafeDir::LEFT;
+                            if let Some(yawspeed) = yawspeed {
+                                frame.YawPresent = true;
+                                frame.Yaw = f64::from(yawspeed);
+                            }
                         }
-                        StrafeDir::Right => {
+                        StrafeDir::Right(yawspeed) => {
                             frame.Dir = hltas_cpp::StrafeDir::RIGHT;
+                            if let Some(yawspeed) = yawspeed {
+                                frame.YawPresent = true;
+                                frame.Yaw = f64::from(yawspeed);
+                            }
                         }
                         StrafeDir::Best => {
                             frame.Dir = hltas_cpp::StrafeDir::BEST;
@@ -996,8 +1004,16 @@ unsafe fn hltas_rs_to_writer(
             Some(AutoMovement::Strafe(StrafeSettings {
                 type_: frame.Type.into(),
                 dir: match frame.Dir {
-                    LEFT => StrafeDir::Left,
-                    RIGHT => StrafeDir::Right,
+                    LEFT => StrafeDir::Left(if frame.YawPresent {
+                        Some(frame.Yaw as f32)
+                    } else {
+                        None
+                    }),
+                    RIGHT => StrafeDir::Right(if frame.YawPresent {
+                        Some(frame.Yaw as f32)
+                    } else {
+                        None
+                    }),
                     BEST => StrafeDir::Best,
                     YAW => StrafeDir::Yaw(frame.Yaw as f32),
                     POINT => StrafeDir::Point {
