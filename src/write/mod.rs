@@ -378,6 +378,10 @@ fn line<W: Write>(line: &Line) -> impl SerializeFn<W> + '_ {
             string("target_yaw_override"),
             many_ref(yaws, |yaw| pair(string(" "), display(yaw))),
         ))(out),
+        Line::RenderYawOverride(yaws) => tuple((
+            string("render_yaw_override"),
+            many_ref(yaws, |yaw| pair(string(" "), display(yaw))),
+        ))(out),
     }
 }
 

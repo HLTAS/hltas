@@ -416,6 +416,7 @@ namespace HLTAS
 		void SetChangeOver(float value);
 
 		std::vector<float> TargetYawOverride;
+		std::vector<float> RenderYawOverride;
 	};
 
 	class Input
@@ -516,5 +517,7 @@ extern "C" {
 		float ChangeOver;
 		const float* TargetYawOverride;
 		size_t TargetYawOverrideCount;
+		const float* RenderYawOverride;
+		size_t RenderYawOverrideCount;
 	};
 }

@@ -670,6 +670,13 @@ fn line_target_yaw_override(i: &str) -> IResult<Vec<f32>> {
     Ok((i, yaws))
 }
 
+fn line_render_yaw_override(i: &str) -> IResult<Vec<f32>> {
+    let (i, (name, value)) = property(i)?;
+    tag("render_yaw_override")(name)?;
+    let (_, yaws) = cut(separated_list1(space1, float))(value)?;
+    Ok((i, yaws))
+}
+
 /// Parses a `Line`.
 ///
 /// # Examples
@@ -696,6 +703,7 @@ pub fn line(i: &str) -> IResult<Line> {
         map(line_target_yaw, Line::VectorialStrafingConstraints),
         map(line_change, Line::Change),
         map(line_target_yaw_override, Line::TargetYawOverride),
+        map(line_render_yaw_override, Line::RenderYawOverride),
     ))(i)
 }
 

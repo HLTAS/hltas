@@ -618,6 +618,12 @@ pub unsafe fn hltas_frame_from_non_comment_line(
             frame.TargetYawOverrideCount = yaws.len();
             allocated.yaws = Some(yaws);
         }
+        Line::RenderYawOverride(yaws) => {
+            let yaws: Box<[f32]> = yaws.to_owned().into();
+            frame.RenderYawOverride = yaws.as_ptr();
+            frame.RenderYawOverrideCount = yaws.len();
+            allocated.yaws = Some(yaws);
+        }
     }
 
     (frame, ManuallyDrop::new(allocated))
@@ -976,6 +982,12 @@ unsafe fn hltas_rs_to_writer(
         if frame.TargetYawOverrideCount != 0 {
             let yaws = slice::from_raw_parts(frame.TargetYawOverride, frame.TargetYawOverrideCount);
             hltas.lines.push(Line::TargetYawOverride(yaws.to_owned()));
+            continue;
+        }
+
+        if frame.RenderYawOverrideCount != 0 {
+            let yaws = slice::from_raw_parts(frame.RenderYawOverride, frame.RenderYawOverrideCount);
+            hltas.lines.push(Line::RenderYawOverride(yaws.to_owned()));
             continue;
         }
 

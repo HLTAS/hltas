@@ -7,7 +7,7 @@
 
 #include "hltas.hpp"
 
-const std::array<const char*, 22> parse_files = {
+const std::array<const char*, 23> parse_files = {
 	"bhop_20fps.hltas",
 	"bhop.hltas",
 	"bkz_goldbhop.hltas",
@@ -22,6 +22,7 @@ const std::array<const char*, 22> parse_files = {
 	"load_command.hltas",
 	"mirror.hltas",
 	"nuker.hltas",
+	"render_yaw_override.hltas",
 	"rng.hltas",
 	"strafe.hltas",
 	"target_yaw_override.hltas",

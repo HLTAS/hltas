@@ -117,6 +117,14 @@ pub enum Line {
         )]
         Vec<f32>,
     ),
+    /// Overrides render yaw for the subsequent frames.
+    RenderYawOverride(
+        #[cfg_attr(
+            feature = "proptest1",
+            proptest(strategy = "prop::collection::vec(any::<f32>(), 1..100)")
+        )]
+        Vec<f32>,
+    ),
 }
 
 /// A buttons line.
