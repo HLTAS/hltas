@@ -1005,11 +1005,17 @@ unsafe fn hltas_rs_to_writer(
                 type_: frame.Type.into(),
                 dir: match frame.Dir {
                     LEFT => StrafeDir::Left(if frame.YawPresent {
+                        if frame.Yaw == 0. {
+                            frame.YawPresent = false;
+                        }
                         Some(frame.Yaw as f32)
                     } else {
                         None
                     }),
                     RIGHT => StrafeDir::Right(if frame.YawPresent {
+                        if frame.Yaw == 0. {
+                            frame.YawPresent = false;
+                        }
                         Some(frame.Yaw as f32)
                     } else {
                         None
