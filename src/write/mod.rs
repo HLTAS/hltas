@@ -30,14 +30,15 @@ fn strafe_type<W: Write>(type_: StrafeType) -> impl SerializeFn<W> {
         MaxAngle => string("1"),
         MaxDeccel => string("2"),
         ConstSpeed => string("3"),
+        ConstYawspeed(_) => string("5"),
     }
 }
 
 fn strafe_dir<W: Write>(dir: StrafeDir) -> impl SerializeFn<W> {
     use StrafeDir::*;
     match dir {
-        Left(_) => string("0"),
-        Right(_) => string("1"),
+        Left => string("0"),
+        Right => string("1"),
         Best => string("2"),
         Yaw(_) => string("3"),
         Point { .. } => string("4"),
@@ -65,7 +66,7 @@ fn strafe<W: Write>(settings: StrafeSettings) -> impl SerializeFn<W> {
 ///
 /// let settings = StrafeSettings {
 ///     type_: StrafeType::MaxAngle,
-///     dir: StrafeDir::Left(None),
+///     dir: StrafeDir::Left,
 /// };
 /// let mut buf = Vec::new();
 /// hltas::write::gen_strafe(&mut buf, settings).unwrap();
@@ -183,19 +184,15 @@ fn yaw_field<W: Write>(movement: &Option<AutoMovement>) -> impl SerializeFn<W> +
     move |out: WriteContext<W>| match movement {
         None => string("-")(out),
         Some(AutoMovement::SetYaw(yaw)) => display(yaw)(out),
-        Some(AutoMovement::Strafe(StrafeSettings { dir, .. })) => match dir {
-            StrafeDir::Yaw(yaw) => display(yaw)(out),
-            StrafeDir::Point { x, y } => tuple((display(x), string(" "), display(y)))(out),
-            StrafeDir::Line { yaw } => display(yaw)(out),
-            StrafeDir::LeftRight(count) | StrafeDir::RightLeft(count) => display(count)(out),
-            StrafeDir::Left(yawspeed) | StrafeDir::Right(yawspeed) => {
-                if let Some(yawspeed) = yawspeed {
-                    display(yawspeed)(out)
-                } else {
-                    string("-")(out)
-                }
-            }
-            _ => string("-")(out),
+        Some(AutoMovement::Strafe(StrafeSettings { type_, dir })) => match type_ {
+            StrafeType::ConstYawspeed(yawspeed) => display(yawspeed)(out),
+            _ => match dir {
+                StrafeDir::Yaw(yaw) => display(yaw)(out),
+                StrafeDir::Point { x, y } => tuple((display(x), string(" "), display(y)))(out),
+                StrafeDir::Line { yaw } => display(yaw)(out),
+                StrafeDir::LeftRight(count) | StrafeDir::RightLeft(count) => display(count)(out),
+                _ => string("-")(out),
+            },
         },
     }
 }

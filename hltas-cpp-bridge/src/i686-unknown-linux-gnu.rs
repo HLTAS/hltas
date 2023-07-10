@@ -53,6 +53,8 @@ pub enum ErrorCode {
     NO_PM_IN_TOLERANCE = 18,
     MISSING_ALGORITHM_FROMTO_PARAMETERS = 19,
     NO_TO_IN_FROMTO_ALGORITHM = 20,
+    NO_YAWSPEED = 21,
+    UNSUPPORTED_YAWSPEED_DIR = 22,
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -102,6 +104,7 @@ pub enum StrafeType {
     MAXANGLE = 1,
     MAXDECCEL = 2,
     CONSTSPEED = 3,
+    CONSTYAWSPEED = 4,
 }
 #[repr(u8)]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
@@ -670,6 +673,7 @@ pub struct hltas_frame {
     pub X: f64,
     pub Y: f64,
     pub Count: ::std::os::raw::c_uint,
+    pub Yawspeed: f64,
     pub Pitch: f64,
     pub Repeats: u32,
     pub Commands: *const ::std::os::raw::c_char,
@@ -702,7 +706,7 @@ fn bindgen_test_layout_hltas_frame() {
     let ptr = UNINIT.as_ptr();
     assert_eq!(
         ::std::mem::size_of::<hltas_frame>(),
-        224usize,
+        232usize,
         concat!("Size of: ", stringify!(hltas_frame))
     );
     assert_eq!(
@@ -1101,8 +1105,18 @@ fn bindgen_test_layout_hltas_frame() {
         )
     );
     assert_eq!(
-        unsafe { ::std::ptr::addr_of!((*ptr).Pitch) as usize - ptr as usize },
+        unsafe { ::std::ptr::addr_of!((*ptr).Yawspeed) as usize - ptr as usize },
         96usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(hltas_frame),
+            "::",
+            stringify!(Yawspeed)
+        )
+    );
+    assert_eq!(
+        unsafe { ::std::ptr::addr_of!((*ptr).Pitch) as usize - ptr as usize },
+        104usize,
         concat!(
             "Offset of field: ",
             stringify!(hltas_frame),
@@ -1112,7 +1126,7 @@ fn bindgen_test_layout_hltas_frame() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).Repeats) as usize - ptr as usize },
-        104usize,
+        112usize,
         concat!(
             "Offset of field: ",
             stringify!(hltas_frame),
@@ -1122,7 +1136,7 @@ fn bindgen_test_layout_hltas_frame() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).Commands) as usize - ptr as usize },
-        108usize,
+        116usize,
         concat!(
             "Offset of field: ",
             stringify!(hltas_frame),
@@ -1132,7 +1146,7 @@ fn bindgen_test_layout_hltas_frame() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).Comments) as usize - ptr as usize },
-        112usize,
+        120usize,
         concat!(
             "Offset of field: ",
             stringify!(hltas_frame),
@@ -1142,7 +1156,7 @@ fn bindgen_test_layout_hltas_frame() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).SaveName) as usize - ptr as usize },
-        116usize,
+        124usize,
         concat!(
             "Offset of field: ",
             stringify!(hltas_frame),
@@ -1152,7 +1166,7 @@ fn bindgen_test_layout_hltas_frame() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).SeedPresent) as usize - ptr as usize },
-        120usize,
+        128usize,
         concat!(
             "Offset of field: ",
             stringify!(hltas_frame),
@@ -1162,7 +1176,7 @@ fn bindgen_test_layout_hltas_frame() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).Seed) as usize - ptr as usize },
-        124usize,
+        132usize,
         concat!(
             "Offset of field: ",
             stringify!(hltas_frame),
@@ -1172,7 +1186,7 @@ fn bindgen_test_layout_hltas_frame() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).BtnState) as usize - ptr as usize },
-        128usize,
+        136usize,
         concat!(
             "Offset of field: ",
             stringify!(hltas_frame),
@@ -1182,7 +1196,7 @@ fn bindgen_test_layout_hltas_frame() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).Buttons) as usize - ptr as usize },
-        129usize,
+        137usize,
         concat!(
             "Offset of field: ",
             stringify!(hltas_frame),
@@ -1192,7 +1206,7 @@ fn bindgen_test_layout_hltas_frame() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).LgagstMinSpeedPresent) as usize - ptr as usize },
-        133usize,
+        141usize,
         concat!(
             "Offset of field: ",
             stringify!(hltas_frame),
@@ -1202,7 +1216,7 @@ fn bindgen_test_layout_hltas_frame() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).LgagstMinSpeed) as usize - ptr as usize },
-        136usize,
+        144usize,
         concat!(
             "Offset of field: ",
             stringify!(hltas_frame),
@@ -1212,7 +1226,7 @@ fn bindgen_test_layout_hltas_frame() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).ResetFrame) as usize - ptr as usize },
-        140usize,
+        148usize,
         concat!(
             "Offset of field: ",
             stringify!(hltas_frame),
@@ -1222,7 +1236,7 @@ fn bindgen_test_layout_hltas_frame() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).ResetNonSharedRNGSeed) as usize - ptr as usize },
-        144usize,
+        152usize,
         concat!(
             "Offset of field: ",
             stringify!(hltas_frame),
@@ -1232,7 +1246,7 @@ fn bindgen_test_layout_hltas_frame() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).StrafingAlgorithmPresent) as usize - ptr as usize },
-        152usize,
+        160usize,
         concat!(
             "Offset of field: ",
             stringify!(hltas_frame),
@@ -1242,7 +1256,7 @@ fn bindgen_test_layout_hltas_frame() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).Algorithm) as usize - ptr as usize },
-        156usize,
+        164usize,
         concat!(
             "Offset of field: ",
             stringify!(hltas_frame),
@@ -1252,7 +1266,7 @@ fn bindgen_test_layout_hltas_frame() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).AlgorithmParametersPresent) as usize - ptr as usize },
-        160usize,
+        168usize,
         concat!(
             "Offset of field: ",
             stringify!(hltas_frame),
@@ -1262,7 +1276,7 @@ fn bindgen_test_layout_hltas_frame() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).Parameters) as usize - ptr as usize },
-        164usize,
+        172usize,
         concat!(
             "Offset of field: ",
             stringify!(hltas_frame),
@@ -1272,7 +1286,7 @@ fn bindgen_test_layout_hltas_frame() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).ChangePresent) as usize - ptr as usize },
-        196usize,
+        204usize,
         concat!(
             "Offset of field: ",
             stringify!(hltas_frame),
@@ -1282,7 +1296,7 @@ fn bindgen_test_layout_hltas_frame() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).Target) as usize - ptr as usize },
-        197usize,
+        205usize,
         concat!(
             "Offset of field: ",
             stringify!(hltas_frame),
@@ -1292,7 +1306,7 @@ fn bindgen_test_layout_hltas_frame() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).ChangeFinalValue) as usize - ptr as usize },
-        200usize,
+        208usize,
         concat!(
             "Offset of field: ",
             stringify!(hltas_frame),
@@ -1302,7 +1316,7 @@ fn bindgen_test_layout_hltas_frame() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).ChangeOver) as usize - ptr as usize },
-        204usize,
+        212usize,
         concat!(
             "Offset of field: ",
             stringify!(hltas_frame),
@@ -1312,7 +1326,7 @@ fn bindgen_test_layout_hltas_frame() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).TargetYawOverride) as usize - ptr as usize },
-        208usize,
+        216usize,
         concat!(
             "Offset of field: ",
             stringify!(hltas_frame),
@@ -1322,7 +1336,7 @@ fn bindgen_test_layout_hltas_frame() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).TargetYawOverrideCount) as usize - ptr as usize },
-        212usize,
+        220usize,
         concat!(
             "Offset of field: ",
             stringify!(hltas_frame),
@@ -1332,7 +1346,7 @@ fn bindgen_test_layout_hltas_frame() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).RenderYawOverride) as usize - ptr as usize },
-        216usize,
+        224usize,
         concat!(
             "Offset of field: ",
             stringify!(hltas_frame),
@@ -1342,7 +1356,7 @@ fn bindgen_test_layout_hltas_frame() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).RenderYawOverrideCount) as usize - ptr as usize },
-        220usize,
+        228usize,
         concat!(
             "Offset of field: ",
             stringify!(hltas_frame),

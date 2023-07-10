@@ -68,6 +68,10 @@ pub enum Context {
     NoFromToParameters,
     /// The yaw range vectorial strafing constraint is missing the "to" word.
     NoTo,
+    /// Yawspeed is required for constant yawspeed but not specified.
+    NoYawspeed,
+    /// Only side strafe works with constant yawspeed now
+    UnsupportedConstantYawspeedDir,
 }
 
 /// `.hltas` parsing error.
@@ -126,6 +130,10 @@ impl Display for Context {
             NoPlusMinusBeforeTolerance => write!(f, "missing +- before tolerance"),
             NoFromToParameters => write!(f, "missing from/to parameters"),
             NoTo => write!(f, "missing \"to\" in the from/to constraint"),
+            NoYawspeed => write!(f, "missing yawspeed value"),
+            UnsupportedConstantYawspeedDir => {
+                write!(f, "cannot pair constant yawspeed with current strafe dir")
+            }
         }
     }
 }

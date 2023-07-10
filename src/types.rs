@@ -220,6 +220,10 @@ pub enum AutoMovement {
     /// Set the yaw angle to this value.
     SetYaw(f32),
     /// Automatic strafing.
+    #[cfg_attr(
+        feature = "proptest1",
+        proptest(strategy = "arbitrary_strafe_settings()")
+    )]
     Strafe(StrafeSettings),
 }
 
@@ -235,7 +239,7 @@ pub struct StrafeSettings {
 }
 
 /// Type of automatic strafing.
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 #[cfg_attr(feature = "serde1", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "proptest1", derive(Arbitrary))]
 pub enum StrafeType {
@@ -247,6 +251,8 @@ pub enum StrafeType {
     MaxDeccel,
     /// Turn without changing the velocity magnitude.
     ConstSpeed,
+    /// Turn with constant rate.
+    ConstYawspeed(f32),
 }
 
 /// Direction of automatic strafing.
@@ -255,12 +261,9 @@ pub enum StrafeType {
 #[cfg_attr(feature = "proptest1", derive(Arbitrary))]
 pub enum StrafeDir {
     /// Turn left.
-    /// Data inside side strafe enum specifies constant yawspeed it should use
-    /// It should be optional for backward compatibility and empty field
-    /// means unlimited yawspeed. 0f32 is equivalent to empty field.
-    Left(Option<f32>),
+    Left,
     /// Turn right.
-    Right(Option<f32>),
+    Right,
     /// Let the strafing type decide. Most useful with maximum decceleration.
     Best,
     /// Strafe towards this yaw angle.
@@ -521,6 +524,18 @@ fn arbitrary_frame_time() -> impl Strategy<Value = String> {
 #[cfg(feature = "proptest1")]
 fn arbitrary_property_value() -> impl Strategy<Value = String> {
     any_with::<String>("\\S|\\S\\PC*\\S".into())
+}
+
+/// Generate arbitrary strafe settings which for now help with constant yawspeed cases.
+#[cfg(feature = "proptest1")]
+fn arbitrary_strafe_settings() -> impl Strategy<Value = AutoMovement> {
+    any::<StrafeSettings>().prop_map(|mut x| {
+        if let StrafeType::ConstYawspeed(_) = x.type_ {
+            x.dir = StrafeDir::Left;
+        }
+
+        AutoMovement::Strafe(x)
+    })
 }
 
 impl HLTAS {
