@@ -255,6 +255,9 @@ pub enum StrafeType {
 #[cfg_attr(feature = "proptest1", derive(Arbitrary))]
 pub enum StrafeDir {
     /// Turn left.
+    /// Data inside side strafe enum specifies constant yawspeed it should use
+    /// It should be optional for backward compatibility and empty field
+    /// means unlimited yawspeed. 0f32 is equivalent to empty field.
     Left(Option<f32>),
     /// Turn right.
     Right(Option<f32>),
