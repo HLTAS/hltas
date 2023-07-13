@@ -30,7 +30,7 @@ fn strafe_type<W: Write>(type_: StrafeType) -> impl SerializeFn<W> {
         MaxAngle => string("1"),
         MaxDeccel => string("2"),
         ConstSpeed => string("3"),
-        ConstYawspeed(_) => string("5"),
+        ConstYawspeed(_) => string("4"),
     }
 }
 

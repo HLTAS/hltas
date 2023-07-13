@@ -36,7 +36,7 @@ fn strafe_type(i: &str) -> IResult<StrafeType> {
         map(char('1'), |_| StrafeType::MaxAngle),
         map(char('2'), |_| StrafeType::MaxDeccel),
         map(char('3'), |_| StrafeType::ConstSpeed),
-        map(char('5'), |_| StrafeType::ConstYawspeed(0.)),
+        map(char('4'), |_| StrafeType::ConstYawspeed(0.)),
     ))(i)
 }
 

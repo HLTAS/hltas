@@ -638,7 +638,7 @@ extern "C" int hltas_input_get_frame(const void* input, size_t index, hltas_fram
 		c_frame->Yaw = frame.Yaw;
 	}
 	if (frame.Type == HLTAS::StrafeType::CONSTYAWSPEED) {
-			c_frame->Yawspeed = frame.Yawspeed;
+		c_frame->Yawspeed = frame.Yawspeed;
 	}
 	c_frame->Pitch = frame.Pitch;
 	c_frame->Repeats = frame.Repeats;
