@@ -70,8 +70,10 @@ pub enum Context {
     NoTo,
     /// Yawspeed is required for constant yawspeed but not specified.
     NoYawspeed,
-    /// Only side strafe works with constant yawspeed now
+    /// Only side strafe works with constant yawspeed now.
     UnsupportedConstantYawspeedDir,
+    /// Negative yawspeed value.
+    NegativeYawspeed,
 }
 
 /// `.hltas` parsing error.
@@ -133,6 +135,9 @@ impl Display for Context {
             NoYawspeed => write!(f, "missing yawspeed value"),
             UnsupportedConstantYawspeedDir => {
                 write!(f, "cannot pair constant yawspeed with current strafe dir")
+            }
+            NegativeYawspeed => {
+                write!(f, "yawspeed value is negative")
             }
         }
     }

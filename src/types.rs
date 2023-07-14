@@ -530,8 +530,9 @@ fn arbitrary_property_value() -> impl Strategy<Value = String> {
 #[cfg(feature = "proptest1")]
 fn arbitrary_strafe_settings() -> impl Strategy<Value = AutoMovement> {
     any::<StrafeSettings>().prop_map(|mut x| {
-        if let StrafeType::ConstYawspeed(_) = x.type_ {
+        if let StrafeType::ConstYawspeed(yawspeed) = x.type_ {
             x.dir = StrafeDir::Left;
+            x.type_ = StrafeType::ConstYawspeed(yawspeed.abs());
         }
 
         AutoMovement::Strafe(x)
@@ -939,6 +940,9 @@ mod tests {
         "no-plus-minus-before-tolerance",
         NoPlusMinusBeforeTolerance
     }
+    test_error! { error_const_yawspeed_no_yaw, "const-yawspeed-no-yawspeed", NoYawspeed }
+    test_error! { error_const_yawspeed_negative, "const-yawspeed-negative", NegativeYawspeed }
+    test_error! { error_const_yawspeed_unsupported, "const-yawspeed-unsupported", UnsupportedConstantYawspeedDir }
 
     #[cfg(feature = "proptest1")]
     proptest! {

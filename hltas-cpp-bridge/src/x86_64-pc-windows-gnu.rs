@@ -55,6 +55,7 @@ pub enum ErrorCode {
     NO_TO_IN_FROMTO_ALGORITHM = 20,
     NO_YAWSPEED = 21,
     UNSUPPORTED_YAWSPEED_DIR = 22,
+    NEGATIVE_YAWSPEED_VALUE = 23,
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]

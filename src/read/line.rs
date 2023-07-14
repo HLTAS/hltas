@@ -323,6 +323,11 @@ fn yaw_field<'a>(
                         Context::NoYawspeed,
                         not(pair(not(recognize_float), char('-'))),
                     )(i)?;
+                    context(
+                        Context::NegativeYawspeed,
+                        not(pair(char('-'), recognize_float)),
+                    )(i)?;
+
                     let (_, yawspeed) = peek(float)(i)?;
                     (StrafeType::ConstYawspeed(yawspeed), true)
                 }

@@ -171,6 +171,7 @@ impl From<read::Context> for hltas_cpp::ErrorCode {
             NoTo => NO_TO_IN_FROMTO_ALGORITHM,
             NoYawspeed => NO_YAWSPEED,
             UnsupportedConstantYawspeedDir => UNSUPPORTED_YAWSPEED_DIR,
+            NegativeYawspeed => NEGATIVE_YAWSPEED_VALUE,
         }
     }
 }
