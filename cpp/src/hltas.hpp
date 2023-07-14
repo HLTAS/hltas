@@ -40,7 +40,10 @@ namespace HLTAS
 		MISSING_CONSTRAINTS,
 		NO_PM_IN_TOLERANCE,
 		MISSING_ALGORITHM_FROMTO_PARAMETERS,
-		NO_TO_IN_FROMTO_ALGORITHM
+		NO_TO_IN_FROMTO_ALGORITHM,
+		NO_YAWSPEED,
+		UNSUPPORTED_YAWSPEED_DIR,
+		NEGATIVE_YAWSPEED_VALUE
 	};
 
 	struct ErrorDescription {
@@ -54,7 +57,8 @@ namespace HLTAS
 		MAXACCEL = 0,
 		MAXANGLE,
 		MAXDECCEL,
-		CONSTSPEED
+		CONSTSPEED,
+		CONSTYAWSPEED
 	};
 
 	enum class StrafeDir : unsigned char {
@@ -317,6 +321,7 @@ namespace HLTAS
 				double X, Y;
 			};
 			unsigned Count;
+			double Yawspeed;
 		};
 		double Pitch;
 
@@ -331,6 +336,8 @@ namespace HLTAS
 		double GetY() const;
 		inline bool HasCount() const { return YawPresent && Strafe && (Dir == StrafeDir::LEFT_RIGHT || Dir == StrafeDir::RIGHT_LEFT); }
 		unsigned GetCount() const;
+		inline bool HasYawspeed() const { return YawPresent && Strafe && Type == StrafeType::CONSTYAWSPEED; }
+		double GetYawspeed() const;
 		double GetPitch() const;
 		inline unsigned GetRepeats() const { return Repeats; }
 		void SetYawPresent(bool value);
@@ -338,6 +345,7 @@ namespace HLTAS
 		void SetX(double value);
 		void SetY(double value);
 		void SetCount(unsigned value);
+		void SetYawspeed(double value);
 		void SetPitch(double value);
 		void SetRepeats(unsigned value);
 
@@ -494,6 +502,7 @@ extern "C" {
 		double X;
 		double Y;
 		unsigned Count;
+		double Yawspeed;
 		double Pitch;
 		uint32_t Repeats;
 		const char* Commands;

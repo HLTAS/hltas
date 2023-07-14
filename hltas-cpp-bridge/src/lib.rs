@@ -127,6 +127,7 @@ impl From<StrafeType> for hltas_cpp::StrafeType {
             MaxAngle => Self::MAXANGLE,
             MaxDeccel => Self::MAXDECCEL,
             ConstSpeed => Self::CONSTSPEED,
+            ConstYawspeed(_) => Self::CONSTYAWSPEED,
         }
     }
 }
@@ -140,6 +141,7 @@ impl From<hltas_cpp::StrafeType> for StrafeType {
             MAXANGLE => Self::MaxAngle,
             MAXDECCEL => Self::MaxDeccel,
             CONSTSPEED => Self::ConstSpeed,
+            CONSTYAWSPEED => Self::ConstYawspeed(0.),
         }
     }
 }
@@ -167,6 +169,9 @@ impl From<read::Context> for hltas_cpp::ErrorCode {
             NoPlusMinusBeforeTolerance => NO_PM_IN_TOLERANCE,
             NoFromToParameters => MISSING_ALGORITHM_FROMTO_PARAMETERS,
             NoTo => NO_TO_IN_FROMTO_ALGORITHM,
+            NoYawspeed => NO_YAWSPEED,
+            UnsupportedConstantYawspeedDir => UNSUPPORTED_YAWSPEED_DIR,
+            NegativeYawspeed => NEGATIVE_YAWSPEED_VALUE,
         }
     }
 }
@@ -434,6 +439,12 @@ pub unsafe fn hltas_frame_from_non_comment_line(
                 Some(AutoMovement::Strafe(StrafeSettings { type_, dir })) => {
                     frame.Strafe = true;
                     frame.Type = type_.into();
+
+                    if let StrafeType::ConstYawspeed(yawspeed) = type_ {
+                        frame.YawPresent = true;
+                        frame.Yawspeed = f64::from(yawspeed);
+                    }
+
                     match dir {
                         StrafeDir::Left => {
                             frame.Dir = hltas_cpp::StrafeDir::LEFT;
@@ -994,7 +1005,12 @@ unsafe fn hltas_rs_to_writer(
         let movement = if frame.Strafe {
             use hltas_cpp::StrafeDir::*;
             Some(AutoMovement::Strafe(StrafeSettings {
-                type_: frame.Type.into(),
+                type_: match frame.Type {
+                    hltas_cpp::StrafeType::CONSTYAWSPEED => {
+                        StrafeType::ConstYawspeed(frame.Yawspeed as f32)
+                    }
+                    _ => frame.Type.into(),
+                },
                 dir: match frame.Dir {
                     LEFT => StrafeDir::Left,
                     RIGHT => StrafeDir::Right,

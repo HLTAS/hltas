@@ -88,6 +88,9 @@ namespace HLTAS
 		} else {
 			Yaw = c_frame.Yaw;
 		}
+		if (c_frame.Type == HLTAS::StrafeType::CONSTYAWSPEED) {
+			Yawspeed = c_frame.Yawspeed;
+		}
 		Pitch = c_frame.Pitch;
 		Repeats = c_frame.Repeats;
 		if (c_frame.Commands)
@@ -246,6 +249,12 @@ namespace HLTAS
 		return Count;
 	}
 
+	double Frame::GetYawspeed() const 
+	{
+		assert(HasYawspeed());
+		return Yawspeed;
+	}
+
 	double Frame::GetPitch() const
 	{
 		assert(PitchPresent);
@@ -284,6 +293,13 @@ namespace HLTAS
 		assert(!Strafe || (Dir == StrafeDir::LEFT_RIGHT || Dir == StrafeDir::RIGHT_LEFT));
 		YawPresent = true;
 		Count = value;
+	}
+
+	void Frame::SetYawspeed(double value)
+	{
+		assert(!Strafe || Type == StrafeType::CONSTYAWSPEED);
+		YawPresent = true;
+		Yawspeed = value;
 	}
 
 	void Frame::SetPitch(double value)
@@ -441,6 +457,7 @@ namespace HLTAS
 		       PitchPresent == rhs.PitchPresent &&
 		       YawPresent == rhs.YawPresent &&
 		       Yaw == rhs.Yaw &&
+			   Yawspeed == rhs.Yawspeed &&
 		       X == rhs.X &&
 		       Y == rhs.Y &&
 			   Count == rhs.Count &&
@@ -619,6 +636,9 @@ extern "C" int hltas_input_get_frame(const void* input, size_t index, hltas_fram
 		c_frame->Count = frame.Count;
 	} else {
 		c_frame->Yaw = frame.Yaw;
+	}
+	if (frame.Type == HLTAS::StrafeType::CONSTYAWSPEED) {
+		c_frame->Yawspeed = frame.Yawspeed;
 	}
 	c_frame->Pitch = frame.Pitch;
 	c_frame->Repeats = frame.Repeats;

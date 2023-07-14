@@ -4,7 +4,7 @@ use nom::{
     branch::alt,
     bytes::complete::{is_not, tag},
     character::complete::{anychar, char, not_line_ending, space1},
-    combinator::{all_consuming, cut, map, map_res, not, opt, peek, recognize, verify},
+    combinator::{all_consuming, cut, fail, map, map_res, not, opt, peek, recognize, verify},
     multi::separated_list1,
     sequence::{pair, preceded, separated_pair, tuple},
 };
@@ -36,6 +36,7 @@ fn strafe_type(i: &str) -> IResult<StrafeType> {
         map(char('1'), |_| StrafeType::MaxAngle),
         map(char('2'), |_| StrafeType::MaxDeccel),
         map(char('3'), |_| StrafeType::ConstSpeed),
+        map(char('4'), |_| StrafeType::ConstYawspeed(0.)),
     ))(i)
 }
 
@@ -313,78 +314,124 @@ fn yaw_field<'a>(
             let (i, yaw) = alt((map(float, Some), map(char('-'), |_| None)))(i)?;
             Ok((i, yaw.map(AutoMovement::SetYaw)))
         }
-        Some(AutoMovement::Strafe(StrafeSettings { dir, type_ })) => match dir {
-            StrafeDir::Yaw(_) => {
-                context(Context::NoYaw, not(pair(not(recognize_float), char('-'))))(i)?;
+        Some(AutoMovement::Strafe(StrafeSettings { dir, type_ })) => {
+            let (type_, is_constant_yawspeed) = match type_ {
+                StrafeType::ConstYawspeed(_) => {
+                    // This part will peek only to get the yaw field then the next match pattern will consume the string.
+                    // Any kind of handling is done by the other pattern.
+                    context(
+                        Context::NoYawspeed,
+                        not(pair(not(recognize_float), char('-'))),
+                    )(i)?;
+                    context(
+                        Context::NegativeYawspeed,
+                        not(pair(char('-'), recognize_float)),
+                    )(i)?;
 
-                let (i, yaw) = float(i)?;
-                Ok((
-                    i,
-                    Some(AutoMovement::Strafe(StrafeSettings {
-                        type_,
-                        dir: StrafeDir::Yaw(yaw),
-                    })),
-                ))
-            }
-            StrafeDir::Line { .. } => {
-                context(Context::NoYaw, not(pair(not(recognize_float), char('-'))))(i)?;
+                    let (_, yawspeed) = peek(float)(i)?;
+                    (StrafeType::ConstYawspeed(yawspeed), true)
+                }
+                _ => (type_, false),
+            };
 
-                let (i, yaw) = float(i)?;
-                Ok((
-                    i,
-                    Some(AutoMovement::Strafe(StrafeSettings {
-                        type_,
-                        dir: StrafeDir::Line { yaw },
-                    })),
-                ))
-            }
-            StrafeDir::Point { .. } => {
-                context(Context::NoYaw, not(pair(not(recognize_float), char('-'))))(i)?;
+            match dir {
+                StrafeDir::Yaw(_) => {
+                    context(Context::NoYaw, not(pair(not(recognize_float), char('-'))))(i)?;
 
-                let (i, (x, y)) = separated_pair(float, space1, float)(i)?;
-                Ok((
-                    i,
-                    Some(AutoMovement::Strafe(StrafeSettings {
-                        type_,
-                        dir: StrafeDir::Point { x, y },
-                    })),
-                ))
-            }
-            StrafeDir::LeftRight(_) => {
-                context(
-                    Context::NoYaw,
-                    not(pair(not(recognize(non_zero_u32)), char('-'))),
-                )(i)?;
+                    if is_constant_yawspeed {
+                        context(Context::UnsupportedConstantYawspeedDir, fail::<_, &str, _>)(i)?;
+                    }
 
-                let (i, count) = non_zero_u32(i)?;
-                Ok((
-                    i,
-                    Some(AutoMovement::Strafe(StrafeSettings {
-                        type_,
-                        dir: StrafeDir::LeftRight(count),
-                    })),
-                ))
-            }
-            StrafeDir::RightLeft(_) => {
-                context(
-                    Context::NoYaw,
-                    not(pair(not(recognize(non_zero_u32)), char('-'))),
-                )(i)?;
+                    let (i, yaw) = float(i)?;
+                    Ok((
+                        i,
+                        Some(AutoMovement::Strafe(StrafeSettings {
+                            type_,
+                            dir: StrafeDir::Yaw(yaw),
+                        })),
+                    ))
+                }
+                StrafeDir::Line { .. } => {
+                    context(Context::NoYaw, not(pair(not(recognize_float), char('-'))))(i)?;
 
-                let (i, count) = non_zero_u32(i)?;
-                Ok((
-                    i,
-                    Some(AutoMovement::Strafe(StrafeSettings {
-                        type_,
-                        dir: StrafeDir::RightLeft(count),
-                    })),
-                ))
+                    if is_constant_yawspeed {
+                        context(Context::UnsupportedConstantYawspeedDir, fail::<_, &str, _>)(i)?;
+                    }
+
+                    let (i, yaw) = float(i)?;
+                    Ok((
+                        i,
+                        Some(AutoMovement::Strafe(StrafeSettings {
+                            type_,
+                            dir: StrafeDir::Line { yaw },
+                        })),
+                    ))
+                }
+                StrafeDir::Point { .. } => {
+                    context(Context::NoYaw, not(pair(not(recognize_float), char('-'))))(i)?;
+
+                    if is_constant_yawspeed {
+                        context(Context::UnsupportedConstantYawspeedDir, fail::<_, &str, _>)(i)?;
+                    }
+
+                    let (i, (x, y)) = separated_pair(float, space1, float)(i)?;
+                    Ok((
+                        i,
+                        Some(AutoMovement::Strafe(StrafeSettings {
+                            type_,
+                            dir: StrafeDir::Point { x, y },
+                        })),
+                    ))
+                }
+                StrafeDir::LeftRight(_) => {
+                    context(
+                        Context::NoYaw,
+                        not(pair(not(recognize(non_zero_u32)), char('-'))),
+                    )(i)?;
+
+                    if is_constant_yawspeed {
+                        context(Context::UnsupportedConstantYawspeedDir, fail::<_, &str, _>)(i)?;
+                    }
+
+                    let (i, count) = non_zero_u32(i)?;
+                    Ok((
+                        i,
+                        Some(AutoMovement::Strafe(StrafeSettings {
+                            type_,
+                            dir: StrafeDir::LeftRight(count),
+                        })),
+                    ))
+                }
+                StrafeDir::RightLeft(_) => {
+                    context(
+                        Context::NoYaw,
+                        not(pair(not(recognize(non_zero_u32)), char('-'))),
+                    )(i)?;
+
+                    if is_constant_yawspeed {
+                        context(Context::UnsupportedConstantYawspeedDir, fail::<_, &str, _>)(i)?;
+                    }
+
+                    let (i, count) = non_zero_u32(i)?;
+                    Ok((
+                        i,
+                        Some(AutoMovement::Strafe(StrafeSettings {
+                            type_,
+                            dir: StrafeDir::RightLeft(count),
+                        })),
+                    ))
+                }
+                dir => {
+                    // Skip the field if constant yawspeed and side strafing.
+                    let (i, _) = if is_constant_yawspeed {
+                        recognize_float(i)?
+                    } else {
+                        tag("-")(i)?
+                    };
+                    Ok((i, Some(AutoMovement::Strafe(StrafeSettings { type_, dir }))))
+                }
             }
-            dir => {
-                let (i, _) = char('-')(i)?;
-                Ok((i, Some(AutoMovement::Strafe(StrafeSettings { type_, dir }))))
-            }
-        },
+        }
         _ => unreachable!(),
     }
 }

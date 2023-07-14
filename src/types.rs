@@ -220,6 +220,10 @@ pub enum AutoMovement {
     /// Set the yaw angle to this value.
     SetYaw(f32),
     /// Automatic strafing.
+    #[cfg_attr(
+        feature = "proptest1",
+        proptest(strategy = "arbitrary_strafe_settings()")
+    )]
     Strafe(StrafeSettings),
 }
 
@@ -235,7 +239,7 @@ pub struct StrafeSettings {
 }
 
 /// Type of automatic strafing.
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 #[cfg_attr(feature = "serde1", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "proptest1", derive(Arbitrary))]
 pub enum StrafeType {
@@ -247,6 +251,8 @@ pub enum StrafeType {
     MaxDeccel,
     /// Turn without changing the velocity magnitude.
     ConstSpeed,
+    /// Turn with constant rate.
+    ConstYawspeed(f32),
 }
 
 /// Direction of automatic strafing.
@@ -518,6 +524,19 @@ fn arbitrary_frame_time() -> impl Strategy<Value = String> {
 #[cfg(feature = "proptest1")]
 fn arbitrary_property_value() -> impl Strategy<Value = String> {
     any_with::<String>("\\S|\\S\\PC*\\S".into())
+}
+
+/// Generate arbitrary strafe settings which for now help with constant yawspeed cases.
+#[cfg(feature = "proptest1")]
+fn arbitrary_strafe_settings() -> impl Strategy<Value = AutoMovement> {
+    any::<StrafeSettings>().prop_map(|mut x| {
+        if let StrafeType::ConstYawspeed(yawspeed) = x.type_ {
+            x.dir = StrafeDir::Left;
+            x.type_ = StrafeType::ConstYawspeed(yawspeed.abs());
+        }
+
+        AutoMovement::Strafe(x)
+    })
 }
 
 impl HLTAS {
@@ -921,6 +940,9 @@ mod tests {
         "no-plus-minus-before-tolerance",
         NoPlusMinusBeforeTolerance
     }
+    test_error! { error_const_yawspeed_no_yaw, "const-yawspeed-no-yawspeed", NoYawspeed }
+    test_error! { error_const_yawspeed_negative, "const-yawspeed-negative", NegativeYawspeed }
+    test_error! { error_const_yawspeed_unsupported, "const-yawspeed-unsupported", UnsupportedConstantYawspeedDir }
 
     #[cfg(feature = "proptest1")]
     proptest! {
