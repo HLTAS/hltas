@@ -52,7 +52,7 @@ match HLTAS::from_str(&contents) {
 [`Serialize`]: https://docs.serde.rs/serde/trait.Serialize.html
 [`Deserialize`]: https://docs.serde.rs/serde/trait.Deserialize.html
 [proptest]: https://crates.io/crates/proptest
-[`Arbitrary`]: https://docs.rs/proptest/1.0.0/proptest/arbitrary/trait.Arbitrary.html
+[`Arbitrary`]: https://docs.rs/proptest/1.2.0/proptest/arbitrary/trait.Arbitrary.html
 
 ## C++ Wrapper
 
