@@ -724,6 +724,20 @@ fn line_render_yaw_override(i: &str) -> IResult<Vec<f32>> {
     Ok((i, yaws))
 }
 
+fn line_pitch_override(i: &str) -> IResult<Vec<f32>> {
+    let (i, (name, value)) = property(i)?;
+    tag("pitch_override")(name)?;
+    let (_, pitches) = cut(separated_list1(space1, float))(value)?;
+    Ok((i, pitches))
+}
+
+fn line_render_pitch_override(i: &str) -> IResult<Vec<f32>> {
+    let (i, (name, value)) = property(i)?;
+    tag("render_pitch_override")(name)?;
+    let (_, pitches) = cut(separated_list1(space1, float))(value)?;
+    Ok((i, pitches))
+}
+
 /// Parses a `Line`.
 ///
 /// # Examples
@@ -751,6 +765,8 @@ pub fn line(i: &str) -> IResult<Line> {
         map(line_change, Line::Change),
         map(line_target_yaw_override, Line::TargetYawOverride),
         map(line_render_yaw_override, Line::RenderYawOverride),
+        map(line_pitch_override, Line::PitchOverride),
+        map(line_render_pitch_override, Line::RenderPitchOverride),
     ))(i)
 }
 

@@ -409,6 +409,8 @@ pub struct AllocatedData {
     save_name: Option<CString>,
     #[allow(dead_code)]
     yaws: Option<Box<[f32]>>,
+    #[allow(dead_code)]
+    pitches: Option<Box<[f32]>>,
 }
 
 /// Converts a non-comment line to a `hltas_frame`.
@@ -634,6 +636,18 @@ pub unsafe fn hltas_frame_from_non_comment_line(
             frame.RenderYawOverride = yaws.as_ptr();
             frame.RenderYawOverrideCount = yaws.len();
             allocated.yaws = Some(yaws);
+        }
+        Line::PitchOverride(pitches) => {
+            let pitches: Box<[f32]> = pitches.to_owned().into();
+            frame.PitchOverride = pitches.as_ptr();
+            frame.PitchOverrideCount = pitches.len();
+            allocated.pitches = Some(pitches);
+        }
+        Line::RenderPitchOverride(pitches) => {
+            let pitches: Box<[f32]> = pitches.to_owned().into();
+            frame.RenderPitchOverride = pitches.as_ptr();
+            frame.RenderPitchOverrideCount = pitches.len();
+            allocated.pitches = Some(pitches);
         }
     }
 
