@@ -386,6 +386,14 @@ fn line<W: Write>(line: &Line) -> impl SerializeFn<W> + '_ {
             string("render_yaw_override"),
             many_ref(yaws, |yaw| pair(string(" "), display(yaw))),
         ))(out),
+        Line::PitchOverride(pitches) => tuple((
+            string("pitch_override"),
+            many_ref(pitches, |pitch| pair(string(" "), display(pitch))),
+        ))(out),
+        Line::RenderPitchOverride(pitches) => tuple((
+            string("render_pitch_override"),
+            many_ref(pitches, |pitch| pair(string(" "), display(pitch))),
+        ))(out),
     }
 }
 

@@ -125,6 +125,22 @@ pub enum Line {
         )]
         Vec<f32>,
     ),
+    /// Overrides pitch for the subsequent frames.
+    PitchOverride(
+        #[cfg_attr(
+            feature = "proptest1",
+            proptest(strategy = "prop::collection::vec(any::<f32>(), 1..100)")
+        )]
+        Vec<f32>,
+    ),
+    /// Overrides render pitch for the subsequent frames.
+    RenderPitchOverride(
+        #[cfg_attr(
+            feature = "proptest1",
+            proptest(strategy = "prop::collection::vec(any::<f32>(), 1..100)")
+        )]
+        Vec<f32>,
+    ),
 }
 
 /// A buttons line.

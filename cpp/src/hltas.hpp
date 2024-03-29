@@ -425,6 +425,9 @@ namespace HLTAS
 
 		std::vector<float> TargetYawOverride;
 		std::vector<float> RenderYawOverride;
+
+		std::vector<float> PitchOverride;
+		std::vector<float> RenderPitchOverride;
 	};
 
 	class Input
@@ -528,5 +531,9 @@ extern "C" {
 		size_t TargetYawOverrideCount;
 		const float* RenderYawOverride;
 		size_t RenderYawOverrideCount;
+		const float* PitchOverride;
+		size_t PitchOverrideCount;
+		const float* RenderPitchOverride;
+		size_t RenderPitchOverrideCount;
 	};
 }
