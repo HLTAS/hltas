@@ -74,6 +74,10 @@ pub enum Context {
     UnsupportedConstantYawspeedDir,
     /// Negative yawspeed value.
     NegativeYawspeed,
+    /// Empty yaw offset.
+    NoYawOffset,
+    /// Empty yaw offset acceleration.
+    NoYawOffsetAcceleration,
 }
 
 /// `.hltas` parsing error.
@@ -138,6 +142,12 @@ impl Display for Context {
             }
             NegativeYawspeed => {
                 write!(f, "yawspeed value is negative")
+            }
+            NoYawOffset => {
+                write!(f, "missing yaw offset value")
+            }
+            NoYawOffsetAcceleration => {
+                write!(f, "missing yaw offset acceleration value")
             }
         }
     }

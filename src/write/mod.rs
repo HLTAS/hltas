@@ -31,6 +31,7 @@ fn strafe_type<W: Write>(type_: StrafeType) -> impl SerializeFn<W> {
         MaxDeccel => string("2"),
         ConstSpeed => string("3"),
         ConstYawspeed(_) => string("4"),
+        MaxAccelYawOffset { .. } => string("5"),
     }
 }
 
@@ -184,16 +185,44 @@ fn yaw_field<W: Write>(movement: &Option<AutoMovement>) -> impl SerializeFn<W> +
     move |out: WriteContext<W>| match movement {
         None => string("-")(out),
         Some(AutoMovement::SetYaw(yaw)) => display(yaw)(out),
-        Some(AutoMovement::Strafe(StrafeSettings { type_, dir })) => match type_ {
-            StrafeType::ConstYawspeed(yawspeed) => display(yawspeed)(out),
-            _ => match dir {
-                StrafeDir::Yaw(yaw) => display(yaw)(out),
-                StrafeDir::Point { x, y } => tuple((display(x), string(" "), display(y)))(out),
-                StrafeDir::Line { yaw } => display(yaw)(out),
-                StrafeDir::LeftRight(count) | StrafeDir::RightLeft(count) => display(count)(out),
-                _ => string("-")(out),
-            },
-        },
+        Some(AutoMovement::Strafe(StrafeSettings { type_, dir })) => {
+            let is_constant_yawspeed = matches!(type_, StrafeType::ConstYawspeed(_));
+
+            let out = match dir {
+                StrafeDir::Yaw(yaw) => display(yaw)(out)?,
+                StrafeDir::Point { x, y } => tuple((display(x), string(" "), display(y)))(out)?,
+                StrafeDir::Line { yaw } => display(yaw)(out)?,
+                StrafeDir::LeftRight(count) | StrafeDir::RightLeft(count) => display(count)(out)?,
+                // Left or Right
+                _ => {
+                    // Write nothing for Left or Right because we will write the yawspeed in the next step.
+                    if is_constant_yawspeed {
+                        out
+                    } else {
+                        string("-")(out)?
+                    }
+                }
+            };
+
+            let out = match type_ {
+                StrafeType::ConstYawspeed(yawspeed) => display(yawspeed)(out)?,
+                StrafeType::MaxAccelYawOffset {
+                    start,
+                    target,
+                    accel,
+                } => tuple((
+                    string(" "),
+                    display(start),
+                    string(" "),
+                    display(target),
+                    string(" "),
+                    display(accel),
+                ))(out)?,
+                _ => out,
+            };
+
+            Ok(out)
+        }
     }
 }
 

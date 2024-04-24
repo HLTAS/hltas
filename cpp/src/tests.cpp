@@ -228,3 +228,31 @@ s03l-D----|------|------|0.001|90|-|5315\n\
 
 	validate(input);
 }
+
+TEST_CASE("Max accel yaw offset yaw strafing") {
+	const char *script = "version 1\n\
+hlstrafe_version 5\n\
+frames\n\
+s53-j-----|------|------|0.010000001|177 -1 2 3|-|158\n\
+";
+
+	char buffer[1024] = {};
+	memset(buffer, 1, 1024); // Fill with ones to test NULL termination.
+
+	HLTAS::Input input;
+	REQUIRE(input.FromString(script).Code == HLTAS::ErrorCode::OK);
+
+	const auto& frames = input.GetFrames();
+	REQUIRE(frames.size() == 1);
+
+	SECTION("Frame 3") {
+		const auto& frame = frames[0];
+		CHECK(frame.Frametime == "0.010000001");
+		CHECK(frame.GetRepeats() == 158);
+		CHECK(frame.GetYawPresent());
+		CHECK(frame.GetYaw() == 177);
+		CHECK(frame.GetMaxAccelYawOffsetStart() == -1);
+		CHECK(frame.GetMaxAccelYawOffsetTarget() == 2);
+		CHECK(frame.GetMaxAccelYawOffsetAccel() == 3);
+	}
+}

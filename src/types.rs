@@ -269,6 +269,14 @@ pub enum StrafeType {
     ConstSpeed,
     /// Turn with constant rate.
     ConstYawspeed(f32),
+    /// Gain as much speed as possible but each turn has additional yaw.
+    ///
+    /// Positive acceleration means current yaw offset starts at starting yaw offset, increases by acceleration,
+    /// then caps at target yaw offset.
+    ///
+    /// Negative acceleration means current yaw offset starts at target yaw offset, decreases by acceleration,
+    /// then caps at starting yaw offset.
+    MaxAccelYawOffset { start: f32, target: f32, accel: f32 },
 }
 
 /// Direction of automatic strafing.
@@ -959,6 +967,9 @@ mod tests {
     test_error! { error_const_yawspeed_no_yaw, "const-yawspeed-no-yawspeed", NoYawspeed }
     test_error! { error_const_yawspeed_negative, "const-yawspeed-negative", NegativeYawspeed }
     test_error! { error_const_yawspeed_unsupported, "const-yawspeed-unsupported", UnsupportedConstantYawspeedDir }
+
+    test_error! { error_max_accel_yaw_offset_single_yaw, "max-accel-yaw-offset-single-yaw", NoYawspeed }
+    test_error! { error_max_accel_yaw_offset_no_accel, "max-accel-yaw-offset-no-accel", NoYawOffsetAcceleration }
 
     #[cfg(feature = "proptest1")]
     proptest! {

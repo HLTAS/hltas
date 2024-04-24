@@ -128,6 +128,7 @@ impl From<StrafeType> for hltas_cpp::StrafeType {
             MaxDeccel => Self::MAXDECCEL,
             ConstSpeed => Self::CONSTSPEED,
             ConstYawspeed(_) => Self::CONSTYAWSPEED,
+            MaxAccelYawOffset { .. } => Self::MAXACCELYAWOFFSET,
         }
     }
 }
@@ -142,6 +143,11 @@ impl From<hltas_cpp::StrafeType> for StrafeType {
             MAXDECCEL => Self::MaxDeccel,
             CONSTSPEED => Self::ConstSpeed,
             CONSTYAWSPEED => Self::ConstYawspeed(0.),
+            MAXACCELYAWOFFSET => Self::MaxAccelYawOffset {
+                start: 0.,
+                target: 0.,
+                accel: 0.,
+            },
         }
     }
 }
@@ -172,6 +178,8 @@ impl From<read::Context> for hltas_cpp::ErrorCode {
             NoYawspeed => NO_YAWSPEED,
             UnsupportedConstantYawspeedDir => UNSUPPORTED_YAWSPEED_DIR,
             NegativeYawspeed => NEGATIVE_YAWSPEED_VALUE,
+            NoYawOffset => NO_YAW_OFFSET,
+            NoYawOffsetAcceleration => NO_YAW_OFFSET_ACCELERATION,
         }
     }
 }
@@ -445,6 +453,20 @@ pub unsafe fn hltas_frame_from_non_comment_line(
                     if let StrafeType::ConstYawspeed(yawspeed) = type_ {
                         frame.YawPresent = true;
                         frame.Yawspeed = f64::from(yawspeed);
+                    }
+
+                    if let StrafeType::MaxAccelYawOffset {
+                        start,
+                        target,
+                        accel,
+                    } = type_
+                    {
+                        // Need to set this boolean and do get/set methods,
+                        // so hlstrafe can directly access the values.
+                        frame.YawPresent = true;
+                        frame.StartYawOffset = f64::from(start);
+                        frame.TargetYawOffset = f64::from(target);
+                        frame.Acceleration = f64::from(accel);
                     }
 
                     match dir {
@@ -1023,6 +1045,12 @@ unsafe fn hltas_rs_to_writer(
                     hltas_cpp::StrafeType::CONSTYAWSPEED => {
                         StrafeType::ConstYawspeed(frame.Yawspeed as f32)
                     }
+                    hltas_cpp::StrafeType::MAXACCELYAWOFFSET => StrafeType::MaxAccelYawOffset {
+                        start: frame.StartYawOffset as f32,
+                        target: frame.TargetYawOffset as f32,
+                        accel: frame.Acceleration as f32,
+                    },
+
                     _ => frame.Type.into(),
                 },
                 dir: match frame.Dir {

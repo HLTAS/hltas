@@ -43,7 +43,9 @@ namespace HLTAS
 		NO_TO_IN_FROMTO_ALGORITHM,
 		NO_YAWSPEED,
 		UNSUPPORTED_YAWSPEED_DIR,
-		NEGATIVE_YAWSPEED_VALUE
+		NEGATIVE_YAWSPEED_VALUE,
+		NO_YAW_OFFSET,
+		NO_YAW_OFFSET_ACCELERATION
 	};
 
 	struct ErrorDescription {
@@ -58,7 +60,8 @@ namespace HLTAS
 		MAXANGLE,
 		MAXDECCEL,
 		CONSTSPEED,
-		CONSTYAWSPEED
+		CONSTYAWSPEED,
+		MAXACCELYAWOFFSET
 	};
 
 	enum class StrafeDir : unsigned char {
@@ -323,6 +326,7 @@ namespace HLTAS
 			unsigned Count;
 			double Yawspeed;
 		};
+		double StartYawOffset, TargetYawOffset, Acceleration;
 		double Pitch;
 
 		unsigned Repeats;
@@ -348,6 +352,14 @@ namespace HLTAS
 		void SetYawspeed(double value);
 		void SetPitch(double value);
 		void SetRepeats(unsigned value);
+		// TODO: eh, is it necessary to have this? Right now it is just bad.
+		inline bool HasMaxAccelYawOffsetParams() const {return YawPresent && Strafe && Type == StrafeType::MAXACCELYAWOFFSET; }
+		double GetMaxAccelYawOffsetStart() const;
+		double GetMaxAccelYawOffsetTarget() const;
+		double GetMaxAccelYawOffsetAccel() const;
+		void SetMaxAccelYawOffsetStart(double value);
+		void SetMaxAccelYawOffsetTarget(double value);
+		void SetMaxAccelYawOffsetAccel(double value);
 
 		std::string Commands;
 		std::string Comments;
@@ -506,6 +518,9 @@ extern "C" {
 		double Y;
 		unsigned Count;
 		double Yawspeed;
+		double StartYawOffset;
+		double TargetYawOffset;
+		double Acceleration;
 		double Pitch;
 		uint32_t Repeats;
 		const char* Commands;
