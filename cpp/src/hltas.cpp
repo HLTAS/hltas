@@ -91,6 +91,11 @@ namespace HLTAS
 		if (c_frame.Type == HLTAS::StrafeType::CONSTYAWSPEED) {
 			Yawspeed = c_frame.Yawspeed;
 		}
+		if (c_frame.Type == HLTAS::StrafeType::MAXACCELYAWOFFSET) {
+			StartYawOffset = c_frame.StartYawOffset;
+			TargetYawOffset = c_frame.TargetYawOffset;
+			Acceleration = c_frame.Acceleration;
+		}
 		Pitch = c_frame.Pitch;
 		Repeats = c_frame.Repeats;
 		if (c_frame.Commands)
@@ -259,6 +264,24 @@ namespace HLTAS
 		return Yawspeed;
 	}
 
+	double Frame::GetMaxAccelYawOffsetStart() const
+	{
+		assert(HasMaxAccelYawOffsetParams());
+		return StartYawOffset;
+	}
+
+	double Frame::GetMaxAccelYawOffsetTarget() const
+	{
+		assert(HasMaxAccelYawOffsetParams());
+		return TargetYawOffset;
+	}
+
+	double Frame::GetMaxAccelYawOffsetAccel() const
+	{
+		assert(HasMaxAccelYawOffsetParams());
+		return Acceleration;
+	}
+
 	double Frame::GetPitch() const
 	{
 		assert(PitchPresent);
@@ -304,6 +327,29 @@ namespace HLTAS
 		assert(!Strafe || Type == StrafeType::CONSTYAWSPEED);
 		YawPresent = true;
 		Yawspeed = value;
+	}
+
+	void Frame::SetMaxAccelYawOffsetStart(double value)
+	{
+		// I don't remember why checking for `Strafe`, let's just parrot.
+		assert(!Strafe || Type == StrafeType::MAXACCELYAWOFFSET);
+		YawPresent = true;
+		StartYawOffset = value;
+	}
+
+	void Frame::SetMaxAccelYawOffsetTarget(double value)
+	{
+		// I don't remember why checking for `Strafe`, let's just parrot.
+		assert(!Strafe || Type == StrafeType::MAXACCELYAWOFFSET);
+		YawPresent = true;
+		TargetYawOffset = value;
+	}
+
+	void Frame::SetMaxAccelYawOffsetAccel(double value)
+	{
+		assert(!Strafe || Type == StrafeType::MAXACCELYAWOFFSET);
+		YawPresent = true;
+		Acceleration = value;
 	}
 
 	void Frame::SetPitch(double value)
@@ -462,6 +508,9 @@ namespace HLTAS
 		       YawPresent == rhs.YawPresent &&
 		       Yaw == rhs.Yaw &&
 			   Yawspeed == rhs.Yawspeed &&
+			   StartYawOffset == rhs.StartYawOffset &&
+			   TargetYawOffset == rhs.TargetYawOffset &&
+			   Acceleration == rhs.Acceleration &&
 		       X == rhs.X &&
 		       Y == rhs.Y &&
 			   Count == rhs.Count &&
@@ -643,6 +692,11 @@ extern "C" int hltas_input_get_frame(const void* input, size_t index, hltas_fram
 	}
 	if (frame.Type == HLTAS::StrafeType::CONSTYAWSPEED) {
 		c_frame->Yawspeed = frame.Yawspeed;
+	}
+	if (frame.Type == HLTAS::StrafeType::MAXACCELYAWOFFSET) {
+		c_frame->StartYawOffset = frame.StartYawOffset;
+		c_frame->TargetYawOffset = frame.TargetYawOffset;
+		c_frame->Acceleration = frame.Acceleration;
 	}
 	c_frame->Pitch = frame.Pitch;
 	c_frame->Repeats = frame.Repeats;
