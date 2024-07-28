@@ -50,7 +50,7 @@
 //! [proptest]: https://crates.io/crates/proptest
 //! [`Arbitrary`]: https://docs.rs/proptest/1.5.0/proptest/arbitrary/trait.Arbitrary.html
 
-#![doc(html_root_url = "https://docs.rs/hltas/0.8.0")]
+#![doc(html_root_url = "https://docs.rs/hltas/0.9.0")]
 #![deny(unsafe_code)]
 
 pub mod types;

@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [0.9.0] - 28 Jul 2024
+### Added
+- `Line::PitchOverride` and `Line::RenderPitchOverride`.
+- `StrafeType::MaxAccelYawOffset`.
+
 ## [0.8.0] - 23 Jul 2023
 ### Added
 - `Line::RenderYawOverride`.
@@ -61,7 +66,8 @@
 - `Properties::hlstrafe_version`.
 - `Line::VectorialStrafing` and `Line::VectorialStrafingConstraints`.
 
-[Unreleased]: https://github.com/HLTAS/hltas/compare/v0.8.0...HEAD
+[Unreleased]: https://github.com/HLTAS/hltas/compare/v0.9.0...HEAD
+[0.9.0]: https://github.com/HLTAS/hltas/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/HLTAS/hltas/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/HLTAS/hltas/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/HLTAS/hltas/compare/v0.5.0...v0.6.0
