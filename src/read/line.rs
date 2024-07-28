@@ -1096,7 +1096,15 @@ mod tests {
     fn max_accel_yaw_offset_parse() {
         let input = "- 0 69 -78.69";
 
-        yaw_field(Some(AutoMovement::Strafe(StrafeSettings {
+        if let Some(AutoMovement::Strafe(StrafeSettings {
+            type_:
+                StrafeType::MaxAccelYawOffset {
+                    start,
+                    target,
+                    accel,
+                },
+            ..
+        })) = yaw_field(Some(AutoMovement::Strafe(StrafeSettings {
             type_: StrafeType::MaxAccelYawOffset {
                 start: 0.,
                 target: 0.,
@@ -1106,31 +1114,28 @@ mod tests {
         })))(input)
         .unwrap()
         .1
-        .map(|what| {
-            if let AutoMovement::Strafe(StrafeSettings {
-                type_:
-                    StrafeType::MaxAccelYawOffset {
-                        start,
-                        target,
-                        accel,
-                    },
-                ..
-            }) = what
-            {
-                assert_eq!(start, 0.);
-                assert_eq!(target, 69.0);
-                assert_eq!(accel, -78.69)
-            } else {
-                unreachable!()
-            }
-        });
+        {
+            assert_eq!(start, 0.);
+            assert_eq!(target, 69.0);
+            assert_eq!(accel, -78.69)
+        } else {
+            unreachable!()
+        }
     }
 
     #[test]
     fn max_accel_yaw_offset_parse_yaw() {
         let input = "10 0 69 -78.69";
 
-        yaw_field(Some(AutoMovement::Strafe(StrafeSettings {
+        if let Some(AutoMovement::Strafe(StrafeSettings {
+            type_:
+                StrafeType::MaxAccelYawOffset {
+                    start,
+                    target,
+                    accel,
+                },
+            dir: StrafeDir::Yaw(yaw),
+        })) = yaw_field(Some(AutoMovement::Strafe(StrafeSettings {
             type_: StrafeType::MaxAccelYawOffset {
                 start: 0.,
                 target: 0.,
@@ -1140,24 +1145,13 @@ mod tests {
         })))(input)
         .unwrap()
         .1
-        .map(|what| {
-            if let AutoMovement::Strafe(StrafeSettings {
-                type_:
-                    StrafeType::MaxAccelYawOffset {
-                        start,
-                        target,
-                        accel,
-                    },
-                dir: StrafeDir::Yaw(yaw),
-            }) = what
-            {
-                assert_eq!(start, 0.);
-                assert_eq!(target, 69.0);
-                assert_eq!(accel, -78.69);
-                assert_eq!(yaw, 10.);
-            } else {
-                unreachable!()
-            }
-        });
+        {
+            assert_eq!(start, 0.);
+            assert_eq!(target, 69.0);
+            assert_eq!(accel, -78.69);
+            assert_eq!(yaw, 10.);
+        } else {
+            unreachable!()
+        }
     }
 }
