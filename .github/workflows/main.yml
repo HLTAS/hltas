@@ -37,7 +37,9 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
+      with:
+        show-progress: false
 
     - name: Install g++-multilib
       if: matrix.os == 'ubuntu-20.04'
@@ -46,12 +48,10 @@ jobs:
         sudo apt-get install g++-multilib
 
     - name: Install Rust
-      uses: actions-rs/toolchain@v1
+      uses: dtolnay/rust-toolchain@master
       with:
-        profile: minimal
-        override: true
         toolchain: ${{ matrix.rust }}
-        target: ${{ matrix.target }}
+        targets: ${{ matrix.target }}
 
     - name: Install cargo-hack
       uses: taiki-e/install-action@cargo-hack
@@ -85,39 +85,31 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
+      with:
+        show-progress: false
 
     - name: Install Rust
-      uses: actions-rs/toolchain@v1
+      uses: dtolnay/rust-toolchain@stable
       with:
-        profile: minimal
-        override: true
-        toolchain: stable
         components: clippy
 
     - name: Run clippy
-      uses: actions-rs/clippy-check@v1
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        args: --all --all-features
+      run: cargo clippy --all --all-targets
 
   rustfmt:
     name: Rustfmt
     runs-on: ubuntu-20.04
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
+      with:
+        show-progress: false
 
     - name: Install Rust
-      uses: actions-rs/toolchain@v1
+      uses: dtolnay/rust-toolchain@nightly
       with:
-        profile: minimal
-        override: true
-        toolchain: nightly
         components: rustfmt
 
     - name: Run rustfmt
-      uses: actions-rs/cargo@v1
-      with:
-        command: fmt
-        args: --all -- --check
+      run: cargo fmt --all -- --check
