@@ -671,6 +671,9 @@ pub unsafe fn hltas_frame_from_non_comment_line(
             frame.RenderPitchOverrideCount = pitches.len();
             allocated.pitches = Some(pitches);
         }
+        Line::IgnoreSmoothing => {
+            frame.IgnoreSmoothing = true;
+        }
     }
 
     (frame, ManuallyDrop::new(allocated))
@@ -998,6 +1001,11 @@ unsafe fn hltas_rs_to_writer(
             hltas.lines.push(Line::Reset {
                 non_shared_seed: frame.ResetNonSharedRNGSeed,
             });
+            continue;
+        }
+
+        if frame.IgnoreSmoothing {
+            hltas.lines.push(Line::IgnoreSmoothing);
             continue;
         }
 

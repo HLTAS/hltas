@@ -772,6 +772,10 @@ fn line_render_pitch_override(i: &str) -> IResult<Vec<f32>> {
     Ok((i, pitches))
 }
 
+fn line_ignore_smoothing(i: &str) -> IResult<()> {
+    map(tag("ignore_smoothing"), |_| ())(i)
+}
+
 /// Parses a `Line`.
 ///
 /// # Examples
@@ -801,6 +805,7 @@ pub fn line(i: &str) -> IResult<Line> {
         map(line_render_yaw_override, Line::RenderYawOverride),
         map(line_pitch_override, Line::PitchOverride),
         map(line_render_pitch_override, Line::RenderPitchOverride),
+        map(line_ignore_smoothing, |_| Line::IgnoreSmoothing),
     ))(i)
 }
 

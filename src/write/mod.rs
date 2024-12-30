@@ -423,6 +423,7 @@ fn line<W: Write>(line: &Line) -> impl SerializeFn<W> + '_ {
             string("render_pitch_override"),
             many_ref(pitches, |pitch| pair(string(" "), display(pitch))),
         ))(out),
+        Line::IgnoreSmoothing => string("ignore_smoothing")(out),
     }
 }
 

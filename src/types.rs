@@ -141,6 +141,8 @@ pub enum Line {
         )]
         Vec<f32>,
     ),
+    /// Ignores global smoothing for the next immediate frame bulk.
+    IgnoreSmoothing,
 }
 
 /// A buttons line.

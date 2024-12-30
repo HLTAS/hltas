@@ -237,7 +237,8 @@ namespace HLTAS
 			ChangePresent(false),
 			Target(ChangeTarget::YAW),
 			ChangeFinalValue(0),
-			ChangeOver(0) {};
+			ChangeOver(0),
+			IgnoreSmoothing(false) {};
 
 		Frame(const hltas_frame& c_frame);
 
@@ -440,6 +441,8 @@ namespace HLTAS
 
 		std::vector<float> PitchOverride;
 		std::vector<float> RenderPitchOverride;
+
+		bool IgnoreSmoothing;
 	};
 
 	class Input
@@ -550,5 +553,6 @@ extern "C" {
 		size_t PitchOverrideCount;
 		const float* RenderPitchOverride;
 		size_t RenderPitchOverrideCount;
+		bool IgnoreSmoothing;
 	};
 }

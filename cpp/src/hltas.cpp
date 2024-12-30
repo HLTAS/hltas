@@ -124,6 +124,7 @@ namespace HLTAS
 		RenderYawOverride = std::vector<float>(c_frame.RenderYawOverride, c_frame.RenderYawOverride + c_frame.RenderYawOverrideCount);
 		PitchOverride = std::vector<float>(c_frame.PitchOverride, c_frame.PitchOverride + c_frame.PitchOverrideCount);
 		RenderPitchOverride = std::vector<float>(c_frame.RenderPitchOverride, c_frame.RenderPitchOverride + c_frame.RenderPitchOverrideCount);
+		IgnoreSmoothing = c_frame.IgnoreSmoothing;
 	}
 
 	bool Frame::IsMovement() const {
@@ -138,7 +139,8 @@ namespace HLTAS
 			&& TargetYawOverride.empty()
 			&& RenderYawOverride.empty()
 			&& PitchOverride.empty()
-			&& RenderPitchOverride.empty();
+			&& RenderPitchOverride.empty()
+			&& !IgnoreSmoothing;
 	}
 
 	void Frame::ResetAutofuncs()
@@ -730,6 +732,7 @@ extern "C" int hltas_input_get_frame(const void* input, size_t index, hltas_fram
 	c_frame->PitchOverrideCount = frame.PitchOverride.size();
 	c_frame->RenderPitchOverride = frame.RenderPitchOverride.data();
 	c_frame->RenderPitchOverrideCount = frame.RenderPitchOverride.size();
+	c_frame->IgnoreSmoothing = frame.IgnoreSmoothing;
 
 	return 0;
 }
